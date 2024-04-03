@@ -18,10 +18,10 @@ bin/ic:
 		--output bin/ \
 		--platform ${PLATFORM} \
 		--tag netic/k8s-inventory-cli \
-		cmd/ci/main.go
+		cmd/ic/main.go
 	@DOCKER_BUILDKIT=1 docker build --platform ${PLATFORM} \
 		--tag netic/k8s-inventory-cli \
-		cmd/ci/main.go
+		cmd/ic/main.go
 
 .PHONY: release-patch
 release-patch:
@@ -55,27 +55,27 @@ fmt:
 .PHONY: build
 build: clean fmt lint | $(BIN)
 	@echo "Building k8s-inventory-cli..."
-	CGO_ENABLED=0 go build -o $(BIN)/ci \
+	CGO_ENABLED=0 go build -o $(BIN)/ic \
 		-v \
 		-a \
 		-tags release \
 		-ldflags '-s -w -X ${MODULEPATH}/internal/version.VERSION=$(VERSION) -X ${MODULEPATH}internal/version.COMMIT=$(COMMIT)' \
-		cmd/ci/main.go
+		cmd/ic/main.go
 
 # Runs go build
 .PHONY: build2
 build2: clean fmt | $(BIN)
 	@echo "Building k8s-inventory-cli..."
-	CGO_ENABLED=0 go build -o $(BIN)/ci \
+	CGO_ENABLED=0 go build -o $(BIN)/ic \
 		-v \
 		-tags release \
 		-ldflags '-s -w -X ${MODULEPATH}/internal/version.VERSION=$(VERSION) -X ${MODULEPATH}/internal/version.COMMIT=$(COMMIT)' \
-		cmd/ci/main.go
+		cmd/ic/main.go
 
 # Build docker image
 .PHONY: docker-build
 docker-build:
-	@echo "Building k8s-inventory-ci image..."
+	@echo "Building k8s-inventory-ic image..."
 	DOCKER_BUILDKIT=1 docker build --network=host --progress=plain --no-cache --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t netic/k8s-inventory-cli .
 
 # Tag and push docker image

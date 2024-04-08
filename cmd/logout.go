@@ -19,12 +19,14 @@ func (o *logoutOptions) addFlags(f *pflag.FlagSet) {
 	o.authenticationOptions.addFlags(f)
 }
 
+// Logout represents the logout command
 type Logout struct {
-	Authenticator authentication.Interface
-	TokenCache    tokencache.Interface
+	Authenticator authentication.Authenticator
+	TokenCache    tokencache.Cache
 	Logger        logger.Logger
 }
 
+// New creates a new logout command
 func (c *Logout) New() *cobra.Command {
 	var o logoutOptions
 	command := &cobra.Command{

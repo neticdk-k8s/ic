@@ -14,19 +14,21 @@ import (
 	"github.com/spf13/cobra/doc"
 )
 
-type Interface interface {
+// CLI represents a Command Line Interface
+type CLI interface {
 	Run(ctx context.Context, args []string, version string) int
 	GenDocs() error
 }
 
-type Cmd struct {
+type cli struct {
 	Root   *Root
 	Login  *Login
 	Logout *Logout
 	Logger logger.Logger
 }
 
-func NewCmd() Interface {
+// NewCLI creates a new CLI
+func NewCLI() CLI {
 	logger := logger.New(os.Stderr, "info")
 
 	tokenCache, err := tokencache.NewFSCache()
@@ -50,7 +52,7 @@ func NewCmd() Interface {
 		TokenCache:    tokenCache,
 		Logger:        logger,
 	}
-	return &Cmd{
+	return &cli{
 		Root:   root,
 		Login:  login,
 		Logout: logout,
@@ -58,7 +60,8 @@ func NewCmd() Interface {
 	}
 }
 
-func (c *Cmd) Run(ctx context.Context, args []string, version string) int {
+// Run runs the command
+func (c *cli) Run(ctx context.Context, args []string, version string) int {
 	rootCmd := c.buildRootCmd(args, version)
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		return 1
@@ -67,7 +70,7 @@ func (c *Cmd) Run(ctx context.Context, args []string, version string) int {
 	return 0
 }
 
-func (c *Cmd) buildRootCmd(args []string, version string) *cobra.Command {
+func (c *cli) buildRootCmd(args []string, version string) *cobra.Command {
 	rootCmd := c.Root.New()
 	rootCmd.Version = version
 	rootCmd.SilenceUsage = true
@@ -82,7 +85,8 @@ func (c *Cmd) buildRootCmd(args []string, version string) *cobra.Command {
 	return rootCmd
 }
 
-func (c *Cmd) GenDocs() error {
+// GenDocs generates the CLI documentation
+func (c *cli) GenDocs() error {
 	_, filename, _, ok := runtime.Caller(1)
 	if !ok {
 		fmt.Println("could not get filename of caller")

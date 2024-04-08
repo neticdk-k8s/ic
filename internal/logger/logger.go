@@ -95,6 +95,7 @@ type Logger interface {
 	SetInteractive(string)
 }
 
+// CharmLogger is a charms/lipgloss based logger
 type CharmLogger struct {
 	internal *log.Logger
 	writer   io.Writer

@@ -1,4 +1,4 @@
-package oidc
+package jwt
 
 import (
 	"bytes"
@@ -11,6 +11,8 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// ParseAccessToken parses an oauth2 access token into a JWT token
+// It does not perform verification
 func ParseAccessToken(accessToken string) (*jwt.Token, error) {
 	token, _, err := new(jwt.Parser).ParseUnverified(accessToken, jwt.MapClaims{})
 	return token, err

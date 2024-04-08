@@ -20,12 +20,14 @@ func (o *loginOptions) addFlags(f *pflag.FlagSet) {
 	o.authenticationOptions.addFlags(f)
 }
 
+// Login represents the login command
 type Login struct {
-	Authenticator authentication.Interface
-	TokenCache    tokencache.Interface
+	Authenticator authentication.Authenticator
+	TokenCache    tokencache.Cache
 	Logger        logger.Logger
 }
 
+// New creates a new login command
 func (c *Login) New() *cobra.Command {
 	var o loginOptions
 	command := &cobra.Command{
@@ -45,13 +47,13 @@ func (c *Login) New() *cobra.Command {
 				AuthOptions: authentication.AuthOptions{},
 			}
 			if o.authenticationOptions.OIDCGrantType == "authcode-browser" {
-				loginInput.AuthOptions.AuthCodeBrowser = &authcode.BrowserInput{
+				loginInput.AuthOptions.AuthCodeBrowser = &authcode.BrowserLoginInput{
 					BindAddress:         o.authenticationOptions.OIDCAuthBindAddr,
 					RedirectURLHostname: o.authenticationOptions.OIDCRedirectURLHostname,
 				}
 			} else if o.authenticationOptions.OIDCGrantType == "authcode-keyboard" {
-				loginInput.AuthOptions.AuthCodeKeyboard = &authcode.KeyboardInput{
-					RedirectURL: o.authenticationOptions.OIDCRedirectURLAuthCodeKeyboard,
+				loginInput.AuthOptions.AuthCodeKeyboard = &authcode.KeyboardLoginInput{
+					RedirectURI: o.authenticationOptions.OIDCRedirectURIAuthCodeKeyboard,
 				}
 			}
 

@@ -35,10 +35,12 @@ func (o *rootOptions) addFlags(f *pflag.FlagSet) {
 	_ = viper.BindPFlag("interactive", f.Lookup("interactive"))
 }
 
+// Root represents the root command
 type Root struct {
 	Logger logger.Logger
 }
 
+// New creates a new Root command
 func (c *Root) New() *cobra.Command {
 	var o rootOptions
 	command := &cobra.Command{

@@ -12,17 +12,17 @@ func (a OIDCSlogAdapter) Error(msg string, keysAndValues ...interface{}) {
 	a.Logger.Error(msg, keysAndValues...)
 }
 
-// Error logs messages at info level
+// Info logs messages at info level
 func (a OIDCSlogAdapter) Info(msg string, keysAndValues ...interface{}) {
 	a.Logger.Info(msg, keysAndValues...)
 }
 
-// Error logs messages at debug level
+// Debug logs messages at debug level
 func (a OIDCSlogAdapter) Debug(msg string, keysAndValues ...interface{}) {
 	a.Logger.Debug(msg, keysAndValues...)
 }
 
-// Error logs messages at warn level
+// Warn logs messages at warn level
 func (a OIDCSlogAdapter) Warn(msg string, keysAndValues ...interface{}) {
 	a.Logger.Warn(msg, keysAndValues...)
 }

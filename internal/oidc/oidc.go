@@ -1,5 +1,7 @@
 package oidc
 
+import "github.com/neticdk-k8s/k8s-inventory-cli/internal/jwt"
+
 // Provider represents an OICD provider
 type Provider struct {
 	IssuerURL   string
@@ -13,6 +15,8 @@ type TokenSet struct {
 	RefreshToken string
 }
 
-func (ts TokenSet) DecodeWithoutVerify() (*Claims, error) {
-	return DecodeWithoutVerify(ts.IDToken)
+// DecodeWithoutVerify decodes the JWT string and returns the claims.
+// Note that this method does not verify the signature and always trust it.
+func (ts TokenSet) DecodeWithoutVerify() (*jwt.Claims, error) {
+	return jwt.DecodeWithoutVerify(ts.IDToken)
 }

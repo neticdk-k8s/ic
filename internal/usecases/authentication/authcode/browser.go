@@ -13,16 +13,25 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type BrowserInput struct {
-	BindAddress         string
+// BrowserLoginInput is th input given to Login
+type BrowserLoginInput struct {
+	// BindAddress is the IP-address used by the redirect url server
+	BindAddress string
+	// RedirectURLHostname is the hostname used by the redirect url server
 	RedirectURLHostname string
 }
 
+// Browser represents a browser based login
 type Browser struct {
+	// Logger holds a logging instance
 	Logger logger.Logger
 }
 
-func (b *Browser) Login(ctx context.Context, in *BrowserInput, oidcClient oidc.Interface) (*oidc.TokenSet, error) {
+// Login performs browser based autocode flow, i.e.:
+// 1. Starting a http server that response to the redirect url request
+// 2. Opening a browser that performs login and redirects to the redirect url
+// 3. Validates the token
+func (b *Browser) Login(ctx context.Context, in *BrowserLoginInput, oidcClient oidc.Client) (*oidc.TokenSet, error) {
 	state, err := oauth2params.NewState()
 	if err != nil {
 		return nil, fmt.Errorf("could not generate a state: %w", err)

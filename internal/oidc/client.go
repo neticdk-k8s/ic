@@ -16,34 +16,50 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type Interface interface {
+// Client represents an OIDC Client
+type Client interface {
 	Refresh(ctx context.Context, refreshToken string) (*TokenSet, error)
 	Logout(idToken string) error
 	GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeInput, localServerReadyChan chan<- string) (*TokenSet, error)
-	GetAuthCodeURL(ctx context.Context, in AuthCodeURLInput) (string, error)
+	GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (string, error)
 	ExchangeAuthCode(ctx context.Context, in ExchangeAuthCodeInput) (*TokenSet, error)
 }
 
+// GetTokenByAuthCodeInput is the input given to GetTokenByAuthCode
 type GetTokenByAuthCodeInput struct {
-	BindAddress         string
+	// BindAddress is the IP-address used by the redirect url server
+	BindAddress string
+	// RedirectURLHostname is the hostname used by the redirect url server
 	RedirectURLHostname string
-	PKCEParams          *oauth2params.PKCE
-	State               string
-	Nonce               string
+	// PKCE represents a set of PKCE parameters
+	PKCEParams *oauth2params.PKCE
+	// OAuth 2.0 state
+	State string
+	// OIDC Nonce
+	Nonce string
 }
 
-type AuthCodeURLInput struct {
-	RedirectURL string
-	PKCEParams  *oauth2params.PKCE
-	State       string
-	Nonce       string
+// GetGetAuthCodeURL is the input given to GetAuthCodeURL
+type GetAuthCodeURLInput struct {
+	// RedirectURI is the redirect url
+	// This is typicalle an URN such as urn:ietf:wg:oauth:2.0:oob
+	RedirectURI string
+	// PKCE represents a set of PKCE parameters
+	PKCEParams *oauth2params.PKCE
+	// OAuth 2.0 state
+	State string
+	// OIDC Nonce
+	Nonce string
 }
 
 type ExchangeAuthCodeInput struct {
-	Code        string
-	PKCEParams  *oauth2params.PKCE
-	Nonce       string
-	RedirectURL string
+	Code string
+	// PKCE represents a set of PKCE parameters
+	PKCEParams *oauth2params.PKCE
+	// OIDC Nonce
+	Nonce string
+	// RedirectURI is the redirect url
+	RedirectURI string
 }
 
 type client struct {
@@ -53,6 +69,7 @@ type client struct {
 	logger            logger.Logger
 }
 
+// New creates a new OIDC Client
 func New(ctx context.Context, p Provider, logger logger.Logger) (*client, error) {
 	provider, err := gooidc.NewProvider(ctx, p.IssuerURL)
 	if err != nil {
@@ -85,6 +102,7 @@ func New(ctx context.Context, p Provider, logger logger.Logger) (*client, error)
 	}, nil
 }
 
+// Refresh creates an updated TokenSet by means of refreshing an oauth2 token
 func (c *client) Refresh(ctx context.Context, refreshToken string) (*TokenSet, error) {
 	currentToken := &oauth2.Token{
 		Expiry:       time.Now(),
@@ -139,6 +157,11 @@ func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	return client.Get(logoutURL)
 }
 
+// GetTokenByAuthCode performs the Authorization Code Grant Flow and returns
+// a token received from the provider.
+//
+// It does this by creating a local http server used for serving the RedirectURL
+// and opening a browser where the user logs in
 func (c *client) GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeInput, localServerReadyChan chan<- string) (*TokenSet, error) {
 	authCodeOptions := append(
 		in.PKCEParams.AuthCodeOptions(),
@@ -164,9 +187,10 @@ func (c *client) GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeIn
 	return c.verifyToken(token, in.Nonce)
 }
 
-func (c *client) GetAuthCodeURL(ctx context.Context, in AuthCodeURLInput) (string, error) {
+// GetAuthCodeURL returns a URL to OAuth 2.0 provider's consent page
+func (c *client) GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (string, error) {
 	cfg := c.oauth2config
-	cfg.RedirectURL = in.RedirectURL
+	cfg.RedirectURL = in.RedirectURI
 
 	requestOptions := append(
 		in.PKCEParams.AuthCodeOptions(),
@@ -176,9 +200,10 @@ func (c *client) GetAuthCodeURL(ctx context.Context, in AuthCodeURLInput) (strin
 	return cfg.AuthCodeURL(in.State, requestOptions...), nil
 }
 
+// ExchangeAuthCode converts an authorization code into a TokenSet
 func (c *client) ExchangeAuthCode(ctx context.Context, in ExchangeAuthCodeInput) (*TokenSet, error) {
 	cfg := c.oauth2config
-	cfg.RedirectURL = in.RedirectURL
+	cfg.RedirectURL = in.RedirectURI
 
 	token, err := cfg.Exchange(ctx, in.Code, in.PKCEParams.TokenRequestOptions()...)
 	if err != nil {

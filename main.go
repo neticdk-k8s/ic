@@ -10,5 +10,5 @@ import (
 var version = "HEAD"
 
 func main() {
-	os.Exit(cmd.NewCmd().Run(context.Background(), os.Args, version))
+	os.Exit(cmd.NewCLI().Run(context.Background(), os.Args, version))
 }

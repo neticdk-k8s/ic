@@ -16,9 +16,9 @@ IFS="." read -r -a semver <<<"${latest_version}"
 
 # Assume patch version bump if no argument given
 if [ -z "$1" ] || [ "$1" = "patch" ]; then
-	((semver[2]++))
+	_=$((semver[2]++))
 elif [ "$1" = "minor" ]; then
-	((semver[1]++))
+	_=$((semver[1]++))
 	semver[2]=0
 fi
 

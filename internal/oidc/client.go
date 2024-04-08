@@ -27,7 +27,7 @@ type Client interface {
 
 // GetTokenByAuthCodeInput is the input given to GetTokenByAuthCode
 type GetTokenByAuthCodeInput struct {
-	// BindAddress is the IP-address used by the redirect url server
+	// BindAddress is the IP-address and port used by the redirect url server
 	BindAddress string
 	// RedirectURLHostname is the hostname used by the redirect url server
 	RedirectURLHostname string

@@ -27,9 +27,9 @@ func (o *authenticationOptions) addFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.OIDCRedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
 	_ = viper.BindPFlag("oidc-redirect-url-hostname", f.Lookup("oidc-redirect-url-hostname"))
 
-	f.StringVar(&o.OIDCRedirectURIAuthCodeKeyboard, "oidc-redirect-url-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URL when using authcode keyboard")
-	_ = viper.BindPFlag("oidc-redirect-url-authcode-keyboard", f.Lookup("oidc-redirect-url-authcode-keyboard"))
-
 	f.StringVar(&o.OIDCAuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
 	_ = viper.BindPFlag("oidc-auth-bind-addr", f.Lookup("oidc-auth-bind-addr"))
+
+	f.StringVar(&o.OIDCRedirectURIAuthCodeKeyboard, "oidc-redirect-url-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URL when using authcode keyboard")
+	_ = viper.BindPFlag("oidc-redirect-url-authcode-keyboard", f.Lookup("oidc-redirect-url-authcode-keyboard"))
 }

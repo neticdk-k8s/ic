@@ -15,7 +15,7 @@ import (
 
 // BrowserLoginInput is th input given to Login
 type BrowserLoginInput struct {
-	// BindAddress is the IP-address used by the redirect url server
+	// BindAddress is the IP-address and port used by the redirect url server
 	BindAddress string
 	// RedirectURLHostname is the hostname used by the redirect url server
 	RedirectURLHostname string

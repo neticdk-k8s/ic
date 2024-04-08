@@ -17,11 +17,9 @@ bin/ic:
 	@DOCKER_BUILDKIT=1 docker build --target bin \
 		--output bin/ \
 		--platform ${PLATFORM} \
-		--tag netic/k8s-inventory-cli \
-		cmd/ic/main.go
+		--tag netic/k8s-inventory-cli
 	@DOCKER_BUILDKIT=1 docker build --platform ${PLATFORM} \
-		--tag netic/k8s-inventory-cli \
-		cmd/ic/main.go
+		--tag netic/k8s-inventory-cli
 
 .PHONY: release-patch
 release-patch:
@@ -59,8 +57,7 @@ build: clean fmt lint | $(BIN)
 		-v \
 		-a \
 		-tags release \
-		-ldflags '-s -w -X ${MODULEPATH}/internal/version.VERSION=$(VERSION) -X ${MODULEPATH}internal/version.COMMIT=$(COMMIT)' \
-		cmd/ic/main.go
+		-ldflags '-s -w -X main.version=$(VERSION)'
 
 # Runs go build
 .PHONY: build2
@@ -69,8 +66,12 @@ build2: clean fmt | $(BIN)
 	CGO_ENABLED=0 go build -o $(BIN)/ic \
 		-v \
 		-tags release \
-		-ldflags '-s -w -X ${MODULEPATH}/internal/version.VERSION=$(VERSION) -X ${MODULEPATH}/internal/version.COMMIT=$(COMMIT)' \
-		cmd/ic/main.go
+		-ldflags '-s -w -X main.version=$(VERSION)'
+
+# Generates CLI documentation
+.PHONY: doc
+doc:
+	@go run doc/gen.go
 
 # Build docker image
 .PHONY: docker-build

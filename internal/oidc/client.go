@@ -29,7 +29,8 @@ type Client interface {
 type GetTokenByAuthCodeInput struct {
 	// BindAddress is the IP-address and port used by the redirect url server
 	BindAddress string
-	// RedirectURLHostname is the hostname used by the redirect url server
+	// RedirectURLHostname is the hostname of the redirect URL. You can set this
+	// if your provider does not accept localhost.
 	RedirectURLHostname string
 	// PKCE represents a set of PKCE parameters
 	PKCEParams *oauth2params.PKCE

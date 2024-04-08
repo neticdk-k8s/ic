@@ -35,13 +35,6 @@ if [ -z "${FORCE}" ]; then
 	)
 fi
 
-echo "Updating helm chart appVersion..."
-(
-	cd "${SCRIPT_DIR}/.."
-	gsed -i -e "s/appVersion:.*/appVersion: \"${next_version}\"/" chart/Chart.yaml
-	git commit -m "chore: upgrade chart appVersion to ${next_version}" chart/Chart.yaml
-)
-
 echo "Pushing release..."
 (
 	cd "${SCRIPT_DIR}/.."

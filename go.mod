@@ -9,6 +9,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/coreos/go-oidc/v3 v3.10.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/int128/oauth2cli v1.14.0
 	github.com/mattn/go-isatty v0.0.19

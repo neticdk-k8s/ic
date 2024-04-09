@@ -8,7 +8,6 @@ import (
 	"runtime"
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/tokencache"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
@@ -31,12 +30,6 @@ type cli struct {
 func NewCLI() CLI {
 	logger := logger.New(os.Stderr, "info")
 
-	tokenCache, err := tokencache.NewFSCache()
-	if err != nil {
-		logger.Error("Setting up token cache", "err", err)
-		os.Exit(1)
-	}
-
 	authenticator := authentication.NewAuthenticator(logger)
 
 	root := &Root{
@@ -44,12 +37,10 @@ func NewCLI() CLI {
 	}
 	login := &Login{
 		Authenticator: authenticator,
-		TokenCache:    tokenCache,
 		Logger:        logger,
 	}
 	logout := &Logout{
 		Authenticator: authenticator,
-		TokenCache:    tokenCache,
 		Logger:        logger,
 	}
 	return &cli{

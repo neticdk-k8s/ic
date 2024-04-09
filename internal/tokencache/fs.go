@@ -14,7 +14,7 @@ import (
 )
 
 type fsCache struct {
-	tokenDir string
+	CacheDir string
 }
 
 type cachedToken struct {
@@ -23,14 +23,9 @@ type cachedToken struct {
 }
 
 // NewFSCache creates a new filesystem backed cache
-func NewFSCache() (*fsCache, error) {
-	tokenDir, err := os.UserCacheDir()
-	if err != nil {
-		return nil, errors.Wrap(err, "opening cache dir")
-	}
-	tokenDir = filepath.Join(tokenDir, "ic", "oidc-login")
+func NewFSCache(cacheDir string) (*fsCache, error) {
 	cache := &fsCache{
-		tokenDir: tokenDir,
+		CacheDir: cacheDir,
 	}
 	return cache, nil
 }
@@ -41,7 +36,7 @@ func (c *fsCache) Lookup(key Key) (*oidc.TokenSet, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not compute the key: %w", err)
 	}
-	p := filepath.Join(c.tokenDir, filename)
+	p := filepath.Join(c.CacheDir, filename)
 	f, err := os.Open(p)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -63,14 +58,14 @@ func (c *fsCache) Lookup(key Key) (*oidc.TokenSet, error) {
 
 // Save stores a cached token
 func (c *fsCache) Save(key Key, tokenSet oidc.TokenSet) error {
-	if err := os.MkdirAll(c.tokenDir, 0o700); err != nil {
-		return fmt.Errorf("could not create directory %s: %w", c.tokenDir, err)
+	if err := os.MkdirAll(c.CacheDir, 0o700); err != nil {
+		return fmt.Errorf("could not create directory %s: %w", c.CacheDir, err)
 	}
 	filename, err := computeFilename(key)
 	if err != nil {
 		return fmt.Errorf("could not compute the key: %w", err)
 	}
-	p := filepath.Join(c.tokenDir, filename)
+	p := filepath.Join(c.CacheDir, filename)
 	f, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return fmt.Errorf("could not create file %s: %w", p, err)
@@ -92,7 +87,7 @@ func (c *fsCache) Invalidate(key Key) error {
 	if err != nil {
 		return fmt.Errorf("could not compute the key: %w", err)
 	}
-	p := filepath.Join(c.tokenDir, filename)
+	p := filepath.Join(c.CacheDir, filename)
 
 	if err := os.Remove(p); err != nil {
 		if errors.Is(err, os.ErrNotExist) {

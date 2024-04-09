@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -12,6 +15,7 @@ type authenticationOptions struct {
 	OIDCRedirectURLHostname         string
 	OIDCRedirectURIAuthCodeKeyboard string
 	OIDCAuthBindAddr                string
+	OIDCTokenCacheDir               string
 }
 
 func (o *authenticationOptions) addFlags(f *pflag.FlagSet) {
@@ -32,4 +36,15 @@ func (o *authenticationOptions) addFlags(f *pflag.FlagSet) {
 
 	f.StringVar(&o.OIDCRedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
 	_ = viper.BindPFlag("oidc-redirect-uri-authcode-keyboard", f.Lookup("oidc-redirect-uri-authcode-keyboard"))
+
+	f.StringVar(&o.OIDCTokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
+	_ = viper.BindPFlag("oidc-token-cache-dir", f.Lookup("oidc-token-cache-dir"))
+}
+
+func getDefaultTokenCacheDir() string {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return filepath.Join(os.TempDir(), "ic", "oidc-login")
+	}
+	return filepath.Join(cacheDir, "ic", "oidc-login")
 }

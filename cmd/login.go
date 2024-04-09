@@ -37,6 +37,12 @@ func (c *Login) New() *cobra.Command {
 			logger := c.Logger.WithPrefix("Login")
 			c.Authenticator.SetLogger(logger)
 
+			var err error
+			if c.TokenCache, err = tokencache.NewFSCache(o.authenticationOptions.OIDCTokenCacheDir); err != nil {
+				logger.Error("Creating token cache", "err", err)
+				os.Exit(1)
+			}
+
 			loginInput := authentication.LoginInput{
 				Provider: oidc.Provider{
 					IssuerURL:   o.authenticationOptions.OIDCIssuerURL,
@@ -57,7 +63,7 @@ func (c *Login) New() *cobra.Command {
 				}
 			}
 
-			err := c.Authenticator.Login(cmd.Context(), loginInput)
+			err = c.Authenticator.Login(cmd.Context(), loginInput)
 			if err != nil {
 				logger.Error("Login failed", "err", err)
 				os.Exit(1)

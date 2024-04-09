@@ -6,6 +6,7 @@ import (
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
+	"github.com/neticdk-k8s/k8s-inventory-cli/internal/reader"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/tokencache"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
 	"github.com/pkg/errors"
@@ -76,6 +77,7 @@ func NewAuthenticator(logger logger.Logger) Authenticator {
 			Logger: logger,
 		},
 		authCodeKeyboard: &authcode.Keyboard{
+			Reader: reader.NewReader(),
 			Logger: logger,
 		},
 		logger: logger,

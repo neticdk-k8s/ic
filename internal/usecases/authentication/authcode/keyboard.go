@@ -1,16 +1,16 @@
 package authcode
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/int128/oauth2cli/oauth2params"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
+	"github.com/neticdk-k8s/k8s-inventory-cli/internal/reader"
 )
+
+const keyboardPrompt = "Enter code: "
 
 // KeyboardLoginInput is the input given to Login
 type KeyboardLoginInput struct {
@@ -20,6 +20,8 @@ type KeyboardLoginInput struct {
 
 // Keyboard represents a keyboard based login
 type Keyboard struct {
+	// Reader is used to read input from stdin
+	Reader reader.Reader
 	// Logger holds a logging instance
 	Logger logger.Logger
 }
@@ -55,15 +57,10 @@ func (k *Keyboard) Login(ctx context.Context, in *KeyboardLoginInput, oidcClient
 	}
 
 	fmt.Printf("Please visit the following URL in your browser: %s\n", authCodeURL)
-	if _, err := fmt.Fprint(os.Stderr, "Enter code: "); err != nil {
-		return nil, fmt.Errorf("writing to stderr: %w", err)
-	}
-	r := bufio.NewReader(os.Stdin)
-	code, err := r.ReadString('\n')
+	code, err := k.Reader.ReadString(keyboardPrompt)
 	if err != nil {
 		return nil, fmt.Errorf("reading authorization code: %w", err)
 	}
-	code = strings.TrimRight(code, "\r\n")
 
 	k.Logger.Debug("Exchanging code and token")
 	tokenSet, err := oidcClient.ExchangeAuthCode(ctx, oidc.ExchangeAuthCodeInput{

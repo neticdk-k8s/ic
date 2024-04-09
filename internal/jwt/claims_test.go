@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/jwt"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClaims_IsExpired(t *testing.T) {
@@ -14,9 +15,7 @@ func TestClaims_IsExpired(t *testing.T) {
 
 	t.Run("Expired", func(t *testing.T) {
 		got := claims.IsExpired()
-		if got != true {
-			t.Errorf("IsExpired() wants true but false")
-		}
+		assert.True(t, got, "IsExpired() wants true but is false")
 	})
 
 	claims = jwt.Claims{
@@ -25,8 +24,6 @@ func TestClaims_IsExpired(t *testing.T) {
 
 	t.Run("NotExpired", func(t *testing.T) {
 		got := claims.IsExpired()
-		if got != false {
-			t.Errorf("IsExpired() wants false but true")
-		}
+		assert.False(t, got, "IsExpired() wants false but is true")
 	})
 }

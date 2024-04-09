@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDecode(t *testing.T) {
@@ -29,20 +29,12 @@ func TestDecode(t *testing.T) {
   "http://example.com/is_root": true
 }`,
 		}
-		if diff := cmp.Diff(want, got); diff != "" {
-			t.Errorf("mismatch (-want +got):\n%s", diff)
-		}
+		assert.Equal(t, want, got)
 	})
 
 	t.Run("InvalidToken", func(t *testing.T) {
 		decodedToken, err := DecodeWithoutVerify("HEADER.INVALID_TOKEN.SIGNATURE")
-		if err == nil {
-			t.Errorf("error wants non-nil but nil")
-		} else {
-			t.Logf("expected error: %+v", err)
-		}
-		if decodedToken != nil {
-			t.Errorf("decodedToken wants nil but %+v", decodedToken)
-		}
+		assert.Error(t, err, "wants non-nil but got nil")
+		assert.Nil(t, decodedToken, "decodedToken wants nil")
 	})
 }

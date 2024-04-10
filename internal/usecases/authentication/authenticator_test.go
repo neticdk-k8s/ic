@@ -78,7 +78,7 @@ func TestAuthenticator_Login(t *testing.T) {
 			AuthOptions:    testAuthOptions,
 		}
 		a := NewAuthenticator(logger)
-		err := a.Login(ctx, in)
+		_, err := a.Login(ctx, in)
 		assert.NoError(t, err)
 	})
 
@@ -109,7 +109,7 @@ func TestAuthenticator_Login(t *testing.T) {
 			AuthOptions:    testAuthOptions,
 		}
 		a := NewAuthenticator(logger)
-		err := a.Login(ctx, in)
+		_, err := a.Login(ctx, in)
 		assert.NoError(t, err)
 	})
 
@@ -136,7 +136,7 @@ func TestAuthenticator_Login(t *testing.T) {
 			AuthOptions:    testAuthOptions,
 		}
 		a := NewAuthenticator(logger)
-		err := a.Login(ctx, in)
+		_, err := a.Login(ctx, in)
 		assert.Error(t, err)
 	})
 }

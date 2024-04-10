@@ -20,10 +20,12 @@ type CLI interface {
 }
 
 type cli struct {
-	Root   *Root
-	Login  *Login
-	Logout *Logout
-	Logger logger.Logger
+	Logger      logger.Logger
+	Root        *Root
+	Login       *Login
+	Logout      *Logout
+	Get         *Get
+	GetClusters *GetClusters
 }
 
 // NewCLI creates a new CLI
@@ -43,11 +45,20 @@ func NewCLI() CLI {
 		Authenticator: authenticator,
 		Logger:        logger,
 	}
-	return &cli{
-		Root:   root,
-		Login:  login,
-		Logout: logout,
+	get := &Get{
 		Logger: logger,
+	}
+	getClusters := &GetClusters{
+		Authenticator: authenticator,
+		Logger:        logger,
+	}
+	return &cli{
+		Logger:      logger,
+		Root:        root,
+		Login:       login,
+		Logout:      logout,
+		Get:         get,
+		GetClusters: getClusters,
 	}
 }
 
@@ -71,6 +82,11 @@ func (c *cli) buildRootCmd(args []string, version string) *cobra.Command {
 
 	logoutCmd := c.Logout.New()
 	rootCmd.AddCommand(logoutCmd)
+
+	getCmd := c.Get.New()
+	getClustersCmd := c.GetClusters.New()
+	getCmd.AddCommand(getClustersCmd)
+	rootCmd.AddCommand(getCmd)
 
 	rootCmd.SetArgs(args[1:])
 	return rootCmd

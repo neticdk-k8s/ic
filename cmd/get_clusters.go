@@ -9,33 +9,34 @@ import (
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/tokencache"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
+	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/cluster"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-type loginOptions struct {
+type getClustersOptions struct {
 	authenticationOptions authenticationOptions
 }
 
-func (o *loginOptions) addFlags(f *pflag.FlagSet) {
+func (o *getClustersOptions) addFlags(f *pflag.FlagSet) {
 	o.authenticationOptions.addFlags(f)
 }
 
-// Login represents the login command
-type Login struct {
+// GetClusters represents the "get clusters" command
+type GetClusters struct {
 	Authenticator authentication.Authenticator
 	TokenCache    tokencache.Cache
 	Logger        logger.Logger
 }
 
-// New creates a new login command
-func (c *Login) New() *cobra.Command {
-	var o loginOptions
+// New creates a new "get clusters" command
+func (c *GetClusters) New() *cobra.Command {
+	var o getClustersOptions
 	command := &cobra.Command{
-		Use:   "login",
-		Short: "Login to Inventory Server",
+		Use:   "clusters",
+		Short: "Get list of clusters",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := c.Logger.WithPrefix("Login")
+			logger := c.Logger.WithPrefix("Clusters")
 			c.Authenticator.SetLogger(logger)
 
 			var err error
@@ -59,6 +60,7 @@ func (c *Login) New() *cobra.Command {
 				Provider:       provider,
 				TokenCache:     c.TokenCache,
 				AuthOptions:    authentication.AuthOptions{},
+				Silent:         true,
 			}
 			if o.authenticationOptions.OIDCGrantType == "authcode-browser" {
 				loginInput.AuthOptions.AuthCodeBrowser = &authcode.BrowserLoginInput{
@@ -71,10 +73,21 @@ func (c *Login) New() *cobra.Command {
 				}
 			}
 
-			_, err = c.Authenticator.Login(cmd.Context(), loginInput)
+			tokenSet, err := c.Authenticator.Login(cmd.Context(), loginInput)
 			if err != nil {
 				return fmt.Errorf("logging in: %w", err)
 			}
+
+			c := cluster.NewClient(logger, "http://localhost:8087", tokenSet.IDToken)
+			clusters, err := c.GetClusters(cmd.Context())
+			if err != nil {
+				return fmt.Errorf("reading clusters: %w", err)
+			}
+
+			for _, i := range clusters.Included {
+				fmt.Println(i.(map[string]interface{})["name"])
+			}
+
 			return nil
 		},
 	}

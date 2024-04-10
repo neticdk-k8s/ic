@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
@@ -32,14 +32,13 @@ func (c *Logout) New() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "logout",
 		Short: "Log out",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			logger := c.Logger.WithPrefix("Logout")
 			c.Authenticator.SetLogger(logger)
 
 			var err error
 			if c.TokenCache, err = tokencache.NewFSCache(o.authenticationOptions.OIDCTokenCacheDir); err != nil {
-				logger.Error("Creating token cache", "err", err)
-				os.Exit(1)
+				return fmt.Errorf("creating token cache: %w", err)
 			}
 
 			logoutInput := authentication.LogoutInput{
@@ -53,9 +52,9 @@ func (c *Logout) New() *cobra.Command {
 
 			err = c.Authenticator.Logout(cmd.Context(), logoutInput)
 			if err != nil {
-				logger.Error("Logout failed", "err", err)
-				os.Exit(1)
+				return fmt.Errorf("logging out: %w", err)
 			}
+			return nil
 		},
 	}
 	command.Flags().SortFlags = false

@@ -8,7 +8,9 @@ import (
 	"runtime"
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
+	"github.com/neticdk-k8s/k8s-inventory-cli/internal/reader"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
+	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 )
@@ -32,7 +34,8 @@ type cli struct {
 func NewCLI() CLI {
 	logger := logger.New(os.Stderr, "info")
 
-	authenticator := authentication.NewAuthenticator(logger)
+	authn := authentication.NewAuthentication(logger, nil, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
+	authenticator := authentication.NewAuthenticator(logger, authn)
 
 	root := &Root{
 		Logger: logger,

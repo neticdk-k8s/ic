@@ -20,10 +20,12 @@ import (
 func TestAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		logger := logger.NewTestLogger(t)
+		authn := NewAuthentication(logger, nil, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
 		want := &authenticator{
-			logger: logger,
+			authentication: authn,
+			logger:         logger,
 		}
-		got := NewAuthenticator(logger)
+		got := NewAuthenticator(logger, authn)
 		assert.Equal(t, want, got)
 	})
 }
@@ -72,12 +74,11 @@ func TestAuthenticator_Login(t *testing.T) {
 			Save(tokenCacheKey, issuedTokenSet).
 			Return(nil)
 		in := LoginInput{
-			Authentication: mockAuthentication,
-			Provider:       testProvider,
-			TokenCache:     mockTokenCache,
-			AuthOptions:    testAuthOptions,
+			Provider:    testProvider,
+			TokenCache:  mockTokenCache,
+			AuthOptions: testAuthOptions,
 		}
-		a := NewAuthenticator(logger)
+		a := NewAuthenticator(logger, mockAuthentication)
 		_, err := a.Login(ctx, in)
 		assert.NoError(t, err)
 	})
@@ -103,12 +104,11 @@ func TestAuthenticator_Login(t *testing.T) {
 			}).
 			Return(&issuedTokenSet, nil)
 		in := LoginInput{
-			Authentication: mockAuthentication,
-			Provider:       testProvider,
-			TokenCache:     mockTokenCache,
-			AuthOptions:    testAuthOptions,
+			Provider:    testProvider,
+			TokenCache:  mockTokenCache,
+			AuthOptions: testAuthOptions,
 		}
-		a := NewAuthenticator(logger)
+		a := NewAuthenticator(logger, mockAuthentication)
 		_, err := a.Login(ctx, in)
 		assert.NoError(t, err)
 	})
@@ -130,12 +130,11 @@ func TestAuthenticator_Login(t *testing.T) {
 			}).
 			Return(nil, &tokencache.CacheMissError{})
 		in := LoginInput{
-			Authentication: mockAuthentication,
-			Provider:       testProvider,
-			TokenCache:     mockTokenCache,
-			AuthOptions:    testAuthOptions,
+			Provider:    testProvider,
+			TokenCache:  mockTokenCache,
+			AuthOptions: testAuthOptions,
 		}
-		a := NewAuthenticator(logger)
+		a := NewAuthenticator(logger, mockAuthentication)
 		_, err := a.Login(ctx, in)
 		assert.Error(t, err)
 	})
@@ -152,10 +151,11 @@ func TestAuthentication_NewAuthentication(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		logger := logger.NewTestLogger(t)
 
-		mockClient := oidc.NewMockClient(t)
 		want := &authentication{
-			oidcClient: mockClient,
-			logger:     logger,
+			oidcClientFactory: &oidc.Factory{
+				Logger: logger,
+			},
+			logger: logger,
 			authCodeBrowser: &authcode.Browser{
 				Logger: logger,
 			},
@@ -164,7 +164,8 @@ func TestAuthentication_NewAuthentication(t *testing.T) {
 				Logger: logger,
 			},
 		}
-		got := NewAuthentication(logger, mockClient, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
+
+		got := NewAuthentication(logger, nil, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
 		assert.Equal(t, want, got)
 	})
 }
@@ -193,8 +194,8 @@ func TestAuthentication_Authenticate(t *testing.T) {
 
 	t.Run("HasValidIDToken", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.TODO(), timeout)
-		mockClient := oidc.NewMockClient(t)
-		authentication := NewAuthentication(logger, mockClient, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
+
+		authentication := NewAuthentication(logger, nil, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
 
 		defer cancel()
 		in := AuthenticateInput{
@@ -231,7 +232,11 @@ func TestAuthentication_Authenticate(t *testing.T) {
 				IDToken:      "NEW_ID_TOKEN",
 				RefreshToken: "NEW_REFRESH_TOKEN",
 			}, nil)
-		authentication := NewAuthentication(logger, mockClient, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
+		mockClientFactory := oidc.NewMockFactoryClient(t)
+		mockClientFactory.EXPECT().
+			New(ctx, testProvider).
+			Return(mockClient, nil)
+		authentication := NewAuthentication(logger, mockClientFactory, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
 		got, err := authentication.Authenticate(ctx, in)
 		if err != nil {
 			t.Errorf("Do returned error: %+v", err)
@@ -274,7 +279,11 @@ func TestAuthentication_Authenticate(t *testing.T) {
 				IDToken:      "NEW_ID_TOKEN",
 				RefreshToken: "NEW_REFRESH_TOKEN",
 			}, nil)
-		authentication := NewAuthentication(logger, mockClient, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
+		mockClientFactory := oidc.NewMockFactoryClient(t)
+		mockClientFactory.EXPECT().
+			New(ctx, testProvider).
+			Return(mockClient, nil)
+		authentication := NewAuthentication(logger, mockClientFactory, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
 		got, err := authentication.Authenticate(ctx, in)
 		if err != nil {
 			t.Errorf("Do returned error: %+v", err)

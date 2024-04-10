@@ -13,8 +13,6 @@ import (
 
 // LoginInput is the input given to Login
 type LoginInput struct {
-	// Authentication represents an Authentication interface
-	Authentication Authentication
 	// Provider represents an OIDC provider configuration
 	Provider oidc.Provider
 	// TokenCache is the interface used for caching tokens
@@ -81,13 +79,15 @@ type Authenticator interface {
 }
 
 type authenticator struct {
-	logger logger.Logger
+	logger         logger.Logger
+	authentication Authentication
 }
 
 // NewAuthenticator creates a new Authenticator
-func NewAuthenticator(logger logger.Logger) *authenticator {
+func NewAuthenticator(logger logger.Logger, authentication Authentication) *authenticator {
 	return &authenticator{
-		logger: logger,
+		logger:         logger,
+		authentication: authentication,
 	}
 }
 
@@ -121,7 +121,7 @@ func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSe
 		AuthOptions:    in.AuthOptions,
 	}
 
-	authResult, err := in.Authentication.Authenticate(ctx, authenticateInput)
+	authResult, err := a.authentication.Authenticate(ctx, authenticateInput)
 	if err != nil {
 		return nil, fmt.Errorf("authenticating: %w", err)
 	}
@@ -215,8 +215,8 @@ type Authentication interface {
 }
 
 type authentication struct {
-	oidcClient oidc.Client
-	logger     logger.Logger
+	oidcClientFactory oidc.FactoryClient
+	logger            logger.Logger
 	// AuthCodeBrowser is the configuration used when authenticating using
 	// authcode-browser
 	authCodeBrowser *authcode.Browser
@@ -225,13 +225,19 @@ type authentication struct {
 	authCodeKeyboard *authcode.Keyboard
 }
 
-func NewAuthentication(logger logger.Logger, oidcClient oidc.Client, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
-	return &authentication{
+func NewAuthentication(logger logger.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
+	authn := &authentication{
+		oidcClientFactory: &oidc.Factory{
+			Logger: logger,
+		},
 		logger:           logger,
-		oidcClient:       oidcClient,
 		authCodeBrowser:  authCodeBrowser,
 		authCodeKeyboard: authCodeKeyboard,
 	}
+	if clientFactory != nil {
+		authn.oidcClientFactory = clientFactory
+	}
+	return authn
 }
 
 // Authenticate performs the OIDC authentication using the configuration given
@@ -254,9 +260,14 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 		}
 	}
 
+	oidcClient, err := a.oidcClientFactory.New(ctx, in.Provider)
+	if err != nil {
+		return nil, fmt.Errorf("creating OIDC client: %w", err)
+	}
+
 	if in.CachedTokenSet != nil && in.CachedTokenSet.RefreshToken != "" {
 		a.logger.Debug("Refreshing token")
-		tokenSet, err := a.oidcClient.Refresh(ctx, in.CachedTokenSet.RefreshToken)
+		tokenSet, err := oidcClient.Refresh(ctx, in.CachedTokenSet.RefreshToken)
 		if err == nil {
 			return &AuthResult{TokenSet: *tokenSet}, nil
 		}
@@ -265,7 +276,7 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 
 	if in.AuthOptions.AuthCodeBrowser != nil {
 		a.logger.Debug("Authenticating using authcode-browser")
-		tokenSet, err := a.authCodeBrowser.Login(ctx, in.AuthOptions.AuthCodeBrowser, a.oidcClient)
+		tokenSet, err := a.authCodeBrowser.Login(ctx, in.AuthOptions.AuthCodeBrowser, oidcClient)
 		if err != nil {
 			return nil, fmt.Errorf("authcode-browser error: %w", err)
 		}
@@ -274,7 +285,7 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 
 	if in.AuthOptions.AuthCodeKeyboard != nil {
 		a.logger.Debug("Authenticating using authcode-keyboard")
-		tokenSet, err := a.authCodeKeyboard.Login(ctx, in.AuthOptions.AuthCodeKeyboard, a.oidcClient)
+		tokenSet, err := a.authCodeKeyboard.Login(ctx, in.AuthOptions.AuthCodeKeyboard, oidcClient)
 		if err != nil {
 			return nil, fmt.Errorf("authcode-keyboard error: %w", err)
 		}

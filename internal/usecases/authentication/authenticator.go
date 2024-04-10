@@ -179,7 +179,7 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 	if err != nil {
 		if errors.Is(err, &tokencache.CacheMissError{}) {
 			a.logger.Warn("Cached token not found - cannot log out")
-			return nil
+			return err
 		}
 		return fmt.Errorf("looking up cached token: %w", err)
 	}
@@ -250,22 +250,6 @@ func NewAuthentication(logger logger.Logger, clientFactory oidc.FactoryClient, a
 	return authn
 }
 
-// Logout logs out of the OIDC provider
-func (a *authentication) Logout(ctx context.Context, in AuthenticateLogoutInput) error {
-	oidcClient, err := a.oidcClientFactory.New(ctx, in.Provider)
-	if err != nil {
-		return fmt.Errorf("creating OIDC client: %w", err)
-	}
-
-	a.logger.Debug("Found cached token")
-	a.logger.Debug("Logging out from OIDC provider")
-	err = oidcClient.Logout(in.CachedTokenSet.IDToken)
-	if err != nil {
-		return fmt.Errorf("logging out of keycloak: %w", err)
-	}
-	return nil
-}
-
 // Authenticate performs the OIDC authentication using the configuration given
 // by AuthenticateInput
 func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error) {
@@ -319,6 +303,22 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 	}
 
 	return nil, fmt.Errorf("unknown authentication method")
+}
+
+// Logout logs out of the OIDC provider
+func (a *authentication) Logout(ctx context.Context, in AuthenticateLogoutInput) error {
+	oidcClient, err := a.oidcClientFactory.New(ctx, in.Provider)
+	if err != nil {
+		return fmt.Errorf("creating OIDC client: %w", err)
+	}
+
+	a.logger.Debug("Found cached token")
+	a.logger.Debug("Logging out from OIDC provider")
+	err = oidcClient.Logout(in.CachedTokenSet.IDToken)
+	if err != nil {
+		return fmt.Errorf("logging out of keycloak: %w", err)
+	}
+	return nil
 }
 
 // SetLogger sets the logger used for authentication

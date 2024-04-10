@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
@@ -51,7 +52,7 @@ func (c *Logout) New() *cobra.Command {
 			}
 
 			err = c.Authenticator.Logout(cmd.Context(), logoutInput)
-			if err != nil {
+			if err != nil && !errors.Is(err, &tokencache.CacheMissError{}) {
 				return fmt.Errorf("logging out: %w", err)
 			}
 			return nil

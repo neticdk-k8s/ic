@@ -141,9 +141,72 @@ func TestAuthenticator_Login(t *testing.T) {
 }
 
 func TestAuthenticator_Logout(t *testing.T) {
-	t.Run("Success", func(t *testing.T) {
+	logger := logger.NewTestLogger(t)
+	testProvider := oidc.Provider{
+		IssuerURL: "https://issuer.example.com",
+		ClientID:  "YOUR_CLIENT_ID",
+	}
+	issuedIDTokenExpiration := time.Now().Add(1 * time.Hour).Round(time.Second)
+	issuedIDToken := testingJWT.EncodeF(t, func(claims *testingJWT.Claims) {
+		claims.Issuer = "https://issuer.example.com"
+		claims.Subject = "YOUR_SUBJECT"
+		claims.ExpiresAt = jwt.NewNumericDate(issuedIDTokenExpiration)
 	})
-	t.Run("Failure", func(t *testing.T) {
+	issuedTokenSet := oidc.TokenSet{
+		IDToken:      issuedIDToken,
+		RefreshToken: "YOUR_REFRESH_TOKEN",
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		ctx := context.TODO()
+		mockAuthentication := NewMockAuthentication(t)
+		mockAuthentication.EXPECT().
+			Logout(ctx, AuthenticateLogoutInput{
+				Provider:       testProvider,
+				CachedTokenSet: &issuedTokenSet,
+			}).
+			Return(nil)
+
+		mockTokenCache := tokencache.NewMockCache(t)
+		mockTokenCache.EXPECT().
+			Lookup(tokencache.Key{
+				IssuerURL: "https://issuer.example.com",
+				ClientID:  "YOUR_CLIENT_ID",
+			}).
+			Return(&issuedTokenSet, nil)
+		mockTokenCache.EXPECT().
+			Invalidate(tokencache.Key{
+				IssuerURL: "https://issuer.example.com",
+				ClientID:  "YOUR_CLIENT_ID",
+			}).
+			Return(nil)
+		in := LogoutInput{
+			Provider:   testProvider,
+			TokenCache: mockTokenCache,
+		}
+		a := NewAuthenticator(logger, mockAuthentication)
+		err := a.Logout(ctx, in)
+		assert.NoError(t, err)
+	})
+
+	t.Run("CacheMissError", func(t *testing.T) {
+		ctx := context.TODO()
+		mockAuthentication := NewMockAuthentication(t)
+		mockTokenCache := tokencache.NewMockCache(t)
+		mockTokenCache.EXPECT().
+			Lookup(tokencache.Key{
+				IssuerURL: "https://issuer.example.com",
+				ClientID:  "YOUR_CLIENT_ID",
+			}).
+			Return(nil, &tokencache.CacheMissError{})
+		in := LogoutInput{
+			Provider:   testProvider,
+			TokenCache: mockTokenCache,
+		}
+		a := NewAuthenticator(logger, mockAuthentication)
+		err := a.Logout(ctx, in)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, &tokencache.CacheMissError{})
 	})
 }
 

@@ -70,39 +70,6 @@ type client struct {
 	logger            logger.Logger
 }
 
-// New creates a new OIDC Client
-func New(ctx context.Context, p Provider, logger logger.Logger) (*client, error) {
-	provider, err := gooidc.NewProvider(ctx, p.IssuerURL)
-	if err != nil {
-		return nil, fmt.Errorf("setting up provider: %w", err)
-	}
-
-	var providerLogoutURL string
-
-	claims := make(map[string]any)
-	if err := provider.Claims(&claims); err == nil {
-		endSessionEndPoint, ok := claims["end_session_endpoint"]
-		if ok {
-			if val, ok := endSessionEndPoint.(string); ok {
-				providerLogoutURL = val
-			}
-		}
-	}
-
-	config := oauth2.Config{
-		ClientID: p.ClientID,
-		Endpoint: provider.Endpoint(),
-		Scopes:   append(p.ExtraScopes, gooidc.ScopeOpenID),
-	}
-
-	return &client{
-		provider,
-		config,
-		providerLogoutURL,
-		logger,
-	}, nil
-}
-
 // Refresh creates an updated TokenSet by means of refreshing an oauth2 token
 func (c *client) Refresh(ctx context.Context, refreshToken string) (*TokenSet, error) {
 	currentToken := &oauth2.Token{

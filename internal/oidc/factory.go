@@ -11,6 +11,8 @@ import (
 
 type FactoryClient interface {
 	New(ctx context.Context, p Provider) (Client, error)
+	// SetLogger sets the logger used for authentication
+	SetLogger(logger.Logger)
 }
 
 type Factory struct {
@@ -47,4 +49,9 @@ func (f *Factory) New(ctx context.Context, p Provider) (Client, error) {
 		providerLogoutURL,
 		f.Logger,
 	}, nil
+}
+
+// SetLogger sets the logger used for the factory
+func (f *Factory) SetLogger(l logger.Logger) {
+	f.Logger = l
 }

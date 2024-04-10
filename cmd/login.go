@@ -42,14 +42,12 @@ func (c *Login) New() *cobra.Command {
 				return fmt.Errorf("creating token cache: %w", err)
 			}
 
-			provider := oidc.Provider{
-				IssuerURL:   o.authenticationOptions.OIDCIssuerURL,
-				ClientID:    o.authenticationOptions.OIDCClientID,
-				ExtraScopes: []string{"profile", "email", "roles", "offline_access"},
-			}
-
 			loginInput := authentication.LoginInput{
-				Provider:    provider,
+				Provider: oidc.Provider{
+					IssuerURL:   o.authenticationOptions.OIDCIssuerURL,
+					ClientID:    o.authenticationOptions.OIDCClientID,
+					ExtraScopes: []string{"profile", "email", "roles", "offline_access"},
+				},
 				TokenCache:  c.TokenCache,
 				AuthOptions: authentication.AuthOptions{},
 			}

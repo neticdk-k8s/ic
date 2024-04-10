@@ -33,6 +33,14 @@ type AuthenticateInput struct {
 	AuthOptions AuthOptions
 }
 
+// AuthenticateLogoutInput is the input given to Logout
+type AuthenticateLogoutInput struct {
+	// Provider represents an OIDC provider configuration
+	Provider oidc.Provider
+	// CachedTokenSet is a TokenSet with cached credentials
+	CachedTokenSet *oidc.TokenSet
+}
+
 // AuthOptions is authentication options used by Authenticate
 type AuthOptions struct {
 	AuthCodeBrowser  *authcode.BrowserLoginInput
@@ -176,19 +184,14 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 		return fmt.Errorf("looking up cached token: %w", err)
 	}
 
-	oidcClient, err := oidc.New(
-		ctx,
-		in.Provider,
-		a.logger)
-	if err != nil {
-		return fmt.Errorf("setting up authentication: %w", err)
+	logoutInput := AuthenticateLogoutInput{
+		Provider:       in.Provider,
+		CachedTokenSet: cachedTokenSet,
 	}
 
-	a.logger.Debug("Found cached token")
-	a.logger.Debug("Logging out from OIDC provider")
-	err = oidcClient.Logout(cachedTokenSet.IDToken)
+	err = a.authentication.Logout(ctx, logoutInput)
 	if err != nil {
-		return fmt.Errorf("logging out of keycloak: %w", err)
+		return fmt.Errorf("logging out: %w", err)
 	}
 
 	a.logger.Debug("Invalidating cached token")
@@ -206,12 +209,19 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 // SetLogger sets the logger used for authentication
 func (a *authenticator) SetLogger(l logger.Logger) {
 	a.logger = l
+	a.authentication.SetLogger(l)
 }
 
 type Authentication interface {
 	// Authenticate performs the OIDC authentication using the configuration given
 	// by AuthenticateInput
 	Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error)
+
+	// Logout logs out of the OIDC provider
+	Logout(ctx context.Context, in AuthenticateLogoutInput) error
+
+	// SetLogger sets the logger used for authentication
+	SetLogger(logger.Logger)
 }
 
 type authentication struct {
@@ -238,6 +248,22 @@ func NewAuthentication(logger logger.Logger, clientFactory oidc.FactoryClient, a
 		authn.oidcClientFactory = clientFactory
 	}
 	return authn
+}
+
+// Logout logs out of the OIDC provider
+func (a *authentication) Logout(ctx context.Context, in AuthenticateLogoutInput) error {
+	oidcClient, err := a.oidcClientFactory.New(ctx, in.Provider)
+	if err != nil {
+		return fmt.Errorf("creating OIDC client: %w", err)
+	}
+
+	a.logger.Debug("Found cached token")
+	a.logger.Debug("Logging out from OIDC provider")
+	err = oidcClient.Logout(in.CachedTokenSet.IDToken)
+	if err != nil {
+		return fmt.Errorf("logging out of keycloak: %w", err)
+	}
+	return nil
 }
 
 // Authenticate performs the OIDC authentication using the configuration given
@@ -293,4 +319,12 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 	}
 
 	return nil, fmt.Errorf("unknown authentication method")
+}
+
+// SetLogger sets the logger used for authentication
+func (a *authentication) SetLogger(l logger.Logger) {
+	a.logger = l
+	a.oidcClientFactory.SetLogger(l)
+	a.authCodeBrowser.Logger = l
+	a.authCodeKeyboard.Logger = l
 }

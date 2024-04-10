@@ -5,6 +5,7 @@ package oidc
 import (
 	context "context"
 
+	logger "github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -76,6 +77,39 @@ func (_c *MockFactoryClient_New_Call) Return(_a0 Client, _a1 error) *MockFactory
 }
 
 func (_c *MockFactoryClient_New_Call) RunAndReturn(run func(context.Context, Provider) (Client, error)) *MockFactoryClient_New_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetLogger provides a mock function with given fields: _a0
+func (_m *MockFactoryClient) SetLogger(_a0 logger.Logger) {
+	_m.Called(_a0)
+}
+
+// MockFactoryClient_SetLogger_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetLogger'
+type MockFactoryClient_SetLogger_Call struct {
+	*mock.Call
+}
+
+// SetLogger is a helper method to define mock.On call
+//   - _a0 logger.Logger
+func (_e *MockFactoryClient_Expecter) SetLogger(_a0 interface{}) *MockFactoryClient_SetLogger_Call {
+	return &MockFactoryClient_SetLogger_Call{Call: _e.mock.On("SetLogger", _a0)}
+}
+
+func (_c *MockFactoryClient_SetLogger_Call) Run(run func(_a0 logger.Logger)) *MockFactoryClient_SetLogger_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(logger.Logger))
+	})
+	return _c
+}
+
+func (_c *MockFactoryClient_SetLogger_Call) Return() *MockFactoryClient_SetLogger_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockFactoryClient_SetLogger_Call) RunAndReturn(run func(logger.Logger)) *MockFactoryClient_SetLogger_Call {
 	_c.Call.Return(run)
 	return _c
 }

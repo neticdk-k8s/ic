@@ -6,7 +6,6 @@ import (
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/reader"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/tokencache"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
 	"github.com/pkg/errors"
@@ -14,6 +13,8 @@ import (
 
 // LoginInput is the input given to Login
 type LoginInput struct {
+	// Authentication represents an Authentication interface
+	Authentication Authentication
 	// Provider represents an OIDC provider configuration
 	Provider oidc.Provider
 	// TokenCache is the interface used for caching tokens
@@ -56,30 +57,16 @@ type LogoutInput struct {
 type Authenticator interface {
 	Login(ctx context.Context, in LoginInput) error
 	Logout(ctx context.Context, in LogoutInput) error
-	Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error)
 	SetLogger(logger.Logger)
 }
 
 type authenticator struct {
 	logger logger.Logger
-	// AuthCodeBrowser is the configuration used when authenticating using
-	// authcode-browser
-	authCodeBrowser *authcode.Browser
-	// AuthCodeKeyboard is the configuration used when authenticating using
-	// authcode-keyboard
-	authCodeKeyboard *authcode.Keyboard
 }
 
 // NewAuthenticator creates a new Authenticator
-func NewAuthenticator(logger logger.Logger) Authenticator {
+func NewAuthenticator(logger logger.Logger) *authenticator {
 	return &authenticator{
-		authCodeBrowser: &authcode.Browser{
-			Logger: logger,
-		},
-		authCodeKeyboard: &authcode.Keyboard{
-			Reader: reader.NewReader(),
-			Logger: logger,
-		},
 		logger: logger,
 	}
 }
@@ -114,14 +101,25 @@ func (a *authenticator) Login(ctx context.Context, in LoginInput) error {
 		AuthOptions:    in.AuthOptions,
 	}
 
-	authResult, err := a.Authenticate(ctx, authenticateInput)
+	authResult, err := in.Authentication.Authenticate(ctx, authenticateInput)
 	if err != nil {
 		return fmt.Errorf("authenticating: %w", err)
 	}
 
-	err = in.TokenCache.Save(tokenCacheKey, authResult.TokenSet)
+	idTokenClaims, err := authResult.TokenSet.DecodeWithoutVerify()
 	if err != nil {
-		return fmt.Errorf("caching token: %w", err)
+		return fmt.Errorf("invalid token: %w", err)
+	}
+	a.logger.Debug("Token", "token", idTokenClaims.Pretty)
+
+	if authResult.UsingCachedToken {
+		a.logger.Info("Using cached token", "expires", idTokenClaims.Expiry)
+	} else {
+		a.logger.Info("Using new token", "expires", idTokenClaims.Expiry)
+		err = in.TokenCache.Save(tokenCacheKey, authResult.TokenSet)
+		if err != nil {
+			return fmt.Errorf("caching token: %w", err)
+		}
 	}
 
 	a.logger.Info("Login succeeded ✅")
@@ -177,9 +175,38 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 	return nil
 }
 
+// SetLogger sets the logger used for authentication
+func (a *authenticator) SetLogger(l logger.Logger) {
+	a.logger = l
+}
+
+type Authentication interface {
+	Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error)
+}
+
+type authentication struct {
+	oidcClient oidc.Client
+	logger     logger.Logger
+	// AuthCodeBrowser is the configuration used when authenticating using
+	// authcode-browser
+	authCodeBrowser *authcode.Browser
+	// AuthCodeKeyboard is the configuration used when authenticating using
+	// authcode-keyboard
+	authCodeKeyboard *authcode.Keyboard
+}
+
+func NewAuthentication(logger logger.Logger, oidcClient oidc.Client, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
+	return &authentication{
+		logger:           logger,
+		oidcClient:       oidcClient,
+		authCodeBrowser:  authCodeBrowser,
+		authCodeKeyboard: authCodeKeyboard,
+	}
+}
+
 // Authenticate performs the OIDC authentication using the configuration given
 // by AuthenticateInput
-func (a *authenticator) Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error) {
+func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error) {
 	if in.CachedTokenSet != nil {
 		a.logger.Debug("Found cached token")
 		claims, err := in.CachedTokenSet.DecodeWithoutVerify()
@@ -197,17 +224,18 @@ func (a *authenticator) Authenticate(ctx context.Context, in AuthenticateInput) 
 		}
 	}
 
-	oidcClient, err := oidc.New(
-		ctx,
-		in.Provider,
-		a.logger)
-	if err != nil {
-		return nil, fmt.Errorf("setting up authentication: %w", err)
-	}
+	// oidcClient, err := a.client.New(ctx, in.Provider, a.logger)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("setting up authentication: %w", err)
+	// }
+	// oidcClient, err := oidc.New(
+	// 	ctx,
+	// 	in.Provider,
+	// 	a.logger)
 
 	if in.CachedTokenSet != nil && in.CachedTokenSet.RefreshToken != "" {
 		a.logger.Info("Refreshing token")
-		tokenSet, err := oidcClient.Refresh(ctx, in.CachedTokenSet.RefreshToken)
+		tokenSet, err := a.oidcClient.Refresh(ctx, in.CachedTokenSet.RefreshToken)
 		if err == nil {
 			return &AuthResult{TokenSet: *tokenSet}, nil
 		}
@@ -216,7 +244,7 @@ func (a *authenticator) Authenticate(ctx context.Context, in AuthenticateInput) 
 
 	if in.AuthOptions.AuthCodeBrowser != nil {
 		a.logger.Info("Authenticating using authcode-browser")
-		tokenSet, err := a.authCodeBrowser.Login(ctx, in.AuthOptions.AuthCodeBrowser, oidcClient)
+		tokenSet, err := a.authCodeBrowser.Login(ctx, in.AuthOptions.AuthCodeBrowser, a.oidcClient)
 		if err != nil {
 			return nil, fmt.Errorf("authcode-browser error: %w", err)
 		}
@@ -225,7 +253,7 @@ func (a *authenticator) Authenticate(ctx context.Context, in AuthenticateInput) 
 
 	if in.AuthOptions.AuthCodeKeyboard != nil {
 		a.logger.Info("Authenticating using authcode-keyboard")
-		tokenSet, err := a.authCodeKeyboard.Login(ctx, in.AuthOptions.AuthCodeKeyboard, oidcClient)
+		tokenSet, err := a.authCodeKeyboard.Login(ctx, in.AuthOptions.AuthCodeKeyboard, a.oidcClient)
 		if err != nil {
 			return nil, fmt.Errorf("authcode-keyboard error: %w", err)
 		}
@@ -233,9 +261,4 @@ func (a *authenticator) Authenticate(ctx context.Context, in AuthenticateInput) 
 	}
 
 	return nil, fmt.Errorf("unknown authentication method")
-}
-
-// SetLogger sets the logger used for authentication
-func (a *authenticator) SetLogger(l logger.Logger) {
-	a.logger = l
 }

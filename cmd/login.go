@@ -5,6 +5,7 @@ import (
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
+	"github.com/neticdk-k8s/k8s-inventory-cli/internal/reader"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/tokencache"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
@@ -43,14 +44,23 @@ func (c *Login) New() *cobra.Command {
 				os.Exit(1)
 			}
 
+			provider := oidc.Provider{
+				IssuerURL:   o.authenticationOptions.OIDCIssuerURL,
+				ClientID:    o.authenticationOptions.OIDCClientID,
+				ExtraScopes: []string{"profile", "email", "roles", "offline_access"},
+			}
+
+			oidcClient, err := oidc.New(cmd.Context(), provider, logger)
+			if err != nil {
+				logger.Error("Failed creating OIDC client", "err", err)
+				os.Exit(1)
+			}
+
 			loginInput := authentication.LoginInput{
-				Provider: oidc.Provider{
-					IssuerURL:   o.authenticationOptions.OIDCIssuerURL,
-					ClientID:    o.authenticationOptions.OIDCClientID,
-					ExtraScopes: []string{"profile", "email", "roles", "offline_access"},
-				},
-				TokenCache:  c.TokenCache,
-				AuthOptions: authentication.AuthOptions{},
+				Authentication: authentication.NewAuthentication(logger, oidcClient, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger}),
+				Provider:       provider,
+				TokenCache:     c.TokenCache,
+				AuthOptions:    authentication.AuthOptions{},
 			}
 			if o.authenticationOptions.OIDCGrantType == "authcode-browser" {
 				loginInput.AuthOptions.AuthCodeBrowser = &authcode.BrowserLoginInput{

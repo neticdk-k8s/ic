@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-	cmd := cmd.NewCLI()
 	if err := cmd.GenDocs(); err != nil {
 		fmt.Println("Failed docs generation")
 		os.Exit(1)

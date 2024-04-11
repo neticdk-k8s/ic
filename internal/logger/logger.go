@@ -3,13 +3,11 @@ package logger
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/ui"
 )
 
 const (
@@ -92,7 +90,7 @@ type Logger interface {
 
 	WithPrefix(string) Logger
 
-	SetInteractive(string)
+	SetInteractive(string, bool)
 }
 
 // CharmLogger is a charms/lipgloss based logger
@@ -199,8 +197,7 @@ func (l *CharmLogger) Debugf(format string, keyvals ...any) {
 	l.internal.Debug(fmt.Sprintf(format, keyvals...))
 }
 
-func (l *CharmLogger) SetInteractive(interactive string) {
-	isTerminal := ui.IsTerminal(os.Stdin) && ui.IsTerminal(os.Stdout)
+func (l *CharmLogger) SetInteractive(interactive string, isTerminal bool) {
 	switch interactive {
 	case "auto":
 		if isTerminal {

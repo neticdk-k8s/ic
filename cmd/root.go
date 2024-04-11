@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -18,64 +18,43 @@ const (
 	oobRedirectURI        = "urn:ietf:wg:oauth:2.0:oob"
 )
 
-type rootOptions struct {
-	LogLevel    string
-	Server      string
-	Interactive string
+// ec is the Execution Context for the current run
+var ec *ExecutionContext
+
+var rootCmd = &cobra.Command{
+	Use:           "ic",
+	Short:         "Inventory CLI",
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if err := initConfig(cmd); err != nil {
+			return err
+		}
+		initLog(cmd)
+		return nil
+	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			_ = cmd.Help()
+			os.Exit(0)
+		}
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return nil
+	},
 }
 
-func (o *rootOptions) addFlags(f *pflag.FlagSet) {
-	f.StringVarP(&o.LogLevel, "log-level", "l", "info", "Set log level")
-	_ = viper.BindPFlag("log-level", f.Lookup("log-level"))
-
-	f.StringVarP(&o.Server, "server", "s", "http://localhost:8086", "URL for the inventory server.")
-	_ = viper.BindPFlag("server", f.Lookup("server"))
-
-	f.StringVarP(&o.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
-	_ = viper.BindPFlag("interactive", f.Lookup("interactive"))
-}
-
-// Root represents the root command
-type Root struct {
-	Logger logger.Logger
-}
-
-// New creates a new Root command
-func (c *Root) New() *cobra.Command {
-	var o rootOptions
-	command := &cobra.Command{
-		Use:   "ic",
-		Short: "Inventory Client",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := initConfig(cmd); err != nil {
-				return err
-			}
-			c.initLog(cmd)
-			return nil
-		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				_ = cmd.Help()
-				os.Exit(0)
-			}
-			return nil
-		},
-	}
-	command.Flags().SortFlags = false
-	o.addFlags(command.PersistentFlags())
-	return command
-}
-
-func (c *Root) initLog(cmd *cobra.Command) {
+func initLog(cmd *cobra.Command) {
 	logLevel, err := cmd.Flags().GetString("log-level")
 	if err == nil {
-		if err := c.Logger.SetLevel(logLevel); err != nil {
-			c.Logger.Error("Failed to set loglevel", "level", logLevel)
+		if err := ec.Logger.SetLevel(logLevel); err != nil {
+			ec.Logger.Error("Failed to set loglevel", "level", logLevel)
 		}
 	}
 	interactive, err := cmd.Flags().GetString("interactive")
 	if err == nil {
-		c.Logger.SetInteractive(interactive)
+		ec.Logger.SetInteractive(interactive, ec.IsTerminal)
 	}
 }
 
@@ -112,4 +91,77 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 			_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
 		}
 	})
+}
+
+func getDefaultTokenCacheDir() string {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return filepath.Join(os.TempDir(), "ic", "oidc-login")
+	}
+	return filepath.Join(cacheDir, "ic", "oidc-login")
+}
+
+func init() {
+	ec = NewExecutionContext()
+	rootCmd.AddCommand(
+		NewLoginCmd(ec),
+		NewLogoutCmd(ec),
+		NewGetCmd(ec),
+	)
+
+	f := rootCmd.PersistentFlags()
+	f.StringVarP(&ec.LogLevel, "log-level", "l", "info", "Set log level")
+	viper.BindPFlag("log-level", f.Lookup("log-level")) //nolint:errcheck
+
+	f.StringVarP(&ec.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
+	viper.BindPFlag("api-server", f.Lookup("api-server")) //nolint:errcheck
+
+	f.StringVarP(&ec.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
+	viper.BindPFlag("interactive", f.Lookup("interactive")) //nolint:errcheck
+
+	f.StringVarP(&ec.OutputFormat, "output-format", "o", "text", "Output format. One of (text|json)")
+	viper.BindPFlag("output-format", f.Lookup("output-format")) //nolint:errcheck
+
+	f.StringVar(&ec.OIDC.IssuerURL, "oidc-issuer-url", "https://keycloak.netic.dk/auth/realms/services", "Issuer URL for the OIDC Provider")
+	viper.BindPFlag("oidc-issuer-url", f.Lookup("oidc-issuer-url")) //nolint:errcheck
+
+	f.StringVar(&ec.OIDC.ClientID, "oidc-client-id", "inventory-cli", "OIDC client ID")
+	viper.BindPFlag("oidc-client-id", f.Lookup("oidc-client-id")) //nolint:errcheck
+
+	f.StringVar(&ec.OIDC.GrantType, "oidc-grant-type", "authcode-browser", "OIDC authorization grant type. One of (authcode-browser|authcode-keyboard)")
+	viper.BindPFlag("oidc-grant-type", f.Lookup("oidc-grant-type")) //nolint:errcheck
+
+	f.StringVar(&ec.OIDC.RedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
+	viper.BindPFlag("oidc-redirect-url-hostname", f.Lookup("oidc-redirect-url-hostname")) //nolint:errcheck
+
+	f.StringVar(&ec.OIDC.AuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
+	viper.BindPFlag("oidc-auth-bind-addr", f.Lookup("oidc-auth-bind-addr")) //nolint:errcheck
+
+	f.StringVar(&ec.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
+	viper.BindPFlag("oidc-redirect-uri-authcode-keyboard", f.Lookup("oidc-redirect-uri-authcode-keyboard")) //nolint:errcheck
+
+	f.StringVar(&ec.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
+	viper.BindPFlag("oidc-token-cache-dir", f.Lookup("oidc-token-cache-dir")) //nolint:errcheck
+
+	rootCmd.Flags().SortFlags = false
+}
+
+func Execute(args []string, version string) int {
+	rootCmd.Version = version
+	rootCmd.SilenceUsage = true
+	rootCmd.SetArgs(args[1:])
+	err := ec.Prepare()
+	if err != nil {
+		ec.Logger.Error("Preparing execution context", "err", err)
+		return 1
+	}
+	err = rootCmd.ExecuteContext(context.Background())
+	if ec.Spinner.Running() {
+		ec.Spinner.Stop()
+	}
+	if err != nil {
+		fmt.Fprintln(ec.Stderr, err)
+		return 1
+	}
+	return 0
 }

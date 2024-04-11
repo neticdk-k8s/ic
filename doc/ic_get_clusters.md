@@ -9,22 +9,22 @@ ic get clusters [flags]
 ### Options
 
 ```
-      --oidc-issuer-url string                       Issuer URL for the OIDC Provider (default "http://localhost:8080/realms/test")
-      --oidc-client-id string                        OIDC client ID (default "inventory-cli")
-      --oidc-grant-type string                       OIDC authorization grant type. One of (authcode-browser|authcode-keyboard) (default "authcode-browser")
-      --oidc-redirect-url-hostname string            [authcode-browser] Hostname of the redirect URL (default "localhost")
-      --oidc-auth-bind-addr string                   [authcode-browser] Bind address and port for local server used for OIDC redirect (default "localhost:18000")
-      --oidc-redirect-uri-authcode-keyboard string   [authcode-keyboard] Redirect URI when using authcode keyboard (default "urn:ietf:wg:oauth:2.0:oob")
-      --oidc-token-cache-dir string                  Directory used to store cached tokens (default "/Users/kn/Library/Caches/ic/oidc-login")
-  -h, --help                                         help for clusters
+  -h, --help   help for clusters
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -i, --interactive string   Run in interactive mode. One of (yes|no|auto) (default "auto")
-  -l, --log-level string     Set log level (default "info")
-  -s, --server string        URL for the inventory server. (default "http://localhost:8086")
+  -s, --api-server string                            URL for the inventory server. (default "https://api.k8s.netic.dk")
+  -i, --interactive string                           Run in interactive mode. One of (yes|no|auto) (default "auto")
+  -l, --log-level string                             Set log level (default "info")
+      --oidc-auth-bind-addr string                   [authcode-browser] Bind address and port for local server used for OIDC redirect (default "localhost:18000")
+      --oidc-client-id string                        OIDC client ID (default "inventory-cli")
+      --oidc-grant-type string                       OIDC authorization grant type. One of (authcode-browser|authcode-keyboard) (default "authcode-browser")
+      --oidc-issuer-url string                       Issuer URL for the OIDC Provider (default "http://localhost:8080/realms/test")
+      --oidc-redirect-uri-authcode-keyboard string   [authcode-keyboard] Redirect URI when using authcode keyboard (default "urn:ietf:wg:oauth:2.0:oob")
+      --oidc-redirect-url-hostname string            [authcode-browser] Hostname of the redirect URL (default "localhost")
+      --oidc-token-cache-dir string                  Directory used to store cached tokens (default "/Users/kn/Library/Caches/ic/oidc-login")
 ```
 
 ### SEE ALSO

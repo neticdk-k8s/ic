@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/cmd"
@@ -10,5 +9,5 @@ import (
 var version = "HEAD"
 
 func main() {
-	os.Exit(cmd.NewCLI().Run(context.Background(), os.Args, version))
+	os.Exit(cmd.Execute(os.Args, version))
 }

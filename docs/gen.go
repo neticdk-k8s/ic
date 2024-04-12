@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/cmd"
+	"github.com/neticdk-k8s/ic/cmd"
 )
 
 func main() {

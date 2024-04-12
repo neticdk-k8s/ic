@@ -17,9 +17,9 @@ bin/ic:
 	@DOCKER_BUILDKIT=1 docker build --target bin \
 		--output bin/ \
 		--platform ${PLATFORM} \
-		--tag netic/k8s-inventory-cli
+		--tag netic/ic
 	@DOCKER_BUILDKIT=1 docker build --platform ${PLATFORM} \
-		--tag netic/k8s-inventory-cli
+		--tag netic/ic
 
 .PHONY: release-patch
 release-patch:
@@ -52,7 +52,7 @@ fmt:
 # Runs go build
 .PHONY: build
 build: clean fmt lint | $(BIN)
-	@echo "Building k8s-inventory-cli..."
+	@echo "Building ic..."
 	CGO_ENABLED=0 go build -o $(BIN)/ic \
 		-v \
 		-a \
@@ -62,7 +62,7 @@ build: clean fmt lint | $(BIN)
 # Runs go build
 .PHONY: build2
 build2: clean fmt | $(BIN)
-	@echo "Building k8s-inventory-cli..."
+	@echo "Building ic..."
 	CGO_ENABLED=0 go build -o $(BIN)/ic \
 		-v \
 		-tags release \
@@ -77,15 +77,15 @@ doc:
 .PHONY: docker-build
 docker-build:
 	@echo "Building k8s-inventory-ic image..."
-	DOCKER_BUILDKIT=1 docker build --network=host --progress=plain --no-cache --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t netic/k8s-inventory-cli .
+	DOCKER_BUILDKIT=1 docker build --network=host --progress=plain --no-cache --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t netic/ic .
 
 # Tag and push docker image
 .PHONY: docker-push
 docker-push:
-	docker tag netic/k8s-inventory-cli:latest registry.netic.dk/netic/k8s-inventory-cli:latest
-	docker push registry.netic.dk/netic/k8s-inventory-cli:latest
-	docker tag netic/k8s-inventory-cli:latest registry.netic.dk/netic/k8s-inventory-cli:${VERSION}
-	docker push registry.netic.dk/netic/k8s-inventory-cli:${VERSION}
+	docker tag netic/ic:latest registry.netic.dk/netic/ic:latest
+	docker push registry.netic.dk/netic/ic:latest
+	docker tag netic/ic:latest registry.netic.dk/netic/ic:${VERSION}
+	docker push registry.netic.dk/netic/ic:${VERSION}
 
 # Build, tag and push docker image
 .PHONY: docker-all
@@ -93,4 +93,4 @@ docker-all: docker-build docker-push
 
 .PHONY: docker-cross
 docker-cross:
-	docker buildx build --platform linux/amd64 --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t registry.netic.dk/netic/k8s-inventory-cli:latest -t registry.netic.dk/netic/k8s-inventory-cli:${VERSION} --push .
+	docker buildx build --platform linux/amd64 --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t registry.netic.dk/netic/ic:latest -t registry.netic.dk/netic/ic:${VERSION} --push .

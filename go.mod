@@ -1,4 +1,4 @@
-module github.com/neticdk-k8s/k8s-inventory-cli
+module github.com/neticdk-k8s/ic
 
 go 1.22.1
 

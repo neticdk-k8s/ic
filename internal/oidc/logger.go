@@ -1,6 +1,6 @@
 package oidc
 
-import "github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
+import "github.com/neticdk-k8s/ic/internal/logger"
 
 // OIDCSlogAdapter is an slog adapter used by retryablehttp
 type OIDCSlogAdapter struct {

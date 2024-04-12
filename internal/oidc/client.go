@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/int128/oauth2cli"
 	"github.com/int128/oauth2cli/oauth2params"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
+	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )

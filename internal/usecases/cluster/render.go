@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/ui"
+	"github.com/neticdk-k8s/ic/internal/ui"
 )
 
 type Renderer interface {

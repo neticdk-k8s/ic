@@ -5,14 +5,14 @@ import (
 	"io"
 	"os"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/apiclient"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/reader"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/tokencache"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/ui"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
+	"github.com/neticdk-k8s/ic/internal/apiclient"
+	"github.com/neticdk-k8s/ic/internal/logger"
+	"github.com/neticdk-k8s/ic/internal/oidc"
+	"github.com/neticdk-k8s/ic/internal/reader"
+	"github.com/neticdk-k8s/ic/internal/tokencache"
+	"github.com/neticdk-k8s/ic/internal/ui"
+	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
+	"github.com/neticdk-k8s/ic/internal/usecases/authentication/authcode"
 	"golang.org/x/term"
 )
 

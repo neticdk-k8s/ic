@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/cmd"
+	"github.com/neticdk-k8s/ic/cmd"
 )
 
 var version = "HEAD"

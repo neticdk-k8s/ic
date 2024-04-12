@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/apiclient"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
+	"github.com/neticdk-k8s/ic/internal/apiclient"
+	"github.com/neticdk-k8s/ic/internal/logger"
 )
 
 type ListClustersInput struct {

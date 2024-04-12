@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	gooidc "github.com/coreos/go-oidc/v3/oidc"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
+	"github.com/neticdk-k8s/ic/internal/logger"
 	"golang.org/x/oauth2"
 )
 

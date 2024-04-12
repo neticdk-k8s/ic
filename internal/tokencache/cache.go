@@ -1,7 +1,7 @@
 package tokencache
 
 import (
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
+	"github.com/neticdk-k8s/ic/internal/oidc"
 )
 
 // Cache represents a token caching interface

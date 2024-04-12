@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
+	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/pkg/errors"
 )
 

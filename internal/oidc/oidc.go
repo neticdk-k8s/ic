@@ -1,6 +1,6 @@
 package oidc
 
-import "github.com/neticdk-k8s/k8s-inventory-cli/internal/jwt"
+import "github.com/neticdk-k8s/ic/internal/jwt"
 
 // Provider represents an OICD provider
 type Provider struct {

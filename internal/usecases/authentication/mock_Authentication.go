@@ -5,7 +5,7 @@ package authentication
 import (
 	context "context"
 
-	logger "github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
+	logger "github.com/neticdk-k8s/ic/internal/logger"
 	mock "github.com/stretchr/testify/mock"
 )
 

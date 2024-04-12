@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/reader"
+	"github.com/neticdk-k8s/ic/internal/logger"
+	"github.com/neticdk-k8s/ic/internal/oidc"
+	"github.com/neticdk-k8s/ic/internal/reader"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -3,7 +3,7 @@
 package tokencache
 
 import (
-	oidc "github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
+	oidc "github.com/neticdk-k8s/ic/internal/oidc"
 	mock "github.com/stretchr/testify/mock"
 )
 

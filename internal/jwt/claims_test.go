@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/jwt"
+	"github.com/neticdk-k8s/ic/internal/jwt"
 	"github.com/stretchr/testify/assert"
 )
 

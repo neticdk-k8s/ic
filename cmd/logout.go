@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/tokencache"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
+	"github.com/neticdk-k8s/ic/internal/tokencache"
+	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
 	"github.com/spf13/cobra"
 )
 

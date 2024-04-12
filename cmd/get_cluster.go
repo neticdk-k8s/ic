@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/cluster"
+	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
+	"github.com/neticdk-k8s/ic/internal/usecases/authentication/authcode"
+	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
 	"github.com/spf13/cobra"
 )
 

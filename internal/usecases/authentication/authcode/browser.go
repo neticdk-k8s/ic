@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/int128/oauth2cli/oauth2params"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/logger"
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/oidc"
+	"github.com/neticdk-k8s/ic/internal/logger"
+	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/pkg/browser"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"

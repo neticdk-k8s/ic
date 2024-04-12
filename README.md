@@ -2,4 +2,4 @@
 
 This is the CLI used to interact with k8s-inventory-server.
 
-See [`doc/`](doc/) for more documentation on the commands.
+See [`docs/`](docs/) for more documentation on the commands.

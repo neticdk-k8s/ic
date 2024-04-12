@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/neticdk-k8s/k8s-inventory-cli/internal/ui"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/cluster"
@@ -47,17 +51,47 @@ func NewGetClustersCmd(ec *ExecutionContext) *cobra.Command {
 				return fmt.Errorf("setting up API client: %w", err)
 			}
 
-			if err := cluster.ListClusters(cmd.Context(), cluster.ListClustersInput{
-				Logger:       logger,
-				APIClient:    ec.APIClient,
-				OutputFormat: ec.OutputFormat,
-				Spinner:      ec.Spinner,
-			}); err != nil {
+			in := cluster.ListClustersInput{
+				Logger:    logger,
+				APIClient: ec.APIClient,
+			}
+			clusters, err := cluster.ListClusters(cmd.Context(), in)
+			if err != nil {
 				return fmt.Errorf("listing clusters: %w", err)
 			}
+
+			ec.Spinner.Stop()
+
+			if ec.OutputFormat == "json" {
+				return prettyPrintJSON(clusters.Body)
+			}
+
+			table := ui.NewTable(ec.Stdout, []string{"provider", "name", "rz", "version"})
+			for _, i := range *clusters.ApplicationldJSONDefault.Included {
+				rzParts := strings.Split(i["resilienceZone"].(string), "/")
+				table.Append(
+					[]string{
+						i["provider"].(string),
+						i["name"].(string),
+						rzParts[len(rzParts)-1],
+						i["kubernetesVersion"].(map[string]interface{})["version"].(string),
+					},
+				)
+			}
+			table.Render()
 
 			return nil
 		},
 	}
 	return command
+}
+
+func prettyPrintJSON(body []byte) error {
+	var prettyJSON bytes.Buffer
+	err := json.Indent(&prettyJSON, body, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(prettyJSON.String())
+	return nil
 }

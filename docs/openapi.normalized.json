@@ -1,0 +1,686 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "description": "The API allows access to information related to the Netic Kubernetes based platform. The API\nis based on JSON-LD for linking relevant data.\n\nMajor changes to data structure is indicated through a \"v\" content type parameter - indicting requested\nmajor version, e.g., \"application/json;concept=cluster;v=1\". If no parameter is present API will return\nthe latest resource representation.\n\nWhere relevant the API implements standard caching through http such as etag, expiry etc.\n\nAPIs will use `application/problem+json` to convey error conditions to clients.\n\nHost: api.k8s.netic.dk",
+        "title": "Netic Cloud API",
+        "version": "0.0.0"
+    },
+    "paths": {
+        "/clusters": {
+            "get": {
+                "description": "listClusters return a list of clusters dependon on the authorizations of the user.\n\nThe returned list will contain all cluster that the user has access to see. Filtering\nis done based on the resources listed in the given OAuth 2.0 token.\n",
+                "operationId": "listClusters",
+                "responses": {
+                    "400": {
+                        "description": "Invalid query parameters, e.g., pagination parameters",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "collection of cluster instances",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Clusters"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "@id": "https://api.k8s.netic.dk/clusters?per_page=10",
+                                            "@included": [
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod940.provider11",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod940.provider11/components",
+                                                    "environmentName": "staging",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod940.provider11/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "8632faa03213f1b581ab2f34503a16d340de2e33",
+                                                        "date": "2021-03-26T13:52:28",
+                                                        "version": "v1.27.8+aks"
+                                                    },
+                                                    "name": "prod940",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod940.provider11/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider11",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
+                                                    "timestamp": "2021-03-14T15:40:05Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod940.provider11/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod301.provider14",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod301.provider14/components",
+                                                    "environmentName": "production",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod301.provider14/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "ffa362cc9a93e4ff07d5e11d43b0cf77acaa2ea9",
+                                                        "date": "2022-02-28T03:18:57",
+                                                        "version": "v1.28.16+eks"
+                                                    },
+                                                    "name": "prod301",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod301.provider14/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider14",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/early-majority-2",
+                                                    "timestamp": "2021-09-08T16:20:37Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod301.provider14/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod431.provider4",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod431.provider4/components",
+                                                    "environmentName": "production",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod431.provider4/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "92e2a49f3e9bd9e56807020e2f52fd153d436896",
+                                                        "date": "2022-09-28T10:36:05",
+                                                        "version": "v1.27.2+aks"
+                                                    },
+                                                    "name": "prod431",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod431.provider4/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider4",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/innovators-1",
+                                                    "timestamp": "2021-03-06T10:38:38Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod431.provider4/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod612.provider10",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod612.provider10/components",
+                                                    "environmentName": "staging",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod612.provider10/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "dcdce916f7a46366e2b602feede9429845840ccb",
+                                                        "date": "2021-07-31T07:40:36",
+                                                        "version": "v1.28.0+rke2"
+                                                    },
+                                                    "name": "prod612",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod612.provider10/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider10",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/innovators-1",
+                                                    "timestamp": "2021-02-27T10:11:17Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod612.provider10/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod215.provider16",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod215.provider16/components",
+                                                    "environmentName": "dev",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod215.provider16/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "24c69a8012bcade2d8d4372b7252df8039f292a9",
+                                                        "date": "2022-08-14T16:31:56",
+                                                        "version": "v1.27.1+eks"
+                                                    },
+                                                    "name": "prod215",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod215.provider16/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider16",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/internal-1",
+                                                    "timestamp": "2021-05-30T03:02:38Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod215.provider16/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod466.provider14",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod466.provider14/components",
+                                                    "environmentName": "staging",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod466.provider14/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "3d5d5d8618129f29083e4adc061349a361965766",
+                                                        "date": "2022-12-12T16:07:48",
+                                                        "version": "v1.28.13+eks"
+                                                    },
+                                                    "name": "prod466",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod466.provider14/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider14",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/innovators-1",
+                                                    "timestamp": "2021-05-27T18:36:47Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod466.provider14/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod627.provider18",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod627.provider18/components",
+                                                    "environmentName": "staging",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod627.provider18/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "454585ed655944e76f9157772a3023bb3765ef3",
+                                                        "date": "2022-08-31T20:26:42",
+                                                        "version": "v1.28.18+rke2"
+                                                    },
+                                                    "name": "prod627",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod627.provider18/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider18",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
+                                                    "timestamp": "2022-12-07T13:47:38Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod627.provider18/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod468.provider15",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod468.provider15/components",
+                                                    "environmentName": "staging",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod468.provider15/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "5a59a8701bfe8558d218c2464c0ca4448f75a557",
+                                                        "date": "2022-03-13T18:50:16",
+                                                        "version": "v1.28.1+aks"
+                                                    },
+                                                    "name": "prod468",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod468.provider15/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider15",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/early-majority-1",
+                                                    "timestamp": "2022-03-03T21:36:12Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod468.provider15/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod832.provider9",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod832.provider9/components",
+                                                    "environmentName": "staging",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod832.provider9/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "15291cb4d562890ac5905b57590572b1be259325",
+                                                        "date": "2022-10-18T12:53:36",
+                                                        "version": "v1.28.10+rke2"
+                                                    },
+                                                    "name": "prod832",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod832.provider9/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider9",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/laggards-1",
+                                                    "timestamp": "2021-12-11T06:41:57Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod832.provider9/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod896.provider9",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod896.provider9/components",
+                                                    "environmentName": "test",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod896.provider9/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "df2562cce7b928b4a9a78b2fdc26618359b165f2",
+                                                        "date": "2021-12-06T15:10:57",
+                                                        "version": "v1.28.3+aks"
+                                                    },
+                                                    "name": "prod896",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod896.provider9/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "provider9",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/early-adoptors-1",
+                                                    "timestamp": "2023-01-11T10:06:30Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod896.provider9/workloads"
+                                                }
+                                            ],
+                                            "@type": "ClusterCollection",
+                                            "clusters": [
+                                                "https://api.k8s.netic.dk/clusters/prod940.provider11",
+                                                "https://api.k8s.netic.dk/clusters/prod301.provider14",
+                                                "https://api.k8s.netic.dk/clusters/prod431.provider4",
+                                                "https://api.k8s.netic.dk/clusters/prod612.provider10",
+                                                "https://api.k8s.netic.dk/clusters/prod215.provider16",
+                                                "https://api.k8s.netic.dk/clusters/prod466.provider14",
+                                                "https://api.k8s.netic.dk/clusters/prod627.provider18",
+                                                "https://api.k8s.netic.dk/clusters/prod468.provider15",
+                                                "https://api.k8s.netic.dk/clusters/prod832.provider9",
+                                                "https://api.k8s.netic.dk/clusters/prod896.provider9"
+                                            ],
+                                            "count": 10,
+                                            "pagination": {
+                                                "first": "https://api.k8s.netic.dk/clusters?per_page=10",
+                                                "last": "https://api.k8s.netic.dk/clusters?page=2&per_page=10",
+                                                "next": "https://api.k8s.netic.dk/clusters?page=1&per_page=10"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Clusters"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}": {
+            "get": {
+                "description": "getCluster returns informatin on a specific cluster instance.\n\nA cluster represents a Kubernetes clutser operated and managed with the Netic cloud stack. Information\nis put into the inventory service prior to the first provisioning of the cluster. Some properties\nmay be updated based on metadata from the cluster.\n",
+                "operationId": "getCluster",
+                "parameters": [
+                    {
+                        "description": "the cluster id",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The request instance was not found (or user does not have access)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "cluster instance",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Cluster"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "@id": "https://api.k8s.netic.dk/clusters/prod940.provider11",
+                                            "@type": "Cluster",
+                                            "capacity": {
+                                                "control-plane": {
+                                                    "cores": 0,
+                                                    "memory": 0,
+                                                    "nodes": 0
+                                                },
+                                                "worker": {
+                                                    "cores": 29800,
+                                                    "memory": 130137509072,
+                                                    "nodes": 4
+                                                }
+                                            },
+                                            "clientVersion": {
+                                                "commit": "6ff3128f6e0e803fa21e5e28a2739e76ee47061e",
+                                                "version": "0.3.10"
+                                            },
+                                            "clusterType": "dedicated",
+                                            "components": "https://api.k8s.netic.dk/clusters/prod940.provider11/components",
+                                            "description": "117 staging cluster",
+                                            "environmentName": "staging",
+                                            "images": "https://api.k8s.netic.dk/clusters/prod940.provider11/images",
+                                            "infrastructureProvider": "azure",
+                                            "kubernetesProvider": "aks",
+                                            "kubernetesVersion": {
+                                                "commit": "8632faa03213f1b581ab2f34503a16d340de2e33",
+                                                "date": "2021-03-26T13:52:28",
+                                                "version": "v1.27.8+aks"
+                                            },
+                                            "name": "prod940",
+                                            "namespaces": "https://api.k8s.netic.dk/clusters/prod940.provider11/namespaces",
+                                            "nrn": "N/A",
+                                            "provider": "provider11",
+                                            "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
+                                            "subscription": "https://api.k8s.netic.dk/subscriptions/100765",
+                                            "timestamp": "2021-03-14T15:40:05Z",
+                                            "workloads": "https://api.k8s.netic.dk/clusters/prod940.provider11/workloads"
+                                        }
+                                    }
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Cluster"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Cluster": {
+                "description": "Cluster represent a secure cloud stack Kubernetes cluster",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "apiEndpoint": {
+                        "description": "ApiEndpoint is the uri for the Kubernetes api, this may be empty",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "capacity": {
+                        "description": "Capacity is the capacity per node type, i.e., control-plane and worker nodes",
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/capacity"
+                        }
+                    },
+                    "clientVersion": {
+                        "$ref": "#/components/schemas/version"
+                    },
+                    "clusterType": {
+                        "$ref": "#/components/schemas/ClusterType"
+                    },
+                    "components": {
+                        "description": "Components is a reference to the collection of components detected to be running in the cluster",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "description": {
+                        "description": "Description is the humanreadable cluster description of the cluster",
+                        "type": "string"
+                    },
+                    "environmentName": {
+                        "description": "EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., \"production\"",
+                        "type": "string"
+                    },
+                    "fqdn": {
+                        "description": "FQDN is deprecated, was a string identifying the cluster with a DNS valid string often also registered in DNS - this will not be provided going forward please use the NRN",
+                        "type": "string"
+                    },
+                    "images": {
+                        "description": "Images is a reference to the collection of images discovered from the cluster",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "infrastructureProvider": {
+                        "description": "InfrastructureProvider indicates the provider of the underlying infrastructure, e.g., azure, aws, netic etc. it may not be possible to determine the infrastructure provider",
+                        "type": "string"
+                    },
+                    "kubernetesProvider": {
+                        "description": "KubernetesProvider indicates the Kubernetes distribution, e.g., rke2, aks, eks, kubeadm, etc.",
+                        "type": "string"
+                    },
+                    "kubernetesVersion": {
+                        "$ref": "#/components/schemas/version"
+                    },
+                    "name": {
+                        "description": "Name uniquely identifying the cluster within the provider of the cluster",
+                        "type": "string"
+                    },
+                    "namespaces": {
+                        "description": "Namespaces is a reference to the collection of namespace for the cluster",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "nrn": {
+                        "description": "NRN is the Netic Resource Name uniquely identifying the cluster among all other Netic resource names",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "provider": {
+                        "description": "Provider identification of cluster provider, i.e., the organizational unit responsible for providing the cluster to the tenants",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "resilienceZone": {
+                        "description": "ResilienceZone identified the resilienze to which the cluster is associated",
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://api.k8s.netic.dk/resilience-zone/internal-1"
+                    },
+                    "subscription": {
+                        "description": "Subscription is the Netic subscription identifier used for accounting - this will only be included when the client is authorized for this information",
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://api.k8s.netic.dk/subscriptions/123456"
+                    },
+                    "timestamp": {
+                        "description": "Timestamp indicating when data was collected",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "vulnerabilities": {
+                        "description": "Vulnerabilities is a reference to the collection of vulnerabilities detected from the cluster",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "workloads": {
+                        "description": "Workloads is a reference to the collection of workloads for the cluster",
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
+            },
+            "ClusterType": {
+                "description": "ClusterType specifies the type of cluster sharing",
+                "type": "string"
+            },
+            "Clusters": {
+                "description": "Clusters represents a collection of clusters",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "clusters": {
+                        "description": "Clusters is the identification of the clusters in the collection",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "count": {
+                        "description": "Count is the number of clusters in the collection",
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/Pagination"
+                    }
+                }
+            },
+            "Pagination": {
+                "description": "Pagination contains data on other collection data",
+                "type": "object",
+                "properties": {
+                    "first": {
+                        "description": "First is link to the first page in the collection",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "last": {
+                        "description": "Last is link to the last page in the collection",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "next": {
+                        "description": "Next is link to the next page, if any",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "prev": {
+                        "description": "Prev is link to the previous page, if any",
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
+            },
+            "Problem": {
+                "description": "Problem is simple implementation of (RFC9457)[https://datatracker.ietf.org/doc/html/rfc9457]",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "description": "Detail is humanreadable explanation of the specific occurence of the problem RFC-9457#3.1.4",
+                        "type": "string"
+                    },
+                    "instance": {
+                        "description": "Instance identifies the specific instance of the problem RFC-9457#3.1.5",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "Status is the http status code and must be consistent with the server status code RFC-9457#3.1.2",
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "title": {
+                        "description": "Title is short humanreadable summary RFC-9457#3.1.3",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Type identify problem type RFC-9457#3.1.1",
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
+            },
+            "capacity": {
+                "type": "object",
+                "properties": {
+                    "cores": {
+                        "description": "CPU is the total amount of allocatable millicores",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "memory": {
+                        "description": "Memory is the total amount of allocatable bytes of memory",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "nodes": {
+                        "description": "Nodes is the total number of nodes",
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "version": {
+                "type": "object",
+                "properties": {
+                    "commit": {
+                        "description": "Commit is the commit sha of the source code for the binary",
+                        "type": "string"
+                    },
+                    "date": {
+                        "description": "Date is the date the binary was build",
+                        "type": "string"
+                    },
+                    "version": {
+                        "description": "Version is the semver version",
+                        "type": "string",
+                        "example": "1.27.1"
+                    }
+                }
+            }
+        }
+    }
+}

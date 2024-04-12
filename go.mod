@@ -15,6 +15,7 @@ require (
 	github.com/int128/oauth2cli v1.14.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.1.1
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.0

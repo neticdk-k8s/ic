@@ -71,7 +71,7 @@ build2: clean fmt | $(BIN)
 # Generates CLI documentation
 .PHONY: doc
 doc:
-	@go run doc/gen.go
+	@go run docs/gen.go
 
 # Build docker image
 .PHONY: docker-build

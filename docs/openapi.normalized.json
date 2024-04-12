@@ -69,223 +69,283 @@
                                             "@id": "https://api.k8s.netic.dk/clusters?per_page=10",
                                             "@included": [
                                                 {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod940.provider11",
-                                                    "@type": "Cluster",
-                                                    "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod940.provider11/components",
-                                                    "environmentName": "staging",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod940.provider11/images",
-                                                    "kubernetesVersion": {
-                                                        "commit": "8632faa03213f1b581ab2f34503a16d340de2e33",
-                                                        "date": "2021-03-26T13:52:28",
-                                                        "version": "v1.27.8+aks"
-                                                    },
-                                                    "name": "prod940",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod940.provider11/namespaces",
-                                                    "nrn": "N/A",
-                                                    "provider": "provider11",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
-                                                    "timestamp": "2021-03-14T15:40:05Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod940.provider11/workloads"
+                                                    "@id": "https://api.k8s.netic.dk/resilience-zones/laggards-1",
+                                                    "@type": "ResilienceZone",
+                                                    "name": "laggards-1"
                                                 },
                                                 {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod301.provider14",
-                                                    "@type": "Cluster",
-                                                    "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod301.provider14/components",
-                                                    "environmentName": "production",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod301.provider14/images",
-                                                    "kubernetesVersion": {
-                                                        "commit": "ffa362cc9a93e4ff07d5e11d43b0cf77acaa2ea9",
-                                                        "date": "2022-02-28T03:18:57",
-                                                        "version": "v1.28.16+eks"
-                                                    },
-                                                    "name": "prod301",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod301.provider14/namespaces",
-                                                    "nrn": "N/A",
-                                                    "provider": "provider14",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/early-majority-2",
-                                                    "timestamp": "2021-09-08T16:20:37Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod301.provider14/workloads"
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider10",
+                                                    "@type": "Provider",
+                                                    "name": "provider10"
                                                 },
                                                 {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod431.provider4",
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod169.provider10",
                                                     "@type": "Cluster",
                                                     "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod431.provider4/components",
-                                                    "environmentName": "production",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod431.provider4/images",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod169.provider10/components",
+                                                    "environmentName": "dev",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod169.provider10/images",
                                                     "kubernetesVersion": {
-                                                        "commit": "92e2a49f3e9bd9e56807020e2f52fd153d436896",
-                                                        "date": "2022-09-28T10:36:05",
-                                                        "version": "v1.27.2+aks"
+                                                        "commit": "47fad9aee5d995ff6e47c49cfbeec487e04fce4e",
+                                                        "date": "2021-07-13T00:18:46",
+                                                        "version": "v1.28.6+eks"
                                                     },
-                                                    "name": "prod431",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod431.provider4/namespaces",
+                                                    "name": "prod169",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod169.provider10/namespaces",
                                                     "nrn": "N/A",
-                                                    "provider": "provider4",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider10",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/laggards-1",
+                                                    "timestamp": "2021-11-21T15:02:25Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod169.provider10/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/resilience-zones/platform",
+                                                    "@type": "ResilienceZone",
+                                                    "name": "platform"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider6",
+                                                    "@type": "Provider",
+                                                    "name": "provider6"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod333.provider6",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod333.provider6/components",
+                                                    "environmentName": "test",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod333.provider6/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "570a997cd194973744adea387385c39c385e7be1",
+                                                        "date": "2021-06-08T12:56:55",
+                                                        "version": "v1.27.11+aks"
+                                                    },
+                                                    "name": "prod333",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod333.provider6/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider6",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/platform",
+                                                    "timestamp": "2021-10-06T08:34:30Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod333.provider6/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider14",
+                                                    "@type": "Provider",
+                                                    "name": "provider14"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod596.provider14",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod596.provider14/components",
+                                                    "environmentName": "dev",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod596.provider14/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "3dfcd00ca715e504f10ab2ed416a2c87963f862",
+                                                        "date": "2022-07-23T13:40:26",
+                                                        "version": "v1.28.7+eks"
+                                                    },
+                                                    "name": "prod596",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod596.provider14/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider14",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/laggards-1",
+                                                    "timestamp": "2022-02-25T02:49:49Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod596.provider14/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider1",
+                                                    "@type": "Provider",
+                                                    "name": "provider1"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod676.provider1",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod676.provider1/components",
+                                                    "environmentName": "test",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod676.provider1/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "35445058bd70770fdf613c1bfa7d95b0c30db960",
+                                                        "date": "2021-07-29T10:42:14",
+                                                        "version": "v1.28.14+eks"
+                                                    },
+                                                    "name": "prod676",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod676.provider1/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider1",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/platform",
+                                                    "timestamp": "2022-05-16T12:31:43Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod676.provider1/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/resilience-zones/innovators-1",
+                                                    "@type": "ResilienceZone",
+                                                    "name": "innovators-1"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider17",
+                                                    "@type": "Provider",
+                                                    "name": "provider17"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod802.provider17",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod802.provider17/components",
+                                                    "environmentName": "test",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod802.provider17/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "ca732b6a12f6514ba7f04717976aca1bb7bac5b4",
+                                                        "date": "2022-02-04T18:17:29",
+                                                        "version": "v1.28.19+eks"
+                                                    },
+                                                    "name": "prod802",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod802.provider17/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider17",
                                                     "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/innovators-1",
-                                                    "timestamp": "2021-03-06T10:38:38Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod431.provider4/workloads"
+                                                    "timestamp": "2022-01-09T01:27:54Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod802.provider17/workloads"
                                                 },
                                                 {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod612.provider10",
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider15",
+                                                    "@type": "Provider",
+                                                    "name": "provider15"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod820.provider15",
                                                     "@type": "Cluster",
                                                     "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod612.provider10/components",
-                                                    "environmentName": "staging",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod612.provider10/images",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod820.provider15/components",
+                                                    "environmentName": "dev",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod820.provider15/images",
                                                     "kubernetesVersion": {
-                                                        "commit": "dcdce916f7a46366e2b602feede9429845840ccb",
-                                                        "date": "2021-07-31T07:40:36",
+                                                        "commit": "9d5268c4cb8d2d97c7c564cc5887cb937becb543",
+                                                        "date": "2021-06-25T20:53:44",
+                                                        "version": "v1.28.2+rke2"
+                                                    },
+                                                    "name": "prod820",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod820.provider15/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider15",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/platform",
+                                                    "timestamp": "2021-12-13T14:07:00Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod820.provider15/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod954.provider1",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod954.provider1/components",
+                                                    "environmentName": "test",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod954.provider1/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "440a2b516e451eb326982ecb52140660a916e2d4",
+                                                        "date": "2021-01-08T05:39:01",
+                                                        "version": "v1.29.18+eks"
+                                                    },
+                                                    "name": "prod954",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod954.provider1/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider1",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/laggards-1",
+                                                    "timestamp": "2021-04-06T06:20:25Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod954.provider1/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/resilience-zones/internal-1",
+                                                    "@type": "ResilienceZone",
+                                                    "name": "internal-1"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod965.provider14",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod965.provider14/components",
+                                                    "environmentName": "test",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod965.provider14/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "66342288f6b78587aa0246944dc1be143f27ee8",
+                                                        "date": "2022-05-01T02:16:08",
+                                                        "version": "v1.29.13+aks"
+                                                    },
+                                                    "name": "prod965",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod965.provider14/namespaces",
+                                                    "nrn": "N/A",
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider14",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/internal-1",
+                                                    "timestamp": "2021-11-22T17:07:11Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod965.provider14/workloads"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider18",
+                                                    "@type": "Provider",
+                                                    "name": "provider18"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod984.provider18",
+                                                    "@type": "Cluster",
+                                                    "clusterType": "dedicated",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod984.provider18/components",
+                                                    "environmentName": "test",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod984.provider18/images",
+                                                    "kubernetesVersion": {
+                                                        "commit": "8e87591b04f196f1539f11e2f612d79d45a0d722",
+                                                        "date": "2022-09-13T08:56:47",
                                                         "version": "v1.28.0+rke2"
                                                     },
-                                                    "name": "prod612",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod612.provider10/namespaces",
+                                                    "name": "prod984",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod984.provider18/namespaces",
                                                     "nrn": "N/A",
-                                                    "provider": "provider10",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/innovators-1",
-                                                    "timestamp": "2021-02-27T10:11:17Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod612.provider10/workloads"
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider18",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/platform",
+                                                    "timestamp": "2022-05-27T12:04:08Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod984.provider18/workloads"
                                                 },
                                                 {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod215.provider16",
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider5",
+                                                    "@type": "Provider",
+                                                    "name": "provider5"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod999.provider5",
                                                     "@type": "Cluster",
                                                     "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod215.provider16/components",
+                                                    "components": "https://api.k8s.netic.dk/clusters/prod999.provider5/components",
                                                     "environmentName": "dev",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod215.provider16/images",
+                                                    "images": "https://api.k8s.netic.dk/clusters/prod999.provider5/images",
                                                     "kubernetesVersion": {
-                                                        "commit": "24c69a8012bcade2d8d4372b7252df8039f292a9",
-                                                        "date": "2022-08-14T16:31:56",
-                                                        "version": "v1.27.1+eks"
+                                                        "commit": "47ebe56775e1398b5501a3b2547fbed58438076c",
+                                                        "date": "2022-07-19T11:43:25",
+                                                        "version": "v1.28.0+eks"
                                                     },
-                                                    "name": "prod215",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod215.provider16/namespaces",
+                                                    "name": "prod999",
+                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod999.provider5/namespaces",
                                                     "nrn": "N/A",
-                                                    "provider": "provider16",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/internal-1",
-                                                    "timestamp": "2021-05-30T03:02:38Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod215.provider16/workloads"
-                                                },
-                                                {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod466.provider14",
-                                                    "@type": "Cluster",
-                                                    "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod466.provider14/components",
-                                                    "environmentName": "staging",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod466.provider14/images",
-                                                    "kubernetesVersion": {
-                                                        "commit": "3d5d5d8618129f29083e4adc061349a361965766",
-                                                        "date": "2022-12-12T16:07:48",
-                                                        "version": "v1.28.13+eks"
-                                                    },
-                                                    "name": "prod466",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod466.provider14/namespaces",
-                                                    "nrn": "N/A",
-                                                    "provider": "provider14",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/innovators-1",
-                                                    "timestamp": "2021-05-27T18:36:47Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod466.provider14/workloads"
-                                                },
-                                                {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod627.provider18",
-                                                    "@type": "Cluster",
-                                                    "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod627.provider18/components",
-                                                    "environmentName": "staging",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod627.provider18/images",
-                                                    "kubernetesVersion": {
-                                                        "commit": "454585ed655944e76f9157772a3023bb3765ef3",
-                                                        "date": "2022-08-31T20:26:42",
-                                                        "version": "v1.28.18+rke2"
-                                                    },
-                                                    "name": "prod627",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod627.provider18/namespaces",
-                                                    "nrn": "N/A",
-                                                    "provider": "provider18",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
-                                                    "timestamp": "2022-12-07T13:47:38Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod627.provider18/workloads"
-                                                },
-                                                {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod468.provider15",
-                                                    "@type": "Cluster",
-                                                    "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod468.provider15/components",
-                                                    "environmentName": "staging",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod468.provider15/images",
-                                                    "kubernetesVersion": {
-                                                        "commit": "5a59a8701bfe8558d218c2464c0ca4448f75a557",
-                                                        "date": "2022-03-13T18:50:16",
-                                                        "version": "v1.28.1+aks"
-                                                    },
-                                                    "name": "prod468",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod468.provider15/namespaces",
-                                                    "nrn": "N/A",
-                                                    "provider": "provider15",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/early-majority-1",
-                                                    "timestamp": "2022-03-03T21:36:12Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod468.provider15/workloads"
-                                                },
-                                                {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod832.provider9",
-                                                    "@type": "Cluster",
-                                                    "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod832.provider9/components",
-                                                    "environmentName": "staging",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod832.provider9/images",
-                                                    "kubernetesVersion": {
-                                                        "commit": "15291cb4d562890ac5905b57590572b1be259325",
-                                                        "date": "2022-10-18T12:53:36",
-                                                        "version": "v1.28.10+rke2"
-                                                    },
-                                                    "name": "prod832",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod832.provider9/namespaces",
-                                                    "nrn": "N/A",
-                                                    "provider": "provider9",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/laggards-1",
-                                                    "timestamp": "2021-12-11T06:41:57Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod832.provider9/workloads"
-                                                },
-                                                {
-                                                    "@id": "https://api.k8s.netic.dk/clusters/prod896.provider9",
-                                                    "@type": "Cluster",
-                                                    "clusterType": "dedicated",
-                                                    "components": "https://api.k8s.netic.dk/clusters/prod896.provider9/components",
-                                                    "environmentName": "test",
-                                                    "images": "https://api.k8s.netic.dk/clusters/prod896.provider9/images",
-                                                    "kubernetesVersion": {
-                                                        "commit": "df2562cce7b928b4a9a78b2fdc26618359b165f2",
-                                                        "date": "2021-12-06T15:10:57",
-                                                        "version": "v1.28.3+aks"
-                                                    },
-                                                    "name": "prod896",
-                                                    "namespaces": "https://api.k8s.netic.dk/clusters/prod896.provider9/namespaces",
-                                                    "nrn": "N/A",
-                                                    "provider": "provider9",
-                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/early-adoptors-1",
-                                                    "timestamp": "2023-01-11T10:06:30Z",
-                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod896.provider9/workloads"
+                                                    "provider": "https://api.k8s.netic.dk/providers/provider5",
+                                                    "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/platform",
+                                                    "timestamp": "2021-07-11T07:23:36Z",
+                                                    "workloads": "https://api.k8s.netic.dk/clusters/prod999.provider5/workloads"
                                                 }
                                             ],
                                             "@type": "ClusterCollection",
                                             "clusters": [
-                                                "https://api.k8s.netic.dk/clusters/prod940.provider11",
-                                                "https://api.k8s.netic.dk/clusters/prod301.provider14",
-                                                "https://api.k8s.netic.dk/clusters/prod431.provider4",
-                                                "https://api.k8s.netic.dk/clusters/prod612.provider10",
-                                                "https://api.k8s.netic.dk/clusters/prod215.provider16",
-                                                "https://api.k8s.netic.dk/clusters/prod466.provider14",
-                                                "https://api.k8s.netic.dk/clusters/prod627.provider18",
-                                                "https://api.k8s.netic.dk/clusters/prod468.provider15",
-                                                "https://api.k8s.netic.dk/clusters/prod832.provider9",
-                                                "https://api.k8s.netic.dk/clusters/prod896.provider9"
+                                                "https://api.k8s.netic.dk/clusters/prod169.provider10",
+                                                "https://api.k8s.netic.dk/clusters/prod333.provider6",
+                                                "https://api.k8s.netic.dk/clusters/prod596.provider14",
+                                                "https://api.k8s.netic.dk/clusters/prod676.provider1",
+                                                "https://api.k8s.netic.dk/clusters/prod802.provider17",
+                                                "https://api.k8s.netic.dk/clusters/prod820.provider15",
+                                                "https://api.k8s.netic.dk/clusters/prod954.provider1",
+                                                "https://api.k8s.netic.dk/clusters/prod965.provider14",
+                                                "https://api.k8s.netic.dk/clusters/prod984.provider18",
+                                                "https://api.k8s.netic.dk/clusters/prod999.provider5"
                                             ],
                                             "count": 10,
                                             "pagination": {
                                                 "first": "https://api.k8s.netic.dk/clusters?per_page=10",
-                                                "last": "https://api.k8s.netic.dk/clusters?page=2&per_page=10",
+                                                "last": "https://api.k8s.netic.dk/clusters?page=367&per_page=10",
                                                 "next": "https://api.k8s.netic.dk/clusters?page=1&per_page=10"
                                             }
                                         }
@@ -374,6 +434,24 @@
                                     "response": {
                                         "value": {
                                             "@id": "https://api.k8s.netic.dk/clusters/prod940.provider11",
+                                            "@included": [
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/subscriptions/100765",
+                                                    "@type": "Subscription",
+                                                    "name": "managed kubernetes",
+                                                    "number": "100765"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider11",
+                                                    "@type": "Provider",
+                                                    "name": "provider11"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
+                                                    "@type": "ResilienceZone",
+                                                    "name": "late-majority-1"
+                                                }
+                                            ],
                                             "@type": "Cluster",
                                             "capacity": {
                                                 "control-plane": {
@@ -406,7 +484,7 @@
                                             "name": "prod940",
                                             "namespaces": "https://api.k8s.netic.dk/clusters/prod940.provider11/namespaces",
                                             "nrn": "N/A",
-                                            "provider": "provider11",
+                                            "provider": "https://api.k8s.netic.dk/providers/provider11",
                                             "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
                                             "subscription": "https://api.k8s.netic.dk/subscriptions/100765",
                                             "timestamp": "2021-03-14T15:40:05Z",
@@ -440,6 +518,13 @@
                         "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
                         "type": "string",
                         "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
                     },
                     "@type": {
                         "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
@@ -586,6 +671,11 @@
                     },
                     "pagination": {
                         "$ref": "#/components/schemas/Pagination"
+                    },
+                    "total": {
+                        "description": "TotalCount is the total number of clusters",
+                        "type": "integer",
+                        "format": "int32"
                     }
                 }
             },
@@ -640,6 +730,98 @@
                         "description": "Type identify problem type RFC-9457#3.1.1",
                         "type": "string",
                         "format": "uri"
+                    }
+                }
+            },
+            "Provider": {
+                "description": "Provider models a cluster provider organization",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ResilienceZone": {
+                "description": "ResilienceZone models resilience zone for inclusion",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Subscription": {
+                "description": "Subscription models a subscription accounting wise",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name is a humanreable name of the subscription",
+                        "type": "string"
+                    },
+                    "number": {
+                        "description": "Number is the identifying property of a subscription",
+                        "type": "string"
                     }
                 }
             },

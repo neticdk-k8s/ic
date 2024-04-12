@@ -108,7 +108,12 @@ func (s *Spinner) Run() {
 }
 
 func (s *Spinner) Stop() {
+	if !isInteractive {
+		return
+	}
+
 	s.model.finished = true
+
 	if err := s.program.ReleaseTerminal(); err != nil {
 		s.logger.Error("Failed to release terminal", "err", err)
 	}

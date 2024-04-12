@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/usecases/authentication/authcode"
@@ -53,27 +52,17 @@ func NewGetClusterCmd(ec *ExecutionContext) *cobra.Command {
 				Logger:    logger,
 				APIClient: ec.APIClient,
 			}
-			cluster, err := cluster.GetCluster(cmd.Context(), args[0], in)
+			c, jsonData, err := cluster.GetCluster(cmd.Context(), args[0], in)
 			if err != nil {
 				return fmt.Errorf("getting cluster: %w", err)
 			}
 
 			ec.Spinner.Stop()
 
-			if ec.OutputFormat == "json" {
-				return prettyPrintJSON(cluster.Body)
+			r := cluster.NewClusterRenderer(c, jsonData, ec.Stdout)
+			if err := r.Render(ec.OutputFormat); err != nil {
+				return fmt.Errorf("rendering output: %w", err)
 			}
-
-			rzParts := strings.Split(*cluster.ApplicationldJSONDefault.ResilienceZone, "/")
-			fmt.Printf("%-20s : %-s\n", "NAME", *cluster.ApplicationldJSONDefault.Name)
-			fmt.Printf("%-20s : %-s\n", "PROVIDER", *cluster.ApplicationldJSONDefault.Provider)
-			fmt.Printf("%-20s : %-s\n", "DESCRIPTION", *cluster.ApplicationldJSONDefault.Description)
-			fmt.Printf("%-20s : %-s\n", "TYPE", *cluster.ApplicationldJSONDefault.ClusterType)
-			fmt.Printf("%-20s : %-s\n", "ENVIRONMENT", *cluster.ApplicationldJSONDefault.EnvironmentName)
-			fmt.Printf("%-20s : %-s\n", "RZ", rzParts[len(rzParts)-1])
-			fmt.Printf("%-20s : %-s\n", "INFRASTRUCTURE", *cluster.ApplicationldJSONDefault.InfrastructureProvider)
-			fmt.Printf("%-20s : %-s\n", "KUBERNETES PROVIDER", *cluster.ApplicationldJSONDefault.KubernetesProvider)
-			fmt.Printf("%-20s : %-s\n", "KUBERNETES VERSION", *cluster.ApplicationldJSONDefault.KubernetesVersion.Version)
 
 			return nil
 		},

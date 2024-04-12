@@ -24,6 +24,9 @@ type Cluster struct {
 	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
 	Id *string `json:"@id,omitempty"`
 
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
 	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
 	Type *string `json:"@type,omitempty"`
 
@@ -112,6 +115,9 @@ type Clusters struct {
 
 	// Pagination Pagination contains data on other collection data
 	Pagination *Pagination `json:"pagination,omitempty"`
+
+	// Total TotalCount is the total number of clusters
+	Total *int32 `json:"total,omitempty"`
 }
 
 // Pagination Pagination contains data on other collection data

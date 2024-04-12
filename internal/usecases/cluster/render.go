@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
-	"github.com/neticdk-k8s/k8s-inventory-cli/internal/apiclient"
 	"github.com/neticdk-k8s/k8s-inventory-cli/internal/ui"
 )
 
@@ -22,10 +20,10 @@ type renderer struct {
 
 type clusterRenderer struct {
 	renderer
-	cluster *apiclient.Cluster
+	cluster *clusterResponse
 }
 
-func NewClusterRenderer(cluster *apiclient.Cluster, jsonData []byte, writer io.Writer) Renderer {
+func NewClusterRenderer(cluster *clusterResponse, jsonData []byte, writer io.Writer) Renderer {
 	cr := &clusterRenderer{
 		renderer: renderer{
 			jsonData: jsonData,
@@ -50,14 +48,14 @@ func (r *clusterRenderer) Render(format string) error {
 func (r *clusterRenderer) renderTable() error {
 	table := ui.NewTable(r.writer, []string{})
 	data := [][]string{
-		{"Name", ":", *r.cluster.Name},
-		{"Provider", ":", *r.cluster.Provider},
-		{"Description", ":", *r.cluster.Description},
-		{"Type", ":", *r.cluster.ClusterType},
-		{"Environment", ":", *r.cluster.EnvironmentName},
-		{"Resilience Zone", ":", rzFromURL(*r.cluster.ResilienceZone)},
-		{"K8S Provider", ":", *r.cluster.KubernetesProvider},
-		{"K8S Version", ":", *r.cluster.KubernetesVersion.Version},
+		{"Name", ":", r.cluster.Name},
+		{"Provider", ":", r.cluster.ProviderName},
+		{"Description", ":", r.cluster.Description},
+		{"Type", ":", r.cluster.ClusterType},
+		{"Environment", ":", r.cluster.EnvironmentName},
+		{"Resilience Zone", ":", r.cluster.ResilienceZone},
+		{"K8S Provider", ":", r.cluster.KubernetesProvider},
+		{"K8S Version", ":", r.cluster.KubernetesVersion},
 	}
 	table.SetTablePadding(" ")
 	table.AppendBulk(data)
@@ -71,10 +69,10 @@ func (r *clusterRenderer) renderJSON() error {
 
 type clustersRenderer struct {
 	renderer
-	clusters *ClusterList
+	clusters *clusterListResponse
 }
 
-func NewClustersRenderer(clusters *ClusterList, jsonData []byte, writer io.Writer) Renderer {
+func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer io.Writer) Renderer {
 	cr := &clustersRenderer{
 		renderer: renderer{
 			writer:   writer,
@@ -98,16 +96,13 @@ func (r *clustersRenderer) Render(format string) error {
 
 func (r *clustersRenderer) renderTable() error {
 	table := ui.NewTable(r.writer, []string{"provider", "name", "rz", "version"})
-	for _, i := range r.clusters.Included {
-		if i["@type"] != "Cluster" {
-			continue
-		}
+	for _, c := range r.clusters.Clusters {
 		table.Append(
 			[]string{
-				i["provider"].(string),
-				i["name"].(string),
-				rzFromURL(i["resilienceZone"].(string)),
-				i["kubernetesVersion"].(map[string]interface{})["version"].(string),
+				c.ProviderName,
+				c.Name,
+				c.ResilienceZone,
+				c.KubernetesVersion,
 			},
 		)
 	}
@@ -127,12 +122,4 @@ func prettyPrintJSON(body []byte, writer io.Writer) error {
 	}
 	fmt.Fprintln(writer, prettyJSON.String())
 	return nil
-}
-
-func rzFromURL(url string) string {
-	parts := strings.Split(url, "/")
-	if len(parts) > 0 {
-		return parts[len(parts)-1]
-	}
-	return parts[0]
 }

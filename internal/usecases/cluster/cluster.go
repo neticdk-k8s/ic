@@ -41,7 +41,7 @@ type ClusterList struct {
 	Clusters []string                 `json:"clusters,omitempty"`
 }
 
-func (cl *ClusterList) MarshalJSON() ([]byte, error) {
+func (cl *ClusterList) ToResponse() *clusterListResponse {
 	clr := &clusterListResponse{
 		Clusters: make([]clusterResponse, 0),
 	}
@@ -72,10 +72,14 @@ func (cl *ClusterList) MarshalJSON() ([]byte, error) {
 		}
 		clr.Clusters = append(clr.Clusters, cr)
 	}
-	return json.Marshal(clr)
+	return clr
 }
 
-func ListClusters(ctx context.Context, in ListClustersInput) (*ClusterList, []byte, error) {
+func (cl *ClusterList) MarshalJSON() ([]byte, error) {
+	return json.Marshal(cl.ToResponse())
+}
+
+func ListClusters(ctx context.Context, in ListClustersInput) (*clusterListResponse, []byte, error) {
 	cl := &ClusterList{}
 	err := listClusters(ctx, &in, cl)
 	if err != nil {
@@ -85,7 +89,7 @@ func ListClusters(ctx context.Context, in ListClustersInput) (*ClusterList, []by
 	if err != nil {
 		return nil, nil, fmt.Errorf("marshaling cluster list: %w", err)
 	}
-	return cl, jsonData, nil
+	return cl.ToResponse(), jsonData, nil
 }
 
 func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) error {
@@ -120,7 +124,7 @@ type GetClusterInput struct {
 	APIClient *apiclient.ClientWithResponses
 }
 
-func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*apiclient.Cluster, []byte, error) {
+func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clusterResponse, []byte, error) {
 	cluster, err := in.APIClient.GetClusterWithResponse(ctx, clusterID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("getting cluster: %w", err)
@@ -158,5 +162,5 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*api
 	if cluster.StatusCode() != http.StatusOK {
 		return nil, nil, fmt.Errorf("bad status code: %d", cluster.StatusCode())
 	}
-	return cluster.ApplicationldJSONDefault, jsonData, nil
+	return cl, jsonData, nil
 }

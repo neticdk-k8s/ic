@@ -52,5 +52,5 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           binary_name: "ic"
-          build_command: "make build-nolint"
+          ldflags: -s -w -X main.version=${{ github.ref_name }}
           extra_files: README.md

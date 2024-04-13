@@ -80,12 +80,22 @@ func (ec *ExecutionContext) SetupAPIClient(token string) error {
 	return nil
 }
 
+// Prepare sets up context that does not depend on flags
+// It should be called before rootCmd.Execute
 func (ec *ExecutionContext) Prepare() error {
 	ec.IsTerminal = term.IsTerminal(int(os.Stdout.Fd()))
 
-	ec.setupLogger()
+	ec.SetupLogger("info")
 
 	ec.setupSpinner()
+
+	return nil
+}
+
+// Setup sets up context that depends on the flags being sets
+// It should be called from rootCmd.PersistentPreRunE
+func (ec *ExecutionContext) Setup() error {
+	ec.SetupLogger(ec.LogLevel)
 
 	authn := authentication.NewAuthentication(
 		ec.Logger,
@@ -121,8 +131,16 @@ func (ec *ExecutionContext) Spin(message string) {
 	ec.Spinner.Text(message)
 }
 
-func (ec *ExecutionContext) setupLogger() {
+func (ec *ExecutionContext) SetupLogger(logLevel string) {
 	if ec.Logger == nil {
-		ec.Logger = logger.New(ec.Stderr, "info")
+		ec.Logger = logger.New(ec.Stderr, logLevel)
+	} else {
+		if err := ec.Logger.SetLevel(logLevel); err != nil {
+			ec.Logger.Error("Failed to set loglevel", "level", logLevel)
+		}
 	}
+	if logLevel != ec.LogLevel {
+		ec.LogLevel = logLevel
+	}
+	ec.Logger.SetInteractive(ec.Interactive, ec.IsTerminal)
 }

@@ -36,10 +36,9 @@ var rootCmd = &cobra.Command{
 		if err := initConfig(cmd); err != nil {
 			return err
 		}
-		if err := ec.Prepare(); err != nil {
-			return fmt.Errorf("preparing execution context: %w", err)
+		if err := ec.Setup(); err != nil {
+			return fmt.Errorf("settings up execution context: %w", err)
 		}
-		initLog(cmd)
 		return nil
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -52,19 +51,6 @@ var rootCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return nil
 	},
-}
-
-func initLog(cmd *cobra.Command) {
-	logLevel, err := cmd.Flags().GetString("log-level")
-	if err == nil {
-		if err := ec.Logger.SetLevel(logLevel); err != nil {
-			ec.Logger.Error("Failed to set loglevel", "level", logLevel)
-		}
-	}
-	interactive, err := cmd.Flags().GetString("interactive")
-	if err == nil {
-		ec.Logger.SetInteractive(interactive, ec.IsTerminal)
-	}
 }
 
 func initConfig(cmd *cobra.Command) error {
@@ -160,6 +146,10 @@ func Execute(args []string, version string) int {
 	rootCmd.Version = version
 	rootCmd.SilenceUsage = true
 	rootCmd.SetArgs(args[1:])
+	if err := ec.Prepare(); err != nil {
+		ec.Logger.Error("Preparing execution context", "err", err)
+		return 1
+	}
 	err := rootCmd.ExecuteContext(context.Background())
 	if ec.Spinner.Running() {
 		ec.Spinner.Stop()

@@ -12,9 +12,10 @@ import (
 // New creates a new "get cluster" command
 func NewGetClusterCmd(ec *ExecutionContext) *cobra.Command {
 	command := &cobra.Command{
-		Use:   "cluster [cluster-id]",
-		Short: "Get a cluster",
-		Args:  cobra.ExactArgs(1),
+		Use:     "cluster [cluster-id]",
+		Short:   "Get a cluster",
+		GroupID: groupCluster,
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger := ec.Logger.WithPrefix("Clusters")
 			ec.Authenticator.SetLogger(logger)

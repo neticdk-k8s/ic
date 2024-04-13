@@ -16,19 +16,28 @@ const (
 	defaultConfigFilename = "ic"
 	envPrefix             = "IC"
 	oobRedirectURI        = "urn:ietf:wg:oauth:2.0:oob"
+
+	groupBase    = "group-base"
+	groupAuth    = "group-auth"
+	groupOther   = "group-other"
+	groupCluster = "group-cluster"
 )
 
 // ec is the Execution Context for the current run
 var ec *ExecutionContext
 
 var rootCmd = &cobra.Command{
-	Use:           "ic",
-	Short:         "Inventory CLI",
-	SilenceUsage:  true,
-	SilenceErrors: true,
+	Use:                   "ic",
+	DisableFlagsInUseLine: true,
+	Short:                 "Inventory CLI",
+	SilenceUsage:          true,
+	SilenceErrors:         true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if err := initConfig(cmd); err != nil {
 			return err
+		}
+		if err := ec.Prepare(); err != nil {
+			return fmt.Errorf("preparing execution context: %w", err)
 		}
 		initLog(cmd)
 		return nil
@@ -103,59 +112,55 @@ func getDefaultTokenCacheDir() string {
 
 func init() {
 	ec = NewExecutionContext()
+
+	f := rootCmd.PersistentFlags()
+	f.StringVarP(&ec.LogLevel, "log-level", "l", "info", "Log level")
+	f.StringVarP(&ec.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
+	f.StringVarP(&ec.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
+	f.StringVarP(&ec.OutputFormat, "output-format", "o", "text", "Output format. One of (text|json)")
+	f.StringVar(&ec.OIDC.IssuerURL, "oidc-issuer-url", "https://keycloak.netic.dk/auth/realms/services", "Issuer URL for the OIDC Provider")
+	f.StringVar(&ec.OIDC.ClientID, "oidc-client-id", "inventory-cli", "OIDC client ID")
+	f.StringVar(&ec.OIDC.GrantType, "oidc-grant-type", "authcode-browser", "OIDC authorization grant type. One of (authcode-browser|authcode-keyboard)")
+	f.StringVar(&ec.OIDC.RedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
+	f.StringVar(&ec.OIDC.AuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
+	f.StringVar(&ec.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
+	f.StringVar(&ec.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
+
+	viper.BindPFlags(rootCmd.PersistentFlags()) // nolint:errcheck
+
+	rootCmd.Flags().SortFlags = false
+	rootCmd.PersistentFlags().SortFlags = false
+
+	rootCmd.AddGroup(
+		&cobra.Group{
+			ID:    groupBase,
+			Title: "Basic Commands:",
+		},
+		&cobra.Group{
+			ID:    groupAuth,
+			Title: "Authentication Commands:",
+		},
+		&cobra.Group{
+			ID:    groupOther,
+			Title: "Other Commands:",
+		},
+	)
+
+	rootCmd.SetHelpCommandGroupID(groupOther)
+	rootCmd.SetCompletionCommandGroupID(groupOther)
+
 	rootCmd.AddCommand(
 		NewLoginCmd(ec),
 		NewLogoutCmd(ec),
 		NewGetCmd(ec),
 	)
-
-	f := rootCmd.PersistentFlags()
-	f.StringVarP(&ec.LogLevel, "log-level", "l", "info", "Set log level")
-	viper.BindPFlag("log-level", f.Lookup("log-level")) //nolint:errcheck
-
-	f.StringVarP(&ec.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
-	viper.BindPFlag("api-server", f.Lookup("api-server")) //nolint:errcheck
-
-	f.StringVarP(&ec.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
-	viper.BindPFlag("interactive", f.Lookup("interactive")) //nolint:errcheck
-
-	f.StringVarP(&ec.OutputFormat, "output-format", "o", "text", "Output format. One of (text|json)")
-	viper.BindPFlag("output-format", f.Lookup("output-format")) //nolint:errcheck
-
-	f.StringVar(&ec.OIDC.IssuerURL, "oidc-issuer-url", "https://keycloak.netic.dk/auth/realms/services", "Issuer URL for the OIDC Provider")
-	viper.BindPFlag("oidc-issuer-url", f.Lookup("oidc-issuer-url")) //nolint:errcheck
-
-	f.StringVar(&ec.OIDC.ClientID, "oidc-client-id", "inventory-cli", "OIDC client ID")
-	viper.BindPFlag("oidc-client-id", f.Lookup("oidc-client-id")) //nolint:errcheck
-
-	f.StringVar(&ec.OIDC.GrantType, "oidc-grant-type", "authcode-browser", "OIDC authorization grant type. One of (authcode-browser|authcode-keyboard)")
-	viper.BindPFlag("oidc-grant-type", f.Lookup("oidc-grant-type")) //nolint:errcheck
-
-	f.StringVar(&ec.OIDC.RedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
-	viper.BindPFlag("oidc-redirect-url-hostname", f.Lookup("oidc-redirect-url-hostname")) //nolint:errcheck
-
-	f.StringVar(&ec.OIDC.AuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
-	viper.BindPFlag("oidc-auth-bind-addr", f.Lookup("oidc-auth-bind-addr")) //nolint:errcheck
-
-	f.StringVar(&ec.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
-	viper.BindPFlag("oidc-redirect-uri-authcode-keyboard", f.Lookup("oidc-redirect-uri-authcode-keyboard")) //nolint:errcheck
-
-	f.StringVar(&ec.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
-	viper.BindPFlag("oidc-token-cache-dir", f.Lookup("oidc-token-cache-dir")) //nolint:errcheck
-
-	rootCmd.Flags().SortFlags = false
 }
 
 func Execute(args []string, version string) int {
 	rootCmd.Version = version
 	rootCmd.SilenceUsage = true
 	rootCmd.SetArgs(args[1:])
-	err := ec.Prepare()
-	if err != nil {
-		ec.Logger.Error("Preparing execution context", "err", err)
-		return 1
-	}
-	err = rootCmd.ExecuteContext(context.Background())
+	err := rootCmd.ExecuteContext(context.Background())
 	if ec.Spinner.Running() {
 		ec.Spinner.Stop()
 	}

@@ -12,8 +12,9 @@ import (
 // New creates a new logout command
 func NewLogoutCmd(ec *ExecutionContext) *cobra.Command {
 	command := &cobra.Command{
-		Use:   "logout",
-		Short: "Log out",
+		Use:     "logout",
+		Short:   "Log out",
+		GroupID: groupAuth,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger := ec.Logger.WithPrefix("Logout")
 			ec.Authenticator.SetLogger(logger)

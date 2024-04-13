@@ -50,7 +50,7 @@ type ExecutionContext struct {
 	// OutputFormat is the format used for outputting data
 	OutputFormat string
 
-	OIDC          *OIDCConfig
+	OIDC          OIDCConfig
 	OIDCProvider  oidc.Provider
 	Authenticator authentication.Authenticator
 	TokenCache    tokencache.Cache
@@ -63,7 +63,7 @@ func NewExecutionContext() *ExecutionContext {
 		Stderr:       os.Stderr,
 		Stdout:       os.Stdout,
 		OutputFormat: "text",
-		OIDC:         &OIDCConfig{},
+		OIDC:         OIDCConfig{},
 	}
 	return ec
 }

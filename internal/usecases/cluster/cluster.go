@@ -83,7 +83,7 @@ func ListClusters(ctx context.Context, in ListClustersInput) (*clusterListRespon
 	cl := &ClusterList{}
 	err := listClusters(ctx, &in, cl)
 	if err != nil {
-		return nil, nil, fmt.Errorf("reading clusters: %w", err)
+		return nil, nil, fmt.Errorf("apiclient: %w", err)
 	}
 	jsonData, err := cl.MarshalJSON()
 	if err != nil {
@@ -127,7 +127,7 @@ type GetClusterInput struct {
 func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clusterResponse, []byte, error) {
 	cluster, err := in.APIClient.GetClusterWithResponse(ctx, clusterID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("getting cluster: %w", err)
+		return nil, nil, fmt.Errorf("apiclient: %w", err)
 	}
 	in.Logger.Debug("apiclient", "status", cluster.StatusCode(), "content-type", cluster.HTTPResponse.Header.Get("Content-Type"))
 

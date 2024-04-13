@@ -11,8 +11,9 @@ import (
 // New creates a new login command
 func NewLoginCmd(ec *ExecutionContext) *cobra.Command {
 	command := &cobra.Command{
-		Use:   "login",
-		Short: "Login to Inventory Server",
+		Use:     "login",
+		Short:   "Login to Inventory Server",
+		GroupID: groupAuth,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger := ec.Logger.WithPrefix("Login")
 			ec.Authenticator.SetLogger(logger)

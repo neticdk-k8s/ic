@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
@@ -14,8 +12,9 @@ import (
 // New creates a new "get clusters" command
 func NewGetClustersCmd(ec *ExecutionContext) *cobra.Command {
 	command := &cobra.Command{
-		Use:   "clusters",
-		Short: "Get list of clusters",
+		Use:     "clusters",
+		Short:   "Get list of clusters",
+		GroupID: groupCluster,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger := ec.Logger.WithPrefix("Clusters")
 			ec.Authenticator.SetLogger(logger)
@@ -70,14 +69,4 @@ func NewGetClustersCmd(ec *ExecutionContext) *cobra.Command {
 		},
 	}
 	return command
-}
-
-func prettyPrintJSON(body []byte) error {
-	var prettyJSON bytes.Buffer
-	err := json.Indent(&prettyJSON, body, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Println(prettyJSON.String())
-	return nil
 }

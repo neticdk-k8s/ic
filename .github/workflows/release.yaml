@@ -1,0 +1,47 @@
+---
+name: release
+
+on:
+  release:
+    type: [created]
+
+jobs:
+  lint:
+    name: Lint files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4.0.0
+        with:
+          version: latest
+
+  release-matrix:
+    name: Release go binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64, arm64]
+        exclude:
+          - goarch: "386"
+            goos: darwin
+          - goarch: arm64
+            goos: windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Release
+        uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          binary_name: "ic"
+          build_command: "make build-nolint"
+          extra_files: README.md

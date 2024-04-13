@@ -14,12 +14,12 @@ PLATFORM=local
 
 .PHONY: bin/ic
 bin/ic:
-	@DOCKER_BUILDKIT=1 docker build --target bin \
+	docker buildx build --target bin \
 		--output bin/ \
 		--platform ${PLATFORM} \
-		--tag netic/ic
-	@DOCKER_BUILDKIT=1 docker build --platform ${PLATFORM} \
-		--tag netic/ic
+		--tag netic/ic .
+	docker buildx build --platform ${PLATFORM} \
+		--tag netic/ic .
 
 .PHONY: release-patch
 release-patch:
@@ -31,27 +31,33 @@ release-minor:
 	@echo "Releasing minor version..."
 	@hack/release.sh minor
 
-# Runs go lint
 .PHONY: lint
 lint:
 	@echo "Linting..."
 	@golangci-lint run
 
-# Runs go clean
 .PHONY: clean
 clean:
 	@echo "Cleaning..."
 	@go clean
 
-# Runs go fmt
 .PHONY: fmt
 fmt:
 	@echo "Formatting..."
 	@go fmt ./...
 
-# Runs go build
-.PHONY: build
-build: clean fmt lint | $(BIN)
+.PHONY: gen
+gen:
+	@echo "Generating code..."
+	@go generate ./...
+
+.PHONY: doc
+doc:
+	@echo "Generating documentation..."
+	@go run docs/gen.go
+
+.PHONY: build-all
+build-all: clean fmt lint | $(BIN)
 	@echo "Building ic..."
 	CGO_ENABLED=0 go build -o $(BIN)/ic \
 		-v \
@@ -59,38 +65,20 @@ build: clean fmt lint | $(BIN)
 		-tags release \
 		-ldflags '-s -w -X main.version=$(VERSION)'
 
-# Runs go build
-.PHONY: build2
-build2: clean fmt | $(BIN)
+.PHONY: build
+build: clean fmt lint | $(BIN)
 	@echo "Building ic..."
 	CGO_ENABLED=0 go build -o $(BIN)/ic \
 		-v \
 		-tags release \
 		-ldflags '-s -w -X main.version=$(VERSION)'
 
-# Generates CLI documentation
-.PHONY: doc
-doc:
-	@go run docs/gen.go
-
-# Build docker image
 .PHONY: docker-build
 docker-build:
-	@echo "Building k8s-inventory-ic image..."
-	DOCKER_BUILDKIT=1 docker build --network=host --progress=plain --no-cache --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t netic/ic .
+	@echo "Building docker image..."
+	docker buildx build --progress plain --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) -t registry.netic.dk/netic/ic:latest -t registry.netic.dk/netic/ic:${VERSION} --load .
 
-# Tag and push docker image
-.PHONY: docker-push
-docker-push:
-	docker tag netic/ic:latest registry.netic.dk/netic/ic:latest
-	docker push registry.netic.dk/netic/ic:latest
-	docker tag netic/ic:latest registry.netic.dk/netic/ic:${VERSION}
-	docker push registry.netic.dk/netic/ic:${VERSION}
-
-# Build, tag and push docker image
-.PHONY: docker-all
-docker-all: docker-build docker-push
-
-.PHONY: docker-cross
-docker-cross:
-	docker buildx build --platform linux/amd64 --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -t registry.netic.dk/netic/ic:latest -t registry.netic.dk/netic/ic:${VERSION} --push .
+.PHONY: docker-build-push
+docker-build-push:
+	@echo "Building docker image..."
+	docker buildx build --progress plain --platform linux/arm64,linux/amd64 --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} --build-arg MODULEPATH=${MODULEPATH} --build-arg VERSION=$(VERSION) -t registry.netic.dk/netic/ic:latest -t registry.netic.dk/netic/ic:${VERSION} --push .

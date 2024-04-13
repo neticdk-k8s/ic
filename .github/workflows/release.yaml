@@ -3,7 +3,11 @@ name: release
 
 on:
   release:
-    type: [created]
+    types: [created]
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
   lint:
@@ -33,6 +37,10 @@ jobs:
             goos: darwin
           - goarch: arm64
             goos: windows
+          - goarch: "386"
+            goos: windows
+          - goarch: "386"
+            goos: linux
     steps:
       - name: Checkout
         uses: actions/checkout@v4

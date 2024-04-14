@@ -86,6 +86,14 @@ build-nolint: clean fmt | $(BIN)
 		-tags release \
 		-ldflags '-s -w -X main.version=$(VERSION)'
 
+.PHONY: install
+install: clean fmt lint | $(BIN)
+	@echo "Installing ic..."
+	CGO_ENABLED=0 go install \
+		-v \
+		-tags release \
+		-ldflags '-s -w -X main.version=$(VERSION)'
+
 .PHONY: docker-build
 docker-build:
 	@echo "Building docker image..."

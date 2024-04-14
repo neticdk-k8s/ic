@@ -53,6 +53,7 @@ type GetAuthCodeURLInput struct {
 	Nonce string
 }
 
+// ExchangeAuthCodeInput holds the input parameters for ExchangeAuthCode()
 type ExchangeAuthCodeInput struct {
 	Code string
 	// PKCE represents a set of PKCE parameters

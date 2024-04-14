@@ -7,6 +7,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+// NewTable creates a new table with default settings
 func NewTable(writer io.Writer, headers []string) *tablewriter.Table {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(headers)

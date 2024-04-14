@@ -19,8 +19,8 @@ const (
 
 	groupBase    = "group-base"
 	groupAuth    = "group-auth"
-	groupOther   = "group-other"
 	groupCluster = "group-cluster"
+	groupOther   = "group-other"
 )
 
 // ec is the Execution Context for the current run
@@ -53,6 +53,9 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// initConfig ensures that precedence of configuration setting is correct
+// precedence:
+// flag -> environment -> configuration file value -> flag defaults
 func initConfig(cmd *cobra.Command) error {
 	v := viper.New()
 	v.SetConfigName(defaultConfigFilename)
@@ -142,6 +145,7 @@ func init() {
 	)
 }
 
+// Execute runs the root command and returns the exit code
 func Execute(args []string, version string) int {
 	rootCmd.Version = version
 	rootCmd.SilenceUsage = true

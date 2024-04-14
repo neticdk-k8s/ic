@@ -70,8 +70,7 @@ type Authenticator interface {
 	// Login performs OIDC login in three steps:
 	//
 	//  1. fetching a cached token
-	//  2. authenticating using the cached token or if not present performing OIDC
-	//     authentication using the grant type provided
+	//  2. authenticating using the cached token or if not present performing OIDC authentication using the grant type provided
 	//  3. caching the token obtained from the auth flow
 	Login(ctx context.Context, in LoginInput) (*oidc.TokenSet, error)
 
@@ -102,8 +101,7 @@ func NewAuthenticator(logger logger.Logger, authentication Authentication) *auth
 // Login performs OIDC login in three steps:
 //
 //  1. fetching a cached token
-//  2. authenticating using the cached token or if not present performing OIDC
-//     authentication using the grant type provided
+//  2. authenticating using the cached token or if not present performing OIDC authentication using the grant type provided
 //  3. caching the token obtained from the auth flow
 func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSet, error) {
 	a.logger.Debug("Fetching cached token")
@@ -213,8 +211,7 @@ func (a *authenticator) SetLogger(l logger.Logger) {
 }
 
 type Authentication interface {
-	// Authenticate performs the OIDC authentication using the configuration given
-	// by AuthenticateInput
+	// Authenticate performs the OIDC authentication using the configuration given by AuthenticateInput
 	Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error)
 
 	// Logout logs out of the OIDC provider
@@ -227,14 +224,13 @@ type Authentication interface {
 type authentication struct {
 	oidcClientFactory oidc.FactoryClient
 	logger            logger.Logger
-	// AuthCodeBrowser is the configuration used when authenticating using
-	// authcode-browser
+	// AuthCodeBrowser is the configuration used when authenticating using authcode-browser
 	authCodeBrowser *authcode.Browser
-	// AuthCodeKeyboard is the configuration used when authenticating using
-	// authcode-keyboard
+	// AuthCodeKeyboard is the configuration used when authenticating using authcode-keyboard
 	authCodeKeyboard *authcode.Keyboard
 }
 
+// NewAuthentication creates a new authentication
 func NewAuthentication(logger logger.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
 	authn := &authentication{
 		oidcClientFactory: &oidc.Factory{
@@ -250,8 +246,7 @@ func NewAuthentication(logger logger.Logger, clientFactory oidc.FactoryClient, a
 	return authn
 }
 
-// Authenticate performs the OIDC authentication using the configuration given
-// by AuthenticateInput
+// Authenticate performs the OIDC authentication using the configuration given by AuthenticateInput
 func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error) {
 	if in.CachedTokenSet != nil {
 		a.logger.Debug("Found cached token")

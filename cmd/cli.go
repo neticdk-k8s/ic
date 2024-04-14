@@ -16,6 +16,7 @@ import (
 	"golang.org/x/term"
 )
 
+// OIDCConfig holds flag values for OIDC settings
 type OIDCConfig struct {
 	IssuerURL                   string
 	ClientID                    string
@@ -26,6 +27,8 @@ type OIDCConfig struct {
 	TokenCacheDir               string
 }
 
+// ExecutionContext holds configuration that can be used (and modified) across
+// the application
 type ExecutionContext struct {
 	Stderr, Stdout io.Writer
 
@@ -50,14 +53,23 @@ type ExecutionContext struct {
 	// OutputFormat is the format used for outputting data
 	OutputFormat string
 
-	OIDC          OIDCConfig
-	OIDCProvider  oidc.Provider
-	Authenticator authentication.Authenticator
-	TokenCache    tokencache.Cache
+	// OIDC is the OIDC settings
+	OIDC OIDCConfig
 
+	// OIDC is the OIDC provider settings
+	OIDCProvider oidc.Provider
+
+	// Authenticator is the Authenticator
+	Authenticator authentication.Authenticator
+
+	// TokenCache is the token cache
+	TokenCache tokencache.Cache
+
+	// APIClient is an inventory server api client
 	APIClient *apiclient.ClientWithResponses
 }
 
+// NewExecutionContext creates a new ExecutionContext
 func NewExecutionContext() *ExecutionContext {
 	ec := &ExecutionContext{
 		Stderr:       os.Stderr,
@@ -68,12 +80,13 @@ func NewExecutionContext() *ExecutionContext {
 	return ec
 }
 
+// SetupAPIClient configures the API client
 func (ec *ExecutionContext) SetupAPIClient(token string) error {
 	var err error
-	provider := apiclient.NewAuthProvider(token)
+	provider := apiclient.NewBearerTokenProvider(token)
 	ec.APIClient, err = apiclient.NewClientWithResponses(
 		ec.APIServer,
-		apiclient.WithRequestEditorFn(provider.Intercept))
+		apiclient.WithRequestEditorFn(provider.WithAuthHeader))
 	if err != nil {
 		return err
 	}
@@ -124,13 +137,15 @@ func (ec *ExecutionContext) setupSpinner() {
 	}
 }
 
-func (ec *ExecutionContext) Spin(message string) {
+// Spin starts the spinnner and sets its text
+func (ec *ExecutionContext) Spin(t string) {
 	if !ec.Spinner.Running() {
 		ec.Spinner.Run()
 	}
-	ec.Spinner.Text(message)
+	ec.Spinner.Text(t)
 }
 
+// SetupLogger configures the logger
 func (ec *ExecutionContext) SetupLogger(logLevel string) {
 	if ec.Logger == nil {
 		ec.Logger = logger.New(ec.Stderr, logLevel)

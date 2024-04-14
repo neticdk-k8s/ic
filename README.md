@@ -6,3 +6,14 @@
 This is the CLI used to interact with k8s-inventory-server.
 
 See [`docs/`](docs/) for more documentation on the commands.
+
+## Development
+
+You might want to create a config file named `ic.toml` in the root directory
+that looks something like this:
+
+```toml
+log-level="debug"
+oidc-issuer-url="http://localhost:8080/realms/test"
+api-server="http://localhost:8087"
+```

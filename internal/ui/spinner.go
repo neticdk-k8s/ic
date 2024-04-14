@@ -68,6 +68,7 @@ type Spinner struct {
 	running bool
 }
 
+// NewSpinner creates a new Spinner
 func NewSpinner(w io.Writer, logger logger.Logger) *Spinner {
 	model := newSpinnerModel()
 	return &Spinner{
@@ -79,6 +80,7 @@ func NewSpinner(w io.Writer, logger logger.Logger) *Spinner {
 	}
 }
 
+// Run starts the spinner
 func (s *Spinner) Run() {
 	if !isInteractive {
 		fmt.Fprintln(s.writer, s.model.View())
@@ -107,6 +109,7 @@ func (s *Spinner) Run() {
 	}()
 }
 
+// Stop stops the spinner
 func (s *Spinner) Stop() {
 	if !isInteractive {
 		return
@@ -120,6 +123,7 @@ func (s *Spinner) Stop() {
 	s.program.Quit()
 }
 
+// Text sets the text of the spinner
 func (s *Spinner) Text(t string) {
 	if !isInteractive {
 		s.model.message = t
@@ -135,6 +139,7 @@ func (s *Spinner) Text(t string) {
 	s.model.message = t
 }
 
+// Running returns the running status of the spinner
 func (s *Spinner) Running() bool {
 	return s.running
 }

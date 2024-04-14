@@ -9,6 +9,7 @@ import (
 )
 
 type Reader interface {
+	// ReadString reads a string from stdin
 	ReadString(prompt string) (string, error)
 }
 
@@ -16,13 +17,14 @@ type reader struct {
 	Stdin io.Reader
 }
 
+// NewReader creates a new Reader
 func NewReader() *reader {
 	return &reader{
 		Stdin: os.Stdin,
 	}
 }
 
-// ReadString reads a string from the stdin.
+// ReadString reads a string from stdin
 func (r *reader) ReadString(prompt string) (string, error) {
 	if _, err := fmt.Fprint(os.Stderr, prompt); err != nil {
 		return "", fmt.Errorf("write error: %w", err)

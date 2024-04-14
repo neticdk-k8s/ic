@@ -10,11 +10,16 @@ import (
 	"github.com/neticdk-k8s/ic/internal/logger"
 )
 
+// ListClustersInput is the input given to ListClusters()
 type ListClustersInput struct {
-	Logger    logger.Logger
+	// Logger is a logger
+	Logger logger.Logger
+	// APIClient is the inventory server API client used to make requests
 	APIClient *apiclient.ClientWithResponses
-	Page      int
-	PerPage   int
+	// Page is the initial page (0-based index)
+	Page int
+	// PerPage is the number of items requested for each page
+	PerPage int
 }
 
 type clusterResponse struct {
@@ -37,8 +42,8 @@ type clusterListResponse struct {
 }
 
 type ClusterList struct {
-	Included []map[string]interface{} `json:"included,omitempty"`
-	Clusters []string                 `json:"clusters,omitempty"`
+	Included []map[string]interface{}
+	Clusters []string
 }
 
 func (cl *ClusterList) ToResponse() *clusterListResponse {
@@ -79,6 +84,7 @@ func (cl *ClusterList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(cl.ToResponse())
 }
 
+// ListClusters returns a non-paginated list of clusters
 func ListClusters(ctx context.Context, in ListClustersInput) (*clusterListResponse, []byte, error) {
 	cl := &ClusterList{}
 	err := listClusters(ctx, &in, cl)
@@ -119,11 +125,13 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 	return nil
 }
 
+// GetClusterInput is the input used by GetCluster()
 type GetClusterInput struct {
 	Logger    logger.Logger
 	APIClient *apiclient.ClientWithResponses
 }
 
+// GetCluster returns information abuot a cluster
 func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clusterResponse, []byte, error) {
 	cluster, err := in.APIClient.GetClusterWithResponse(ctx, clusterID)
 	if err != nil {

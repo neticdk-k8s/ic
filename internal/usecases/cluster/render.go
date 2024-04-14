@@ -23,7 +23,8 @@ type clusterRenderer struct {
 	cluster *clusterResponse
 }
 
-func NewClusterRenderer(cluster *clusterResponse, jsonData []byte, writer io.Writer) Renderer {
+// NewClusterRenderer creates a new renderer of a single cluster
+func NewClusterRenderer(cluster *clusterResponse, jsonData []byte, writer io.Writer) *clusterRenderer {
 	cr := &clusterRenderer{
 		renderer: renderer{
 			jsonData: jsonData,
@@ -34,6 +35,7 @@ func NewClusterRenderer(cluster *clusterResponse, jsonData []byte, writer io.Wri
 	return cr
 }
 
+// Render renders the cluster
 func (r *clusterRenderer) Render(format string) error {
 	switch format {
 	case "json":
@@ -72,7 +74,8 @@ type clustersRenderer struct {
 	clusters *clusterListResponse
 }
 
-func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer io.Writer) Renderer {
+// NewClustersRenderer creates a new renderer for a list of clusters
+func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer io.Writer) *clustersRenderer {
 	cr := &clustersRenderer{
 		renderer: renderer{
 			writer:   writer,
@@ -83,6 +86,7 @@ func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer 
 	return cr
 }
 
+// Render renders the cluster list
 func (r *clustersRenderer) Render(format string) error {
 	switch format {
 	case "json":

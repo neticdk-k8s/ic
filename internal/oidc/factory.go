@@ -9,7 +9,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// FactoryClient represents a Client factory
 type FactoryClient interface {
+	/// New creates a new OIDC Client
 	New(ctx context.Context, p Provider) (Client, error)
 	// SetLogger sets the logger used for authentication
 	SetLogger(logger.Logger)
@@ -19,6 +21,7 @@ type Factory struct {
 	Logger logger.Logger
 }
 
+// New creates a new OIDC Client
 func (f *Factory) New(ctx context.Context, p Provider) (Client, error) {
 	provider, err := gooidc.NewProvider(ctx, p.IssuerURL)
 	if err != nil {

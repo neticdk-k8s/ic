@@ -39,7 +39,7 @@ mockery --with-expecter --inpackage --name <interface name>
 The inventory server provides an OpenAPI 2.0 spec.
 
 We use [oapi-codegen](https://github.com/deepmap/oapi-codegen) to generate the
-client code. See (`docs/openapi.md`)[docs/openapi.md].
+client code. See [`docs/openapi.md`](docs/openapi.md).
 
 ### Make Targets
 

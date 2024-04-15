@@ -72,8 +72,9 @@ func (cl *ClusterList) ToResponse() *clusterListResponse {
 				cr.ResilienceZone = p.(string)
 			}
 		}
-		if kubernetesVersion, ok := i["kubernetesVersion"].(map[string]string); ok {
-			cr.KubernetesVersion = kubernetesVersion["version"]
+		fmt.Printf("%v\n", i["kubernetesVersion"])
+		if kubernetesVersion, ok := i["kubernetesVersion"].(map[string]interface{}); ok {
+			cr.KubernetesVersion = kubernetesVersion["version"].(string)
 		}
 		clr.Clusters = append(clr.Clusters, cr)
 	}

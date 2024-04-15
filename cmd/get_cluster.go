@@ -21,7 +21,7 @@ func NewGetClusterCmd(ec *ExecutionContext) *cobra.Command {
 			ec.Authenticator.SetLogger(logger)
 
 			loginInput := authentication.LoginInput{
-				Provider:    ec.OIDCProvider,
+				Provider:    *ec.OIDCProvider,
 				TokenCache:  ec.TokenCache,
 				AuthOptions: authentication.AuthOptions{},
 				Silent:      true,
@@ -45,7 +45,7 @@ func NewGetClusterCmd(ec *ExecutionContext) *cobra.Command {
 
 			ec.Spin("Gettings cluster")
 
-			if err := ec.SetupAPIClient(tokenSet.IDToken); err != nil {
+			if err := ec.SetupDefaultAPIClient(tokenSet.IDToken); err != nil {
 				return fmt.Errorf("setting up API client: %w", err)
 			}
 

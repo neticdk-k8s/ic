@@ -59,7 +59,7 @@ func (r *clusterRenderer) renderTable() error {
 		{"K8S Provider", ":", r.cluster.KubernetesProvider},
 		{"K8S Version", ":", r.cluster.KubernetesVersion},
 	}
-	table.SetTablePadding(" ")
+	table.SetTablePadding("  ")
 	table.AppendBulk(data)
 	table.Render()
 	return nil

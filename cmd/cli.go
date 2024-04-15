@@ -30,7 +30,10 @@ type OIDCConfig struct {
 // ExecutionContext holds configuration that can be used (and modified) across
 // the application
 type ExecutionContext struct {
-	Stderr, Stdout io.Writer
+	Stdout, Stderr io.Writer
+
+	// Version is the CLI version
+	Version string
 
 	// Logger is the global logger object to print logs.
 	Logger logger.Logger
@@ -57,7 +60,7 @@ type ExecutionContext struct {
 	OIDC OIDCConfig
 
 	// OIDC is the OIDC provider settings
-	OIDCProvider oidc.Provider
+	OIDCProvider *oidc.Provider
 
 	// Authenticator is the Authenticator
 	Authenticator authentication.Authenticator
@@ -66,49 +69,56 @@ type ExecutionContext struct {
 	TokenCache tokencache.Cache
 
 	// APIClient is an inventory server api client
-	APIClient *apiclient.ClientWithResponses
+	APIClient apiclient.ClientWithResponsesInterface
+}
+
+type ExecutionContextInput struct {
+	Stdout  io.Writer
+	Stderr  io.Writer
+	Version string
 }
 
 // NewExecutionContext creates a new ExecutionContext
-func NewExecutionContext() *ExecutionContext {
+func NewExecutionContext(in ExecutionContextInput) *ExecutionContext {
 	ec := &ExecutionContext{
-		Stderr:       os.Stderr,
-		Stdout:       os.Stdout,
+		Stdout:       in.Stdout,
+		Stderr:       in.Stderr,
+		Version:      in.Version,
 		OutputFormat: "text",
 		OIDC:         OIDCConfig{},
+		Logger:       logger.New(in.Stderr, "info"),
 	}
+
+	stdout, ok := ec.Stdout.(*os.File)
+	if !ok {
+		ec.Logger.Debug("using default stdout")
+		stdout = os.Stdout
+	}
+	ec.IsTerminal = term.IsTerminal(int(stdout.Fd()))
+
+	ec.setupSpinner()
 	return ec
 }
 
-// SetupAPIClient configures the API client
-func (ec *ExecutionContext) SetupAPIClient(token string) error {
-	var err error
+// SetupDefaultAPIClient sets up ec.APIClient from flags if it's not already set
+func (ec *ExecutionContext) SetupDefaultAPIClient(token string) (err error) {
+	if ec.APIClient != nil {
+		return
+	}
+
 	provider := apiclient.NewBearerTokenProvider(token)
 	ec.APIClient, err = apiclient.NewClientWithResponses(
 		ec.APIServer,
 		apiclient.WithRequestEditorFn(provider.WithAuthHeader))
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }
 
-// Prepare sets up context that does not depend on flags
-// It should be called before rootCmd.Execute
-func (ec *ExecutionContext) Prepare() error {
-	ec.IsTerminal = term.IsTerminal(int(os.Stdout.Fd()))
-
-	ec.SetupLogger("info")
-
-	ec.setupSpinner()
-
-	return nil
-}
-
-// Setup sets up context that depends on the flags being sets
+// SetupDefaultAuthenticator sets up ec.Authenticator from flags if it's not already set
 // It should be called from rootCmd.PersistentPreRunE
-func (ec *ExecutionContext) Setup() error {
-	ec.SetupLogger(ec.LogLevel)
+func (ec *ExecutionContext) SetupDefaultAuthenticator() {
+	if ec.Authenticator != nil {
+		return
+	}
 
 	authn := authentication.NewAuthentication(
 		ec.Logger,
@@ -116,19 +126,41 @@ func (ec *ExecutionContext) Setup() error {
 		&authcode.Browser{Logger: ec.Logger},
 		&authcode.Keyboard{Reader: reader.NewReader(), Logger: ec.Logger})
 	ec.Authenticator = authentication.NewAuthenticator(ec.Logger, authn)
+}
 
-	ec.OIDCProvider = oidc.Provider{
+// SetupDefaultOIDCProvider sets up ec.OIDCProvider from flags if it's not already set
+// It should be called from rootCmd.PersistentPreRunE
+func (ec *ExecutionContext) SetupDefaultOIDCProvider() {
+	if ec.OIDCProvider != nil {
+		return
+	}
+	ec.OIDCProvider = &oidc.Provider{
 		IssuerURL:   ec.OIDC.IssuerURL,
 		ClientID:    ec.OIDC.ClientID,
 		ExtraScopes: []string{"profile", "email", "roles", "offline_access"},
 	}
+}
 
-	var err error
+// SetupDefaultTokenCache sets up ec.TokenCache from flags if it's not already set
+// It should be called from rootCmd.PersistentPreRunE
+func (ec *ExecutionContext) SetupDefaultTokenCache() (err error) {
+	if ec.TokenCache != nil {
+		return
+	}
+
 	if ec.TokenCache, err = tokencache.NewFSCache(ec.OIDC.TokenCacheDir); err != nil {
 		return fmt.Errorf("creating token cache: %w", err)
 	}
 
-	return nil
+	return
+}
+
+// SetLogLevel sets the ec.Logger log level
+func (ec *ExecutionContext) SetLogLevel() {
+	if err := ec.Logger.SetLevel(ec.LogLevel); err != nil {
+		ec.Logger.Error("Failed to set loglevel", "level", ec.LogLevel)
+	}
+	ec.Logger.SetInteractive(ec.Interactive, ec.IsTerminal)
 }
 
 func (ec *ExecutionContext) setupSpinner() {
@@ -143,19 +175,4 @@ func (ec *ExecutionContext) Spin(t string) {
 		ec.Spinner.Run()
 	}
 	ec.Spinner.Text(t)
-}
-
-// SetupLogger configures the logger
-func (ec *ExecutionContext) SetupLogger(logLevel string) {
-	if ec.Logger == nil {
-		ec.Logger = logger.New(ec.Stderr, logLevel)
-	} else {
-		if err := ec.Logger.SetLevel(logLevel); err != nil {
-			ec.Logger.Error("Failed to set loglevel", "level", logLevel)
-		}
-	}
-	if logLevel != ec.LogLevel {
-		ec.LogLevel = logLevel
-	}
-	ec.Logger.SetInteractive(ec.Interactive, ec.IsTerminal)
 }

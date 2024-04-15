@@ -2,14 +2,13 @@ package ui
 
 import (
 	"io"
-	"os"
 
 	"github.com/olekukonko/tablewriter"
 )
 
 // NewTable creates a new table with default settings
 func NewTable(writer io.Writer, headers []string) *tablewriter.Table {
-	table := tablewriter.NewWriter(os.Stdout)
+	table := tablewriter.NewWriter(writer)
 	table.SetHeader(headers)
 	table.SetAutoWrapText(false)
 	table.SetAutoFormatHeaders(true)

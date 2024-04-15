@@ -20,7 +20,7 @@ func NewLogoutCmd(ec *ExecutionContext) *cobra.Command {
 			ec.Authenticator.SetLogger(logger)
 
 			logoutInput := authentication.LogoutInput{
-				Provider:   ec.OIDCProvider,
+				Provider:   *ec.OIDCProvider,
 				TokenCache: ec.TokenCache,
 			}
 

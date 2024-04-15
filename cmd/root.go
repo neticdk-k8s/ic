@@ -23,34 +23,83 @@ const (
 	groupOther   = "group-other"
 )
 
-// ec is the Execution Context for the current run
-var ec *ExecutionContext
+func NewRootCmd(ec *ExecutionContext) *cobra.Command {
+	command := &cobra.Command{
+		Use:                   "ic [command] [flags]",
+		DisableFlagsInUseLine: true,
+		Short:                 "Inventory CLI",
+		SilenceUsage:          true,
+		SilenceErrors:         true,
+		Version:               ec.Version,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := initConfig(cmd); err != nil {
+				return err
+			}
+			ec.SetLogLevel()
+			ec.SetupDefaultAuthenticator()
+			ec.SetupDefaultOIDCProvider()
+			if err := ec.SetupDefaultTokenCache(); err != nil {
+				return fmt.Errorf("settings up execution context: %w", err)
+			}
+			return nil
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				_ = cmd.Help()
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
 
-var rootCmd = &cobra.Command{
-	Use:                   "ic",
-	DisableFlagsInUseLine: true,
-	Short:                 "Inventory CLI",
-	SilenceUsage:          true,
-	SilenceErrors:         true,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if err := initConfig(cmd); err != nil {
-			return err
-		}
-		if err := ec.Setup(); err != nil {
-			return fmt.Errorf("settings up execution context: %w", err)
-		}
-		return nil
-	},
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			_ = cmd.Help()
-			os.Exit(0)
-		}
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return nil
-	},
+	f := command.PersistentFlags()
+	f.StringVarP(&ec.LogLevel, "log-level", "l", "info", "Log level")
+	f.StringVarP(&ec.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
+	f.StringVarP(&ec.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
+	f.StringVarP(&ec.OutputFormat, "output-format", "o", "text", "Output format. One of (text|json)")
+	f.StringVar(&ec.OIDC.IssuerURL, "oidc-issuer-url", "https://keycloak.netic.dk/auth/realms/services", "Issuer URL for the OIDC Provider")
+	f.StringVar(&ec.OIDC.ClientID, "oidc-client-id", "inventory-cli", "OIDC client ID")
+	f.StringVar(&ec.OIDC.GrantType, "oidc-grant-type", "authcode-browser", "OIDC authorization grant type. One of (authcode-browser|authcode-keyboard)")
+	f.StringVar(&ec.OIDC.RedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
+	f.StringVar(&ec.OIDC.AuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
+	f.StringVar(&ec.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
+	f.StringVar(&ec.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
+
+	viper.BindPFlags(command.PersistentFlags()) // nolint:errcheck
+
+	command.Flags().SortFlags = false
+	command.PersistentFlags().SortFlags = false
+
+	command.SetOut(ec.Stdout)
+	command.SetErr(ec.Stderr)
+
+	command.AddGroup(
+		&cobra.Group{
+			ID:    groupBase,
+			Title: "Basic Commands:",
+		},
+		&cobra.Group{
+			ID:    groupAuth,
+			Title: "Authentication Commands:",
+		},
+		&cobra.Group{
+			ID:    groupOther,
+			Title: "Other Commands:",
+		},
+	)
+
+	command.SetHelpCommandGroupID(groupOther)
+	command.SetCompletionCommandGroupID(groupOther)
+
+	command.AddCommand(
+		NewLoginCmd(ec),
+		NewLogoutCmd(ec),
+		NewGetCmd(ec),
+	)
+
+	return command
 }
 
 // initConfig ensures that precedence of configuration setting is correct
@@ -99,60 +148,15 @@ func getDefaultTokenCacheDir() string {
 	return filepath.Join(cacheDir, "ic", "oidc-login")
 }
 
-func init() {
-	ec = NewExecutionContext()
-
-	f := rootCmd.PersistentFlags()
-	f.StringVarP(&ec.LogLevel, "log-level", "l", "info", "Log level")
-	f.StringVarP(&ec.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
-	f.StringVarP(&ec.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
-	f.StringVarP(&ec.OutputFormat, "output-format", "o", "text", "Output format. One of (text|json)")
-	f.StringVar(&ec.OIDC.IssuerURL, "oidc-issuer-url", "https://keycloak.netic.dk/auth/realms/services", "Issuer URL for the OIDC Provider")
-	f.StringVar(&ec.OIDC.ClientID, "oidc-client-id", "inventory-cli", "OIDC client ID")
-	f.StringVar(&ec.OIDC.GrantType, "oidc-grant-type", "authcode-browser", "OIDC authorization grant type. One of (authcode-browser|authcode-keyboard)")
-	f.StringVar(&ec.OIDC.RedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
-	f.StringVar(&ec.OIDC.AuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
-	f.StringVar(&ec.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
-	f.StringVar(&ec.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
-
-	viper.BindPFlags(rootCmd.PersistentFlags()) // nolint:errcheck
-
-	rootCmd.Flags().SortFlags = false
-	rootCmd.PersistentFlags().SortFlags = false
-
-	rootCmd.AddGroup(
-		&cobra.Group{
-			ID:    groupBase,
-			Title: "Basic Commands:",
-		},
-		&cobra.Group{
-			ID:    groupAuth,
-			Title: "Authentication Commands:",
-		},
-		&cobra.Group{
-			ID:    groupOther,
-			Title: "Other Commands:",
-		},
-	)
-
-	rootCmd.SetHelpCommandGroupID(groupOther)
-	rootCmd.SetCompletionCommandGroupID(groupOther)
-
-	rootCmd.AddCommand(
-		NewLoginCmd(ec),
-		NewLogoutCmd(ec),
-		NewGetCmd(ec),
-	)
-}
-
 // Execute runs the root command and returns the exit code
-func Execute(args []string, version string) int {
-	rootCmd.Version = version
-	rootCmd.SetArgs(args[1:])
-	if err := ec.Prepare(); err != nil {
-		ec.Logger.Error("Preparing execution context", "err", err)
-		return 1
+func Execute(version string) int {
+	in := ExecutionContextInput{
+		Version: version,
+		Stdout:  os.Stdout,
+		Stderr:  os.Stderr,
 	}
+	ec := NewExecutionContext(in)
+	rootCmd := NewRootCmd(ec)
 	err := rootCmd.ExecuteContext(context.Background())
 	if ec.Spinner.Running() {
 		ec.Spinner.Stop()

@@ -19,7 +19,7 @@ func NewLoginCmd(ec *ExecutionContext) *cobra.Command {
 			ec.Authenticator.SetLogger(logger)
 
 			loginInput := authentication.LoginInput{
-				Provider:    ec.OIDCProvider,
+				Provider:    *ec.OIDCProvider,
 				TokenCache:  ec.TokenCache,
 				AuthOptions: authentication.AuthOptions{},
 			}

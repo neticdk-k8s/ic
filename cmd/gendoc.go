@@ -18,5 +18,12 @@ func GenDocs() error {
 	}
 	docPath := path.Dir(filename)
 	fmt.Printf("Generating documentation in: %s\n", docPath)
+	in := ExecutionContextInput{
+		Version: "doc",
+		Stdout:  os.Stdout,
+		Stderr:  os.Stderr,
+	}
+	ec := NewExecutionContext(in)
+	rootCmd := NewRootCmd(ec)
 	return doc.GenMarkdownTree(rootCmd, docPath)
 }

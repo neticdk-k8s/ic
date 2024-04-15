@@ -15,7 +15,7 @@ type ListClustersInput struct {
 	// Logger is a logger
 	Logger logger.Logger
 	// APIClient is the inventory server API client used to make requests
-	APIClient *apiclient.ClientWithResponses
+	APIClient apiclient.ClientWithResponsesInterface
 	// Page is the initial page (0-based index)
 	Page int
 	// PerPage is the number of items requested for each page
@@ -128,7 +128,7 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 // GetClusterInput is the input used by GetCluster()
 type GetClusterInput struct {
 	Logger    logger.Logger
-	APIClient *apiclient.ClientWithResponses
+	APIClient apiclient.ClientWithResponsesInterface
 }
 
 // GetCluster returns information abuot a cluster

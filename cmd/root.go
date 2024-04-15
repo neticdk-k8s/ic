@@ -55,7 +55,7 @@ var rootCmd = &cobra.Command{
 
 // initConfig ensures that precedence of configuration setting is correct
 // precedence:
-// flag -> environment -> configuration file value -> flag defaults
+// flag -> environment -> configuration file value -> flag default
 func initConfig(cmd *cobra.Command) error {
 	v := viper.New()
 	v.SetConfigName(defaultConfigFilename)
@@ -148,7 +148,6 @@ func init() {
 // Execute runs the root command and returns the exit code
 func Execute(args []string, version string) int {
 	rootCmd.Version = version
-	rootCmd.SilenceUsage = true
 	rootCmd.SetArgs(args[1:])
 	if err := ec.Prepare(); err != nil {
 		ec.Logger.Error("Preparing execution context", "err", err)

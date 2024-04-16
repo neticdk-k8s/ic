@@ -22,19 +22,28 @@ type ListClustersInput struct {
 	PerPage int
 }
 
+type capacity struct {
+	NodeCount   int64 `json:"node_count,omitempty"`
+	CoresMillis int64 `json:"cores_millis,omitempty"`
+	MemoryBytes int64 `json:"memory_bytes,omitempty"`
+}
+
 type clusterResponse struct {
-	Name                   string `json:"name,omitempty"`
-	Description            string `json:"description,omitempty"`
-	ProviderName           string `json:"provider_name,omitempty"`
-	ClusterType            string `json:"cluster_type,omitempty"`
-	EnvironmentName        string `json:"environment_name,omitempty"`
-	ResilienceZone         string `json:"resilience_zone,omitempty"`
-	KubernetesProvider     string `json:"kubernetes_provider,omitempty"`
-	InfrastructureProvider string `json:"infrastructure_provider,omitempty"`
-	KubernetesVersion      string `json:"kubernetes_version,omitempty"`
-	SubscriptionName       string `json:"subscription_name,omitempty"`
-	CustomerName           string `json:"customer_name,omitempty"`
-	ClientVersion          string `json:"client_version,omitempty"`
+	Name                   string    `json:"name,omitempty"`
+	NRN                    string    `json:"nrn,omitempty"`
+	Description            string    `json:"description,omitempty"`
+	ProviderName           string    `json:"provider_name,omitempty"`
+	ClusterType            string    `json:"cluster_type,omitempty"`
+	EnvironmentName        string    `json:"environment_name,omitempty"`
+	ResilienceZone         string    `json:"resilience_zone,omitempty"`
+	KubernetesProvider     string    `json:"kubernetes_provider,omitempty"`
+	InfrastructureProvider string    `json:"infrastructure_provider,omitempty"`
+	KubernetesVersion      string    `json:"kubernetes_version,omitempty"`
+	SubscriptionName       string    `json:"subscription_name,omitempty"`
+	CustomerName           string    `json:"customer_name,omitempty"`
+	ClientVersion          string    `json:"client_version,omitempty"`
+	ControlPlaneCapacity   *capacity `json:"control_plane_capacity,omitempty"`
+	WorkerNodesCapacity    *capacity `json:"worker_nodes_capacity,omitempty"`
 }
 
 type clusterListResponse struct {
@@ -146,22 +155,59 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clu
 	for _, i := range *cluster.ApplicationldJSONDefault.Included {
 		includeMap[i["@id"].(string)] = i
 	}
-	cl := &clusterResponse{
-		Name:               *cluster.ApplicationldJSONDefault.Name,
-		Description:        *cluster.ApplicationldJSONDefault.Description,
-		EnvironmentName:    *cluster.ApplicationldJSONDefault.EnvironmentName,
-		ClusterType:        *cluster.ApplicationldJSONDefault.ClusterType,
-		KubernetesProvider: *cluster.ApplicationldJSONDefault.KubernetesProvider,
-		KubernetesVersion:  *cluster.ApplicationldJSONDefault.KubernetesVersion.Version,
+	cl := &clusterResponse{}
+	if cluster.ApplicationldJSONDefault.Name != nil {
+		cl.Name = *cluster.ApplicationldJSONDefault.Name
 	}
-	if provider, ok := includeMap[*cluster.ApplicationldJSONDefault.Provider]; ok {
-		if p, ok := provider.(map[string]interface{})["name"]; ok {
-			cl.ProviderName = p.(string)
+	if cluster.ApplicationldJSONDefault.Nrn != nil {
+		cl.NRN = *cluster.ApplicationldJSONDefault.Nrn
+	}
+	if cluster.ApplicationldJSONDefault.Description != nil {
+		cl.Description = *cluster.ApplicationldJSONDefault.Description
+	}
+	if cluster.ApplicationldJSONDefault.EnvironmentName != nil {
+		cl.EnvironmentName = *cluster.ApplicationldJSONDefault.EnvironmentName
+	}
+	if cluster.ApplicationldJSONDefault.InfrastructureProvider != nil {
+		cl.InfrastructureProvider = *cluster.ApplicationldJSONDefault.InfrastructureProvider
+	}
+	if cluster.ApplicationldJSONDefault.ClusterType != nil {
+		cl.ClusterType = *cluster.ApplicationldJSONDefault.ClusterType
+	}
+	if cluster.ApplicationldJSONDefault.KubernetesProvider != nil {
+		cl.KubernetesProvider = *cluster.ApplicationldJSONDefault.KubernetesProvider
+	}
+	if cluster.ApplicationldJSONDefault.KubernetesVersion != nil {
+		cl.KubernetesVersion = *cluster.ApplicationldJSONDefault.KubernetesVersion.Version
+	}
+	if cluster.ApplicationldJSONDefault.ClientVersion != nil {
+		cl.ClientVersion = *cluster.ApplicationldJSONDefault.ClientVersion.Version
+	}
+	if cluster.ApplicationldJSONDefault.Capacity != nil {
+		cpct := *cluster.ApplicationldJSONDefault.Capacity
+		cl.ControlPlaneCapacity = &capacity{
+			NodeCount:   *cpct["control-plane"].Nodes,
+			CoresMillis: *cpct["control-plane"].Cores,
+			MemoryBytes: *cpct["control-plane"].Memory,
+		}
+		cl.WorkerNodesCapacity = &capacity{
+			NodeCount:   *cpct["worker"].Nodes,
+			CoresMillis: *cpct["worker"].Cores,
+			MemoryBytes: *cpct["worker"].Memory,
 		}
 	}
-	if provider, ok := includeMap[*cluster.ApplicationldJSONDefault.ResilienceZone]; ok {
-		if p, ok := provider.(map[string]interface{})["name"]; ok {
-			cl.ResilienceZone = p.(string)
+	if cluster.ApplicationldJSONDefault.Provider != nil {
+		if provider, ok := includeMap[*cluster.ApplicationldJSONDefault.Provider]; ok {
+			if p, ok := provider.(map[string]interface{})["name"]; ok {
+				cl.ProviderName = p.(string)
+			}
+		}
+	}
+	if cluster.ApplicationldJSONDefault.ResilienceZone != nil {
+		if provider, ok := includeMap[*cluster.ApplicationldJSONDefault.ResilienceZone]; ok {
+			if p, ok := provider.(map[string]interface{})["name"]; ok {
+				cl.ResilienceZone = p.(string)
+			}
 		}
 	}
 

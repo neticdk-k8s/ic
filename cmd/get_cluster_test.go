@@ -59,13 +59,7 @@ func Test_GetClusterCommand(t *testing.T) {
 		},
 	}
 	name := "my-cluster"
-	description := "my-description"
-	environmentName := "my-environment"
-	clusterType := "my-cluster-type"
 	providerId := "my-provider-id"
-	rzId := "my-rz-zone-id"
-	kubernetesProvider := "my-kubernetes-provider"
-	kubernetesVersion := "1.2.3"
 	mockClientWithResponsesInterface := apiclient.NewMockClientWithResponsesInterface(t)
 	mockClientWithResponsesInterface.EXPECT().
 		GetClusterWithResponse(mock.Anything, mock.Anything).
@@ -77,17 +71,9 @@ func Test_GetClusterCommand(t *testing.T) {
 					StatusCode: 200,
 				},
 				ApplicationldJSONDefault: &apiclient.Cluster{
-					Name:               &name,
-					Provider:           &providerId,
-					Description:        &description,
-					EnvironmentName:    &environmentName,
-					ClusterType:        &clusterType,
-					Included:           &included,
-					KubernetesProvider: &kubernetesProvider,
-					KubernetesVersion: &apiclient.Version{
-						Version: &kubernetesVersion,
-					},
-					ResilienceZone: &rzId,
+					Name:     &name,
+					Provider: &providerId,
+					Included: &included,
 				},
 			}, nil)
 	apiClient := mockClientWithResponsesInterface

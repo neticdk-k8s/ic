@@ -43,7 +43,7 @@ func NewGetClusterCmd(ec *ExecutionContext) *cobra.Command {
 				return fmt.Errorf("logging in: %w", err)
 			}
 
-			ec.Spin("Gettings cluster")
+			ec.Spin("Getting cluster")
 
 			if err := ec.SetupDefaultAPIClient(tokenSet.IDToken); err != nil {
 				return fmt.Errorf("setting up API client: %w", err)

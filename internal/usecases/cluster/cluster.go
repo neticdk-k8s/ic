@@ -138,6 +138,9 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clu
 		return nil, nil, fmt.Errorf("apiclient: %w", err)
 	}
 	in.Logger.Debug("apiclient", "status", cluster.StatusCode(), "content-type", cluster.HTTPResponse.Header.Get("Content-Type"))
+	if cluster.StatusCode() != http.StatusOK {
+		return nil, nil, fmt.Errorf("bad status code: %d", cluster.StatusCode())
+	}
 
 	includeMap := make(map[string]interface{})
 	for _, i := range *cluster.ApplicationldJSONDefault.Included {
@@ -167,8 +170,5 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clu
 		return nil, nil, fmt.Errorf("marshaling cluster: %w", err)
 	}
 
-	if cluster.StatusCode() != http.StatusOK {
-		return nil, nil, fmt.Errorf("bad status code: %d", cluster.StatusCode())
-	}
 	return cl, jsonData, nil
 }

@@ -23,7 +23,7 @@ curl -L https://github.com/neticdk-k8s/ic/releases/download/${tag}/ic-${tag}-$(u
     | tar xzf - /usr/local/bin/ic
 ```
 
-For windows, got to the [release
+For Windows, go to the [release
 page](https://github.com/neticdk-k8s/ic/releases/latest) and download the zip
 archive.
 

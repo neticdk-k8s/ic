@@ -41,7 +41,7 @@ You will need:
 Run:
 
 ```bash
-go install github.com/neticdk-k8s/ic/latest
+go install github.com/neticdk-k8s/ic@latest
 ```
 
 The executable will be installed in `$GOPATH/bin` Add it to your `PATH` if you haven't

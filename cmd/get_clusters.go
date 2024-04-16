@@ -60,7 +60,7 @@ func NewGetClustersCmd(ec *ExecutionContext) *cobra.Command {
 
 			ec.Spinner.Stop()
 
-			r := cluster.NewClustersRenderer(cs, jsonData, ec.Stdout)
+			r := cluster.NewClustersRenderer(cs, jsonData, ec.Stdout, ec.NoHeaders)
 			if err := r.Render(ec.OutputFormat); err != nil {
 				return fmt.Errorf("rendering output: %w", err)
 			}

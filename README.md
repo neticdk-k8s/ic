@@ -13,8 +13,14 @@ This is the CLI used to interact with k8s-inventory-server.
 This only works on MacOS and Linux:
 
 ```bash
-tag=$(curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/neticdk-k8s/ic/releases/latest|jq -r .tag_name)
-curl -L https://github.com/neticdk-k8s/ic/releases/download/${tag}/ic-${tag}-$(uname -s|tr A-Z a-z)-$(uname -m).tar.gz | tar xzf - /usr/local/bin/ic
+tag=$(
+    curl --silent -H "Accept: application/vnd.github.v3+json" \
+    https://api.github.com/repos/neticdk-k8s/ic/releases/latest \
+    | jq -r .tag_name
+)
+
+curl -L https://github.com/neticdk-k8s/ic/releases/download/${tag}/ic-${tag}-$(uname -s|tr A-Z a-z)-$(uname -m).tar.gz \
+    | tar xzf - /usr/local/bin/ic
 ```
 
 For windows, got to the [release
@@ -24,7 +30,7 @@ archive.
 </details>
 
 <details>
-<summary> From Source</summary>
+<summary>From Source</summary>
 
 ### Using `go install`
 
@@ -38,7 +44,7 @@ Run:
 go install github.com/neticdk-k8s/ic
 ```
 
-The executable will be in `$GOPATH/bin` Add it to your `PATH` if you haven't
+The executable will be installed in `$GOPATH/bin` Add it to your `PATH` if you haven't
 already.
 
 ### Using `make install`
@@ -54,8 +60,8 @@ Checkout this repository and run:
 make install
 ```
 
-The executable will be in `$GOPATH/bin` Add it to your `PATH` if you haven't
-already.
+The executable will be installed in `$GOPATH/bin` Add it to your `PATH` if you
+haven't already.
 
 </details>
 
@@ -66,6 +72,8 @@ Basic usage:
 ```bash
 ic COMMAND [flags]
 ```
+
+### Authentication
 
 Most commands require authentication. By default, browser based OICD
 authentication will be used.
@@ -81,6 +89,21 @@ Tokens are cached in the default user cache directory for the Operating System
 - `~/Library/Caches/ic/oidc-login/` on MacOS
 - `$XDG_CACHE_HOME` (typically `$HOME/.cache`) on Linux
 - `%LocalAppData%` on Windows
+
+### Output
+
+Commands will output log messages and errors to `stderr` and normal output to
+`stdout`.
+
+The default format is `text` which in usually means tables. In most cases
+commands will support `json` output via the `--output-format json` flag.
+
+Colors and other flashy things are disabled while running in a non-interactive
+environment (e.g. when redirecting output to a log file). This can be controlled
+via the `--interactive` flag.
+
+If you don't want headers printed you can use the `--no-headers` flag. This can
+be useful for piping output to other commands.
 
 ## Commands and Usage
 

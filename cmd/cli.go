@@ -56,6 +56,9 @@ type ExecutionContext struct {
 	// OutputFormat is the format used for outputting data
 	OutputFormat string
 
+	// NoHeaders is used to control whether headers are printed
+	NoHeaders bool
+
 	// OIDC is the OIDC settings
 	OIDC OIDCConfig
 

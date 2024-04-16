@@ -108,17 +108,19 @@ func (r *clusterRenderer) renderJSON() error {
 
 type clustersRenderer struct {
 	renderer
-	clusters *clusterListResponse
+	noHeaders bool
+	clusters  *clusterListResponse
 }
 
 // NewClustersRenderer creates a new renderer for a list of clusters
-func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer io.Writer) *clustersRenderer {
+func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer io.Writer, noHeaders bool) *clustersRenderer {
 	cr := &clustersRenderer{
 		renderer: renderer{
 			writer:   writer,
 			jsonData: jsonData,
 		},
-		clusters: clusters,
+		noHeaders: noHeaders,
+		clusters:  clusters,
 	}
 	return cr
 }
@@ -136,7 +138,11 @@ func (r *clustersRenderer) Render(format string) error {
 }
 
 func (r *clustersRenderer) renderTable() error {
-	table := ui.NewTable(r.writer, []string{"provider", "name", "rz", "version"})
+	var headers []string
+	if !r.noHeaders {
+		headers = []string{"provider", "name", "rz", "version"}
+	}
+	table := ui.NewTable(r.writer, headers)
 	for _, c := range r.clusters.Clusters {
 		table.Append(
 			[]string{

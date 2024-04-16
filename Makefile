@@ -33,6 +33,7 @@ release-minor:
 
 .PHONY: lint
 lint:
+	@which -s golangci-lint || (echo "golangci-lint not found - install it with 'brew install golangci-lint' or similar" && exit 1)
 	@echo "Linting..."
 	@golangci-lint run
 

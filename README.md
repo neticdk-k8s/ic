@@ -23,10 +23,14 @@ archive.
 
 </details>
 
-### From Source
-
 <details>
-<summary> With `go install`</summary>
+<summary> From Source</summary>
+
+### Using `go install`
+
+You will need:
+
+- go
 
 Run:
 
@@ -37,21 +41,18 @@ go install github.com/neticdk-k8s/ic
 The executable will be in `$GOPATH/bin` Add it to your `PATH` if you haven't
 already.
 
-</details>
+### Using `make install`
 
-<details>
-<summary> With `make install`</summary>
+You will need:
+
+- go
+- golangci-lint
 
 Checkout this repository and run:
 
 ```bash
 make install
 ```
-
-You will need:
-
-- go
-- golangci-lint
 
 The executable will be in `$GOPATH/bin` Add it to your `PATH` if you haven't
 already.

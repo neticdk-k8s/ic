@@ -9,9 +9,12 @@ import (
 // NewTable creates a new table with default settings
 func NewTable(writer io.Writer, headers []string) *tablewriter.Table {
 	table := tablewriter.NewWriter(writer)
-	table.SetHeader(headers)
+	if len(headers) > 0 {
+		table.SetHeader(headers)
+	} else {
+		table.SetAutoFormatHeaders(false)
+	}
 	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetBorder(false)

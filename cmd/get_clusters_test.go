@@ -21,7 +21,6 @@ func Test_GetClustersCommand(t *testing.T) {
 		Stderr: got,
 	}
 	ec := NewExecutionContext(in)
-	t.Logf("%v", ec.Stdout)
 	mockAuthenticator := authentication.NewMockAuthenticator(t)
 	mockAuthenticator.EXPECT().
 		SetLogger(mock.Anything).

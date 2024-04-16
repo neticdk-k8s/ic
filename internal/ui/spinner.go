@@ -30,7 +30,7 @@ func (m *spinnerModel) Init() tea.Cmd {
 }
 
 func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.quitting {
+	if m.quitting || m.finished {
 		return m, tea.Quit
 	}
 
@@ -54,7 +54,7 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *spinnerModel) View() string {
 	str := fmt.Sprintf("%s %s", m.spinner.View(), m.message)
-	if m.quitting {
+	if m.quitting || m.finished {
 		return ""
 	}
 	return str
@@ -73,7 +73,7 @@ func NewSpinner(w io.Writer, logger logger.Logger) *Spinner {
 	model := newSpinnerModel()
 	return &Spinner{
 		model:   &model,
-		program: tea.NewProgram(&model),
+		program: tea.NewProgram(&model, tea.WithOutput(w)),
 		writer:  w,
 		logger:  logger,
 		running: false,
@@ -121,6 +121,11 @@ func (s *Spinner) Stop() {
 		s.logger.Error("Failed to release terminal", "err", err)
 	}
 	s.program.Quit()
+	// close the writer file handle to because the spinner will still write to it
+	f, isFile := s.writer.(*os.File)
+	if isFile {
+		_ = f.Close()
+	}
 }
 
 // Text sets the text of the spinner

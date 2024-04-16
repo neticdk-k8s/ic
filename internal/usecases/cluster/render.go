@@ -50,14 +50,14 @@ func (r *clusterRenderer) Render(format string) error {
 func (r *clusterRenderer) renderTable() error {
 	table := ui.NewTable(r.writer, []string{})
 	data := [][]string{
-		{"Name", ":", r.cluster.Name},
-		{"Provider", ":", r.cluster.ProviderName},
-		{"Description", ":", r.cluster.Description},
-		{"Type", ":", r.cluster.ClusterType},
-		{"Environment", ":", r.cluster.EnvironmentName},
-		{"Resilience Zone", ":", r.cluster.ResilienceZone},
-		{"K8S Provider", ":", r.cluster.KubernetesProvider},
-		{"K8S Version", ":", r.cluster.KubernetesVersion},
+		{"Name:", r.cluster.Name},
+		{"Provider:", r.cluster.ProviderName},
+		{"Description:", r.cluster.Description},
+		{"Type:", r.cluster.ClusterType},
+		{"Environment:", r.cluster.EnvironmentName},
+		{"Resilience Zone:", r.cluster.ResilienceZone},
+		{"K8S Provider:", r.cluster.KubernetesProvider},
+		{"K8S Version:", r.cluster.KubernetesVersion},
 	}
 	table.SetTablePadding("  ")
 	table.AppendBulk(data)

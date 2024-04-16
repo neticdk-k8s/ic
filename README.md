@@ -10,8 +10,6 @@ This is the CLI used to interact with k8s-inventory-server.
 <details>
 <summary>From Release Distribution on GitHub</summary>
 
-### From Release Distribution on GitHub
-
 This only works on MacOS and Linux:
 
 ```bash
@@ -30,8 +28,6 @@ archive.
 <details>
 <summary> With `go install`</summary>
 
-#### With `go install`
-
 Run:
 
 ```bash
@@ -45,8 +41,6 @@ already.
 
 <details>
 <summary> With `make install`</summary>
-
-#### With `make install`
 
 Checkout this repository and run:
 

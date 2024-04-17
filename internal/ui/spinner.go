@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -121,11 +122,8 @@ func (s *Spinner) Stop() {
 		s.logger.Error("Failed to release terminal", "err", err)
 	}
 	s.program.Quit()
-	// close the writer file handle to because the spinner will still write to it
-	f, isFile := s.writer.(*os.File)
-	if isFile {
-		_ = f.Close()
-	}
+	// give the spinner time to finish
+	time.Sleep(500 * time.Millisecond)
 }
 
 // Text sets the text of the spinner

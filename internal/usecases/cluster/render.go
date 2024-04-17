@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math"
 
 	"github.com/neticdk-k8s/ic/internal/ui"
 )
@@ -49,8 +48,6 @@ func (r *clusterRenderer) Render(format string) error {
 }
 
 func (r *clusterRenderer) renderText() error {
-	fmt.Fprintln(r.writer, "Base information:")
-	table := ui.NewTable(r.writer, []string{})
 	data := [][]string{
 		{"Name:", r.cluster.Name},
 		{"NRN:", r.cluster.NRN},
@@ -64,39 +61,26 @@ func (r *clusterRenderer) renderText() error {
 		{"Kubernetes Version:", r.cluster.KubernetesVersion},
 		{"Client Version:", r.cluster.ClientVersion},
 	}
-	table.SetTablePadding("  ")
-	table.SetNoWhiteSpace(false)
-	table.AppendBulk(data)
-	table.Render()
+	ui.RenderKVTable(r.writer, "Base Information", data)
 
 	if r.cluster.ControlPlaneCapacity != nil {
-		fmt.Fprintln(r.writer, "Control Plane Capacity:")
-		table = ui.NewTable(r.writer, []string{})
-		allocMem, unit := renderAllocMemory(r.cluster.ControlPlaneCapacity.MemoryBytes)
+		allocMem, unit := bytesToBinarySI(r.cluster.ControlPlaneCapacity.MemoryBytes)
 		data = [][]string{
 			{"Nodes:", fmt.Sprintf("%d", r.cluster.ControlPlaneCapacity.NodeCount)},
-			{"Allocatable CPU (millis):", fmt.Sprintf("%d", r.cluster.ControlPlaneCapacity.CoresMillis)},
-			{fmt.Sprintf("Allocatable Memory (%s):", unit), fmt.Sprintf("%.f", allocMem)},
+			{"Allocatable CPU:", fmt.Sprintf("%dm", r.cluster.ControlPlaneCapacity.CoresMillis)},
+			{"Allocatable Memory:", fmt.Sprintf("%.f%s", allocMem, unit)},
 		}
-		table.SetTablePadding("  ")
-		table.SetNoWhiteSpace(false)
-		table.AppendBulk(data)
-		table.Render()
+		ui.RenderKVTable(r.writer, "Control Plane Capacity", data)
 	}
 
 	if r.cluster.WorkerNodesCapacity != nil {
-		fmt.Fprintln(r.writer, "Worker Nodes Capacity:")
-		table = ui.NewTable(r.writer, []string{})
-		allocMem, unit := renderAllocMemory(r.cluster.WorkerNodesCapacity.MemoryBytes)
+		allocMem, unit := bytesToBinarySI(r.cluster.WorkerNodesCapacity.MemoryBytes)
 		data = [][]string{
 			{"Nodes:", fmt.Sprintf("%d", r.cluster.WorkerNodesCapacity.NodeCount)},
-			{"Allocatable CPU (millis):", fmt.Sprintf("%d", r.cluster.WorkerNodesCapacity.CoresMillis)},
-			{fmt.Sprintf("Allocatable Memory (%s):", unit), fmt.Sprintf("%.f", allocMem)},
+			{"Allocatable CPU:", fmt.Sprintf("%dm", r.cluster.WorkerNodesCapacity.CoresMillis)},
+			{"Allocatable Memory:", fmt.Sprintf("%.f%s", allocMem, unit)},
 		}
-		table.SetTablePadding("  ")
-		table.SetNoWhiteSpace(false)
-		table.AppendBulk(data)
-		table.Render()
+		ui.RenderKVTable(r.writer, "Worker Nodes Capacity", data)
 	}
 
 	return nil
@@ -171,21 +155,26 @@ func prettyPrintJSON(body []byte, writer io.Writer) error {
 	return nil
 }
 
-func renderAllocMemory(val int64) (newval float64, unit string) {
-	gb := math.Pow(1024, 3)
-	tb := math.Pow(1024, 4)
-	pb := math.Pow(1024, 5)
+func bytesToBinarySI(bytes int64) (float64, string) {
+	const (
+		kibi float64 = 1024
+		mebi float64 = 1048576
+		gibi float64 = 1073741824
+		tebi float64 = 1099511627776
+		pebi float64 = 1125899906842624
+	)
 
-	newval = float64(val)
-	if newval >= pb {
-		newval /= pb
-		unit = "PB"
-	} else if newval >= tb {
-		newval /= tb
-		unit = "TB"
-	} else {
-		newval /= gb
-		unit = "GB"
+	b := float64(bytes)
+	if b >= pebi {
+		return b / pebi, "PiB"
+	} else if b >= tebi {
+		return b / tebi, "TiB"
+	} else if b >= gibi {
+		return b / gibi, "GiB"
+	} else if b >= mebi {
+		return b / mebi, "MiB"
+	} else if b >= kibi {
+		return b / kibi, "KiB"
 	}
-	return newval, unit
+	return b, "B"
 }

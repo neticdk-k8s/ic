@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/olekukonko/tablewriter"
@@ -25,4 +26,14 @@ func NewTable(writer io.Writer, headers []string) *tablewriter.Table {
 	table.SetTablePadding("\t")
 	table.SetNoWhiteSpace(true)
 	return table
+}
+
+// RenderKVTable creates a new key/value table with default settings
+func RenderKVTable(writer io.Writer, title string, rows [][]string) {
+	table := NewTable(writer, []string{})
+	table.SetTablePadding("  ")
+	table.SetNoWhiteSpace(false)
+	table.AppendBulk(rows)
+	fmt.Fprintf(writer, "%s:\n", title)
+	table.Render()
 }

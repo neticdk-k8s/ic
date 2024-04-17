@@ -10,18 +10,6 @@ import (
 	"github.com/neticdk-k8s/ic/internal/logger"
 )
 
-// ListClustersInput is the input given to ListClusters()
-type ListClustersInput struct {
-	// Logger is a logger
-	Logger logger.Logger
-	// APIClient is the inventory server API client used to make requests
-	APIClient apiclient.ClientWithResponsesInterface
-	// Page is the initial page (0-based index)
-	Page int
-	// PerPage is the number of items requested for each page
-	PerPage int
-}
-
 type capacity struct {
 	NodeCount   int64 `json:"node_count,omitempty"`
 	CoresMillis int64 `json:"cores_millis,omitempty"`
@@ -93,6 +81,18 @@ func (cl *ClusterList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(cl.ToResponse())
 }
 
+// ListClustersInput is the input given to ListClusters()
+type ListClustersInput struct {
+	// Logger is a logger
+	Logger logger.Logger
+	// APIClient is the inventory server API client used to make requests
+	APIClient apiclient.ClientWithResponsesInterface
+	// Page is the initial page (0-based index)
+	Page int
+	// PerPage is the number of items requested for each page
+	PerPage int
+}
+
 // ListClusters returns a non-paginated list of clusters
 func ListClusters(ctx context.Context, in ListClustersInput) (*clusterListResponse, []byte, error) {
 	cl := &ClusterList{}
@@ -146,7 +146,9 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clu
 	if err != nil {
 		return nil, nil, fmt.Errorf("apiclient: %w", err)
 	}
-	in.Logger.Debug("apiclient", "status", cluster.StatusCode(), "content-type", cluster.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("apiclient",
+		"status", cluster.StatusCode(),
+		"content-type", cluster.HTTPResponse.Header.Get("Content-Type"))
 	if cluster.StatusCode() != http.StatusOK {
 		return nil, nil, fmt.Errorf("bad status code: %d", cluster.StatusCode())
 	}
@@ -156,27 +158,13 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clu
 		includeMap[i["@id"].(string)] = i
 	}
 	cl := &clusterResponse{}
-	if cluster.ApplicationldJSONDefault.Name != nil {
-		cl.Name = *cluster.ApplicationldJSONDefault.Name
-	}
-	if cluster.ApplicationldJSONDefault.Nrn != nil {
-		cl.NRN = *cluster.ApplicationldJSONDefault.Nrn
-	}
-	if cluster.ApplicationldJSONDefault.Description != nil {
-		cl.Description = *cluster.ApplicationldJSONDefault.Description
-	}
-	if cluster.ApplicationldJSONDefault.EnvironmentName != nil {
-		cl.EnvironmentName = *cluster.ApplicationldJSONDefault.EnvironmentName
-	}
-	if cluster.ApplicationldJSONDefault.InfrastructureProvider != nil {
-		cl.InfrastructureProvider = *cluster.ApplicationldJSONDefault.InfrastructureProvider
-	}
-	if cluster.ApplicationldJSONDefault.ClusterType != nil {
-		cl.ClusterType = *cluster.ApplicationldJSONDefault.ClusterType
-	}
-	if cluster.ApplicationldJSONDefault.KubernetesProvider != nil {
-		cl.KubernetesProvider = *cluster.ApplicationldJSONDefault.KubernetesProvider
-	}
+	cl.Name = nilStr(cluster.ApplicationldJSONDefault.Name)
+	cl.NRN = nilStr(cluster.ApplicationldJSONDefault.Nrn)
+	cl.Description = nilStr(cluster.ApplicationldJSONDefault.Description)
+	cl.EnvironmentName = nilStr(cluster.ApplicationldJSONDefault.EnvironmentName)
+	cl.InfrastructureProvider = nilStr(cluster.ApplicationldJSONDefault.InfrastructureProvider)
+	cl.ClusterType = nilStr(cluster.ApplicationldJSONDefault.ClusterType)
+	cl.KubernetesProvider = nilStr(cluster.ApplicationldJSONDefault.KubernetesProvider)
 	if cluster.ApplicationldJSONDefault.KubernetesVersion != nil {
 		cl.KubernetesVersion = *cluster.ApplicationldJSONDefault.KubernetesVersion.Version
 	}
@@ -217,4 +205,11 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clu
 	}
 
 	return cl, jsonData, nil
+}
+
+func nilStr(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
 }

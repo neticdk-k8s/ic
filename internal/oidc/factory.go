@@ -40,7 +40,7 @@ func (f *Factory) New(ctx context.Context, p Provider) (Client, error) {
 		}
 	}
 
-	config := oauth2.Config{
+	oauth2config := oauth2.Config{
 		ClientID: p.ClientID,
 		Endpoint: provider.Endpoint(),
 		Scopes:   append(p.ExtraScopes, gooidc.ScopeOpenID),
@@ -48,7 +48,7 @@ func (f *Factory) New(ctx context.Context, p Provider) (Client, error) {
 
 	return &client{
 		provider,
-		config,
+		oauth2config,
 		providerLogoutURL,
 		f.Logger,
 	}, nil

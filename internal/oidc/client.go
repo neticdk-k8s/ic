@@ -25,45 +25,6 @@ type Client interface {
 	ExchangeAuthCode(ctx context.Context, in ExchangeAuthCodeInput) (*TokenSet, error)
 }
 
-// GetTokenByAuthCodeInput is the input given to GetTokenByAuthCode
-type GetTokenByAuthCodeInput struct {
-	// BindAddress is the IP-address and port used by the redirect url server
-	BindAddress string
-	// RedirectURLHostname is the hostname of the redirect URL. You can set this
-	// if your provider does not accept localhost.
-	RedirectURLHostname string
-	// PKCE represents a set of PKCE parameters
-	PKCEParams *oauth2params.PKCE
-	// OAuth 2.0 state
-	State string
-	// OIDC Nonce
-	Nonce string
-}
-
-// GetGetAuthCodeURL is the input given to GetAuthCodeURL
-type GetAuthCodeURLInput struct {
-	// RedirectURI is the redirect url
-	// This is typicalle an URN such as urn:ietf:wg:oauth:2.0:oob
-	RedirectURI string
-	// PKCE represents a set of PKCE parameters
-	PKCEParams *oauth2params.PKCE
-	// OAuth 2.0 state
-	State string
-	// OIDC Nonce
-	Nonce string
-}
-
-// ExchangeAuthCodeInput holds the input parameters for ExchangeAuthCode()
-type ExchangeAuthCodeInput struct {
-	Code string
-	// PKCE represents a set of PKCE parameters
-	PKCEParams *oauth2params.PKCE
-	// OIDC Nonce
-	Nonce string
-	// RedirectURI is the redirect url
-	RedirectURI string
-}
-
 type client struct {
 	provider          *gooidc.Provider
 	oauth2config      oauth2.Config
@@ -126,6 +87,21 @@ func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	return client.Get(logoutURL)
 }
 
+// GetTokenByAuthCodeInput is the input given to GetTokenByAuthCode
+type GetTokenByAuthCodeInput struct {
+	// BindAddress is the IP-address and port used by the redirect url server
+	BindAddress string
+	// RedirectURLHostname is the hostname of the redirect URL. You can set this
+	// if your provider does not accept localhost.
+	RedirectURLHostname string
+	// PKCE represents a set of PKCE parameters
+	PKCEParams *oauth2params.PKCE
+	// OAuth 2.0 state
+	State string
+	// OIDC Nonce
+	Nonce string
+}
+
 // GetTokenByAuthCode performs the Authorization Code Grant Flow and returns
 // a token received from the provider.
 //
@@ -156,6 +132,19 @@ func (c *client) GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeIn
 	return c.verifyToken(token, in.Nonce)
 }
 
+// GetGetAuthCodeURL is the input given to GetAuthCodeURL
+type GetAuthCodeURLInput struct {
+	// RedirectURI is the redirect url
+	// This is typicalle an URN such as urn:ietf:wg:oauth:2.0:oob
+	RedirectURI string
+	// PKCE represents a set of PKCE parameters
+	PKCEParams *oauth2params.PKCE
+	// OAuth 2.0 state
+	State string
+	// OIDC Nonce
+	Nonce string
+}
+
 // GetAuthCodeURL returns a URL to OAuth 2.0 provider's consent page
 func (c *client) GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (string, error) {
 	cfg := c.oauth2config
@@ -167,6 +156,17 @@ func (c *client) GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (st
 		gooidc.Nonce(in.Nonce))
 
 	return cfg.AuthCodeURL(in.State, requestOptions...), nil
+}
+
+// ExchangeAuthCodeInput holds the input parameters for ExchangeAuthCode()
+type ExchangeAuthCodeInput struct {
+	Code string
+	// PKCE represents a set of PKCE parameters
+	PKCEParams *oauth2params.PKCE
+	// OIDC Nonce
+	Nonce string
+	// RedirectURI is the redirect url
+	RedirectURI string
 }
 
 // ExchangeAuthCode converts an authorization code into a TokenSet

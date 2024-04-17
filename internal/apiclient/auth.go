@@ -10,7 +10,7 @@ type bearerToken struct {
 	token string
 }
 
-// NewAuthProvider creates a new bearer token authentication provider
+// NewBearerTokenProvider creates a new bearer token authentication provider
 func NewBearerTokenProvider(token string) *bearerToken {
 	return &bearerToken{token: token}
 }

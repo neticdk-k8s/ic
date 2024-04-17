@@ -43,6 +43,7 @@ func TestAuthenticator_Login(t *testing.T) {
 		claims.ExpiresAt = jwt.NewNumericDate(issuedIDTokenExpiration)
 	})
 	issuedTokenSet := oidc.TokenSet{
+		AccessToken:  issuedIDToken,
 		IDToken:      issuedIDToken,
 		RefreshToken: "YOUR_REFRESH_TOKEN",
 	}
@@ -153,6 +154,7 @@ func TestAuthenticator_Logout(t *testing.T) {
 		claims.ExpiresAt = jwt.NewNumericDate(issuedIDTokenExpiration)
 	})
 	issuedTokenSet := oidc.TokenSet{
+		AccessToken:  issuedIDToken,
 		IDToken:      issuedIDToken,
 		RefreshToken: "YOUR_REFRESH_TOKEN",
 	}
@@ -264,7 +266,8 @@ func TestAuthentication_Authenticate(t *testing.T) {
 		in := AuthenticateInput{
 			Provider: testProvider,
 			CachedTokenSet: &oidc.TokenSet{
-				IDToken: goodIssuedIDToken,
+				AccessToken: goodIssuedIDToken,
+				IDToken:     goodIssuedIDToken,
 			},
 		}
 		got, err := authentication.Authenticate(ctx, in)
@@ -272,7 +275,8 @@ func TestAuthentication_Authenticate(t *testing.T) {
 		want := &AuthResult{
 			UsingCachedToken: true,
 			TokenSet: oidc.TokenSet{
-				IDToken: goodIssuedIDToken,
+				AccessToken: goodIssuedIDToken,
+				IDToken:     goodIssuedIDToken,
 			},
 		}
 		assert.Equal(t, want, got)
@@ -284,6 +288,7 @@ func TestAuthentication_Authenticate(t *testing.T) {
 		in := AuthenticateInput{
 			Provider: testProvider,
 			CachedTokenSet: &oidc.TokenSet{
+				AccessToken:  issuedIDToken,
 				IDToken:      issuedIDToken,
 				RefreshToken: "VALID_REFRESH_TOKEN",
 			},
@@ -292,6 +297,7 @@ func TestAuthentication_Authenticate(t *testing.T) {
 		mockClient.EXPECT().
 			Refresh(ctx, "VALID_REFRESH_TOKEN").
 			Return(&oidc.TokenSet{
+				AccessToken:  "NEW_ACCESS_TOKEN",
 				IDToken:      "NEW_ID_TOKEN",
 				RefreshToken: "NEW_REFRESH_TOKEN",
 			}, nil)
@@ -306,6 +312,7 @@ func TestAuthentication_Authenticate(t *testing.T) {
 		}
 		want := &AuthResult{
 			TokenSet: oidc.TokenSet{
+				AccessToken:  "NEW_ACCESS_TOKEN",
 				IDToken:      "NEW_ID_TOKEN",
 				RefreshToken: "NEW_REFRESH_TOKEN",
 			},
@@ -325,6 +332,7 @@ func TestAuthentication_Authenticate(t *testing.T) {
 				},
 			},
 			CachedTokenSet: &oidc.TokenSet{
+				AccessToken:  issuedIDToken,
 				IDToken:      issuedIDToken,
 				RefreshToken: "EXPIRED_REFRESH_TOKEN",
 			},
@@ -339,6 +347,7 @@ func TestAuthentication_Authenticate(t *testing.T) {
 				readyChan <- "LOCAL_SERVER_URL"
 			}).
 			Return(&oidc.TokenSet{
+				AccessToken:  "NEW_ACCESS_TOKEN",
 				IDToken:      "NEW_ID_TOKEN",
 				RefreshToken: "NEW_REFRESH_TOKEN",
 			}, nil)
@@ -353,6 +362,7 @@ func TestAuthentication_Authenticate(t *testing.T) {
 		}
 		want := &AuthResult{
 			TokenSet: oidc.TokenSet{
+				AccessToken:  "NEW_ACCESS_TOKEN",
 				IDToken:      "NEW_ID_TOKEN",
 				RefreshToken: "NEW_REFRESH_TOKEN",
 			},

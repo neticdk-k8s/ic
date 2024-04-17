@@ -37,6 +37,7 @@ func TestKeyboard_Login(t *testing.T) {
 				assert.Equal(t, in.Code, "YOUR_AUTH_CODE")
 			}).
 			Return(&oidc.TokenSet{
+				AccessToken:  "YOUR_ACCESS_TOKEN",
 				IDToken:      "YOUR_ID_TOKEN",
 				RefreshToken: "YOUR_REFRESH_TOKEN",
 			}, nil)
@@ -52,6 +53,7 @@ func TestKeyboard_Login(t *testing.T) {
 		assert.NoError(t, err, "Login returned error")
 
 		want := &oidc.TokenSet{
+			AccessToken:  "YOUR_ACCESS_TOKEN",
 			IDToken:      "YOUR_ID_TOKEN",
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}

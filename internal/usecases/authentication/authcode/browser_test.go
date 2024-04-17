@@ -38,6 +38,7 @@ func TestBrowser_Login(t *testing.T) {
 				readyChan <- "LOCAL_SERVER_URL"
 			}).
 			Return(&oidc.TokenSet{
+				AccessToken:  "YOUR_ACCESS_TOKEN",
 				IDToken:      "YOUR_ID_TOKEN",
 				RefreshToken: "YOUR_REFRESH_TOKEN",
 			}, nil)
@@ -48,6 +49,7 @@ func TestBrowser_Login(t *testing.T) {
 		assert.NoError(t, err, "Login returned error")
 
 		want := &oidc.TokenSet{
+			AccessToken:  "YOUR_ACCESS_TOKEN",
 			IDToken:      "YOUR_ID_TOKEN",
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}

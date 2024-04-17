@@ -11,6 +11,7 @@ type Provider struct {
 
 // TokenSet represents a set of ID token and refresh token
 type TokenSet struct {
+	AccessToken  string
 	IDToken      string
 	RefreshToken string
 }
@@ -18,5 +19,5 @@ type TokenSet struct {
 // DecodeWithoutVerify decodes the JWT string and returns the claims.
 // Note that this method does not verify the signature and always trust it.
 func (ts TokenSet) DecodeWithoutVerify() (*jwt.Claims, error) {
-	return jwt.DecodeWithoutVerify(ts.IDToken)
+	return jwt.DecodeWithoutVerify(ts.AccessToken)
 }

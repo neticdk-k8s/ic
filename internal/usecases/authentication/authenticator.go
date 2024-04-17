@@ -132,19 +132,19 @@ func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSe
 		return nil, fmt.Errorf("authenticating: %w", err)
 	}
 
-	idTokenClaims, err := authResult.TokenSet.DecodeWithoutVerify()
+	tokenClaims, err := authResult.TokenSet.DecodeWithoutVerify()
 	if err != nil {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
-	a.logger.Debug("Token", "token", idTokenClaims.Pretty)
+	a.logger.Debug("Token", "token", tokenClaims.Pretty)
 
 	if authResult.UsingCachedToken {
 		if !in.Silent {
-			a.logger.Info("Using cached token", "expires", idTokenClaims.Expiry)
+			a.logger.Info("Using cached token", "expires", tokenClaims.Expiry)
 		}
 	} else {
 		if !in.Silent {
-			a.logger.Info("Using new token", "expires", idTokenClaims.Expiry)
+			a.logger.Info("Using new token", "expires", tokenClaims.Expiry)
 		}
 		err = in.TokenCache.Save(tokenCacheKey, authResult.TokenSet)
 		if err != nil {

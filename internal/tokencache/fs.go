@@ -18,6 +18,7 @@ type fsCache struct {
 }
 
 type cachedToken struct {
+	AccessToken  string `json:"access_token,omitempty"`
 	IDToken      string `json:"id_token,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
@@ -51,6 +52,7 @@ func (c *fsCache) Lookup(key Key) (*oidc.TokenSet, error) {
 		return nil, fmt.Errorf("invalid json file %s: %w", p, err)
 	}
 	return &oidc.TokenSet{
+		AccessToken:  e.AccessToken,
 		IDToken:      e.IDToken,
 		RefreshToken: e.RefreshToken,
 	}, nil
@@ -72,6 +74,7 @@ func (c *fsCache) Save(key Key, tokenSet oidc.TokenSet) error {
 	}
 	defer f.Close()
 	e := cachedToken{
+		AccessToken:  tokenSet.AccessToken,
 		IDToken:      tokenSet.IDToken,
 		RefreshToken: tokenSet.RefreshToken,
 	}

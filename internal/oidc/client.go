@@ -203,6 +203,7 @@ func (c *client) verifyToken(token *oauth2.Token, nonce string) (*TokenSet, erro
 	}
 
 	return &TokenSet{
+		AccessToken:  token.AccessToken,
 		IDToken:      idToken,
 		RefreshToken: token.RefreshToken,
 	}, nil

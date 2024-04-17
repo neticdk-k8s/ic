@@ -125,8 +125,12 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 	if clusters.StatusCode() != http.StatusOK {
 		return fmt.Errorf("bad status code: %d", clusters.StatusCode())
 	}
-	clusterList.Clusters = append(clusterList.Clusters, *clusters.ApplicationldJSONDefault.Clusters...)
-	clusterList.Included = append(clusterList.Included, *clusters.ApplicationldJSONDefault.Included...)
+	if clusters.ApplicationldJSONDefault.Clusters != nil {
+		clusterList.Clusters = append(clusterList.Clusters, *clusters.ApplicationldJSONDefault.Clusters...)
+	}
+	if clusters.ApplicationldJSONDefault.Included != nil {
+		clusterList.Included = append(clusterList.Included, *clusters.ApplicationldJSONDefault.Included...)
+	}
 	if clusters.ApplicationldJSONDefault.Pagination.Next != nil {
 		in.Page += 1
 		return listClusters(ctx, in, clusterList)

@@ -33,7 +33,7 @@ func TestFSCache_Lookup(t *testing.T) {
 			ClientID:    "YOUR_CLIENT_ID",
 			ExtraScopes: []string{"openid", "email"},
 		}
-		json := `{"id_token":"YOUR_ID_TOKEN","refresh_token":"YOUR_REFRESH_TOKEN"}`
+		json := `{"access_token": "YOUR_ACCESS_TOKEN","id_token":"YOUR_ID_TOKEN","refresh_token":"YOUR_REFRESH_TOKEN"}`
 		filename, err := computeFilename(key)
 		assert.NoError(t, err, "could not compute the key")
 
@@ -44,7 +44,7 @@ func TestFSCache_Lookup(t *testing.T) {
 		got, err := fsCache.Lookup(key)
 		assert.NoError(t, err, "could not look up cached token")
 
-		want := &oidc.TokenSet{IDToken: "YOUR_ID_TOKEN", RefreshToken: "YOUR_REFRESH_TOKEN"}
+		want := &oidc.TokenSet{AccessToken: "YOUR_ACCESS_TOKEN", IDToken: "YOUR_ID_TOKEN", RefreshToken: "YOUR_REFRESH_TOKEN"}
 		assert.Equal(t, want, got)
 	})
 }
@@ -61,7 +61,7 @@ func TestFSCache_Save(t *testing.T) {
 			ClientID:    "YOUR_CLIENT_ID",
 			ExtraScopes: []string{"openid", "email"},
 		}
-		tokenSet := oidc.TokenSet{IDToken: "YOUR_ID_TOKEN", RefreshToken: "YOUR_REFRESH_TOKEN"}
+		tokenSet := oidc.TokenSet{AccessToken: "YOUR_ACCESS_TOKEN", IDToken: "YOUR_ID_TOKEN", RefreshToken: "YOUR_REFRESH_TOKEN"}
 		err = fsCache.Save(key, tokenSet)
 		assert.NoError(t, err, "could not save cached token")
 
@@ -74,7 +74,7 @@ func TestFSCache_Save(t *testing.T) {
 			t.Fatalf("could not read the token cache file: %s", err)
 		}
 
-		want := "{\"id_token\":\"YOUR_ID_TOKEN\",\"refresh_token\":\"YOUR_REFRESH_TOKEN\"}\n"
+		want := "{\"access_token\":\"YOUR_ACCESS_TOKEN\",\"id_token\":\"YOUR_ID_TOKEN\",\"refresh_token\":\"YOUR_REFRESH_TOKEN\"}\n"
 		got := string(b)
 		assert.Equal(t, want, got)
 	})

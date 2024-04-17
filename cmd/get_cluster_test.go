@@ -30,6 +30,7 @@ func Test_GetClusterCommand(t *testing.T) {
 		Login(mock.Anything, mock.Anything).
 		Run(func(_ context.Context, in authentication.LoginInput) {}).
 		Return(&oidc.TokenSet{
+			AccessToken:  "YOUR_ACCESS_TOKEN",
 			IDToken:      "YOUR_ID_TOKEN",
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}, nil)

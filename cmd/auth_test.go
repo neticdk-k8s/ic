@@ -25,6 +25,7 @@ func Test_AuthCommands(t *testing.T) {
 		claims.ExpiresAt = jwt.NewNumericDate(issuedIDTokenExpiration)
 	})
 	issuedTokenSet := oidc.TokenSet{
+		AccessToken:  issuedIDToken,
 		IDToken:      issuedIDToken,
 		RefreshToken: "YOUR_REFRESH_TOKEN",
 	}

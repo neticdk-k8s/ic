@@ -17,10 +17,11 @@ type capacity struct {
 }
 
 type clusterResponse struct {
+	ID                     string    `json:"id,omitempty"`
 	Name                   string    `json:"name,omitempty"`
+	ProviderName           string    `json:"provider_name,omitempty"`
 	NRN                    string    `json:"nrn,omitempty"`
 	Description            string    `json:"description,omitempty"`
-	ProviderName           string    `json:"provider_name,omitempty"`
 	ClusterType            string    `json:"cluster_type,omitempty"`
 	EnvironmentName        string    `json:"environment_name,omitempty"`
 	ResilienceZone         string    `json:"resilience_zone,omitempty"`
@@ -64,8 +65,9 @@ func (cl *ClusterList) ToResponse() *clusterListResponse {
 				cr.ProviderName = p.(string)
 			}
 		}
-		if provider, ok := includeMap[i["resilienceZone"].(string)]; ok {
-			if p, ok := provider.(map[string]interface{})["name"]; ok {
+		cr.ID = fmt.Sprintf("%s.%s", cr.Name, cr.ProviderName)
+		if rz, ok := includeMap[i["resilienceZone"].(string)]; ok {
+			if p, ok := rz.(map[string]interface{})["name"]; ok {
 				cr.ResilienceZone = p.(string)
 			}
 		}

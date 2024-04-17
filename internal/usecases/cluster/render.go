@@ -49,9 +49,10 @@ func (r *clusterRenderer) Render(format string) error {
 
 func (r *clusterRenderer) renderText() error {
 	data := [][]string{
+		{"ID:", fmt.Sprintf("%s.%s", r.cluster.Name, r.cluster.ProviderName)},
 		{"Name:", r.cluster.Name},
-		{"NRN:", r.cluster.NRN},
 		{"Provider:", r.cluster.ProviderName},
+		{"NRN:", r.cluster.NRN},
 		{"Description:", r.cluster.Description},
 		{"Type:", r.cluster.ClusterType},
 		{"Environment:", r.cluster.EnvironmentName},
@@ -124,14 +125,14 @@ func (r *clustersRenderer) Render(format string) error {
 func (r *clustersRenderer) renderTable() error {
 	var headers []string
 	if !r.noHeaders {
-		headers = []string{"provider", "name", "rz", "version"}
+		headers = []string{"provider", "id", "rz", "version"}
 	}
 	table := ui.NewTable(r.writer, headers)
 	for _, c := range r.clusters.Clusters {
 		table.Append(
 			[]string{
 				c.ProviderName,
-				c.Name,
+				fmt.Sprintf("%s.%s", c.Name, c.ProviderName),
 				c.ResilienceZone,
 				c.KubernetesVersion,
 			},

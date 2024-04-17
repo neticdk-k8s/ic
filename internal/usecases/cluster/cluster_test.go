@@ -46,6 +46,7 @@ func TestClusterList_ToResponse(t *testing.T) {
 			Clusters: []clusterResponse{
 				{
 					Name:              "my-cluster",
+					ID:                "my-cluster.my-provider",
 					ClusterType:       "my-cluster-type",
 					EnvironmentName:   "my-environment",
 					ProviderName:      "my-provider",
@@ -97,7 +98,7 @@ func TestClusterList_MarshalJSON(t *testing.T) {
 			},
 		},
 	}
-	want := []byte(`{"clusters":[{"name":"my-cluster","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"}]}`)
+	want := []byte(`{"clusters":[{"id":"my-cluster.my-provider","name":"my-cluster","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"}]}`)
 	got, err := cl.MarshalJSON()
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
@@ -169,6 +170,7 @@ func TestListClusters(t *testing.T) {
 		Clusters: []clusterResponse{
 			{
 				Name:              "my-cluster",
+				ID:                "my-cluster.my-provider",
 				ClusterType:       "my-cluster-type",
 				EnvironmentName:   "my-environment",
 				ProviderName:      "my-provider",
@@ -177,6 +179,7 @@ func TestListClusters(t *testing.T) {
 			},
 			{
 				Name:              "my-cluster-2",
+				ID:                "my-cluster-2.my-provider",
 				ClusterType:       "my-cluster-type",
 				EnvironmentName:   "my-environment",
 				ProviderName:      "my-provider",
@@ -190,7 +193,7 @@ func TestListClusters(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
 
-	wantJSON := []byte(`{"clusters":[{"name":"my-cluster","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"},{"name":"my-cluster-2","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"}]}`)
+	wantJSON := []byte(`{"clusters":[{"id":"my-cluster.my-provider","name":"my-cluster","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"},{"id":"my-cluster-2.my-provider","name":"my-cluster-2","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"}]}`)
 	assert.Equal(t, wantJSON, gotJSON)
 }
 

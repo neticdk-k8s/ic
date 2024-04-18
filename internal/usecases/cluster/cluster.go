@@ -23,6 +23,8 @@ type clusterResponse struct {
 	NRN                    string    `json:"nrn,omitempty"`
 	Description            string    `json:"description,omitempty"`
 	ClusterType            string    `json:"cluster_type,omitempty"`
+	Partition              string    `json:"partition,omitempty"`
+	Region                 string    `json:"region,omitempty"`
 	EnvironmentName        string    `json:"environment_name,omitempty"`
 	ResilienceZone         string    `json:"resilience_zone,omitempty"`
 	KubernetesProvider     string    `json:"kubernetes_provider,omitempty"`
@@ -167,6 +169,8 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clu
 	cl.Name = nilStr(cluster.ApplicationldJSONDefault.Name)
 	cl.NRN = nilStr(cluster.ApplicationldJSONDefault.Nrn)
 	cl.Description = nilStr(cluster.ApplicationldJSONDefault.Description)
+	cl.Partition = nilStr(cluster.ApplicationldJSONDefault.Partition)
+	cl.Region = nilStr(cluster.ApplicationldJSONDefault.Region)
 	cl.EnvironmentName = nilStr(cluster.ApplicationldJSONDefault.EnvironmentName)
 	cl.InfrastructureProvider = nilStr(cluster.ApplicationldJSONDefault.InfrastructureProvider)
 	cl.ClusterType = nilStr(cluster.ApplicationldJSONDefault.ClusterType)

@@ -71,8 +71,14 @@ type Cluster struct {
 	// Nrn NRN is the Netic Resource Name uniquely identifying the cluster among all other Netic resource names
 	Nrn *string `json:"nrn,omitempty"`
 
+	// Partition Partition specifies the partition in which the cluster is running
+	Partition *string `json:"partition,omitempty"`
+
 	// Provider Provider identification of cluster provider, i.e., the organizational unit responsible for providing the cluster to the tenants
 	Provider *string `json:"provider,omitempty"`
+
+	// Region Region specifies the region in which the cluster is running
+	Region *string `json:"region,omitempty"`
 
 	// ResilienceZone ResilienceZone identified the resilienze to which the cluster is associated
 	ResilienceZone *string `json:"resilienceZone,omitempty"`

@@ -8,7 +8,7 @@
     "paths": {
         "/clusters": {
             "get": {
-                "description": "listClusters return a list of clusters dependon on the authorizations of the user.\n\nThe returned list will contain all cluster that the user has access to see. Filtering\nis done based on the resources listed in the given OAuth 2.0 token.\n",
+                "description": "listClusters return a list of clusters dependon on the authorizations of the user.\n\nThe returned list will contain all cluster that the user has access to see. Filtering\nis done based on the resources listed in the given OAuth 2.0 token. The result is a\npartial collection supporting pagination.\n",
                 "operationId": "listClusters",
                 "responses": {
                     "400": {
@@ -42,7 +42,7 @@
                         }
                     },
                     "500": {
-                        "description": "",
+                        "description": "Internal errors communication with backends or other",
                         "content": {
                             "application/ld+json": {
                                 "schema": {
@@ -409,7 +409,7 @@
                         }
                     },
                     "500": {
-                        "description": "",
+                        "description": "Internal errors communication with backends or other",
                         "content": {
                             "application/ld+json": {
                                 "schema": {
@@ -595,10 +595,18 @@
                         "type": "string",
                         "format": "uri"
                     },
+                    "partition": {
+                        "description": "Partition specifies the partition in which the cluster is running",
+                        "type": "string"
+                    },
                     "provider": {
                         "description": "Provider identification of cluster provider, i.e., the organizational unit responsible for providing the cluster to the tenants",
                         "type": "string",
                         "format": "uri"
+                    },
+                    "region": {
+                        "description": "Region specifies the region in which the cluster is running",
+                        "type": "string"
                     },
                     "resilienceZone": {
                         "description": "ResilienceZone identified the resilienze to which the cluster is associated",

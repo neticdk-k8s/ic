@@ -55,6 +55,8 @@ func (r *clusterRenderer) renderText() error {
 		{"NRN:", r.cluster.NRN},
 		{"Description:", r.cluster.Description},
 		{"Type:", r.cluster.ClusterType},
+		{"Partition:", r.cluster.Partition},
+		{"Region:", r.cluster.Region},
 		{"Environment:", r.cluster.EnvironmentName},
 		{"Resilience Zone:", r.cluster.ResilienceZone},
 		{"Infrastructure Provider:", r.cluster.InfrastructureProvider},

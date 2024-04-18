@@ -175,7 +175,7 @@ func (ec *ExecutionContext) setupSpinner() {
 // Spin starts the spinnner and sets its text
 func (ec *ExecutionContext) Spin(t string) {
 	if !ec.Spinner.Running() {
-		ec.Spinner.Run()
+		ec.Spinner.Run(t)
 	}
 	ec.Spinner.Text(t)
 }

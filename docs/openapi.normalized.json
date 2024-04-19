@@ -8,7 +8,7 @@
     "paths": {
         "/clusters": {
             "get": {
-                "description": "listClusters return a list of clusters dependon on the authorizations of the user.\n\nThe returned list will contain all cluster that the user has access to see. Filtering\nis done based on the resources listed in the given OAuth 2.0 token. The result is a\npartial collection supporting pagination.\n",
+                "description": "listClusters returns a list of clusters depending on the authorizations of the user.\n\nThe returned list will contain all clusters that the user has access to see. Filtering\nis done based on the resources listed in the given OAuth 2.0 token. The result is a\npartial collection supporting pagination.\n",
                 "operationId": "listClusters",
                 "responses": {
                     "400": {
@@ -360,11 +360,195 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "createCluster creates a cluster and returns information on a the created cluster instance\n\nThe returned list will contain all cluster that the user has access to see. Filtering\nis done based on the resources listed in the given OAuth 2.0 token. The result is a\npartial collection supporting pagination.\n",
+                "operationId": "createCluster",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCluster"
+                            }
+                        }
+                    },
+                    "description": "The data used to create the cluster",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Cluster created",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Cluster"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Cluster"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid payload",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Insufficient permissions",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Cluster already exists",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal errors communication with backends or other",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "cluster instance",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Cluster"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "@id": "https://api.k8s.netic.dk/clusters/prod940.provider11",
+                                            "@included": [
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/subscriptions/100765",
+                                                    "@type": "Subscription",
+                                                    "name": "managed kubernetes",
+                                                    "number": "100765"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/providers/provider11",
+                                                    "@type": "Provider",
+                                                    "name": "provider11"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
+                                                    "@type": "ResilienceZone",
+                                                    "name": "late-majority-1"
+                                                }
+                                            ],
+                                            "@type": "Cluster",
+                                            "capacity": {
+                                                "control-plane": {
+                                                    "cores": 0,
+                                                    "memory": 0,
+                                                    "nodes": 0
+                                                },
+                                                "worker": {
+                                                    "cores": 29800,
+                                                    "memory": 130137509072,
+                                                    "nodes": 4
+                                                }
+                                            },
+                                            "clientVersion": {
+                                                "commit": "6ff3128f6e0e803fa21e5e28a2739e76ee47061e",
+                                                "version": "0.3.10"
+                                            },
+                                            "clusterType": "dedicated",
+                                            "components": "https://api.k8s.netic.dk/clusters/prod940.provider11/components",
+                                            "description": "117 staging cluster",
+                                            "environmentName": "staging",
+                                            "images": "https://api.k8s.netic.dk/clusters/prod940.provider11/images",
+                                            "infrastructureProvider": "azure",
+                                            "kubernetesProvider": "aks",
+                                            "kubernetesVersion": {
+                                                "commit": "8632faa03213f1b581ab2f34503a16d340de2e33",
+                                                "date": "2021-03-26T13:52:28",
+                                                "version": "v1.27.8+aks"
+                                            },
+                                            "name": "prod940",
+                                            "namespaces": "https://api.k8s.netic.dk/clusters/prod940.provider11/namespaces",
+                                            "nrn": "N/A",
+                                            "provider": "https://api.k8s.netic.dk/providers/provider11",
+                                            "resilienceZone": "https://api.k8s.netic.dk/resilience-zones/late-majority-1",
+                                            "subscription": "https://api.k8s.netic.dk/subscriptions/100765",
+                                            "timestamp": "2021-03-14T15:40:05Z",
+                                            "workloads": "https://api.k8s.netic.dk/clusters/prod940.provider11/workloads"
+                                        }
+                                    }
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Cluster"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/clusters/{clusterId}": {
             "get": {
-                "description": "getCluster returns informatin on a specific cluster instance.\n\nA cluster represents a Kubernetes clutser operated and managed with the Netic cloud stack. Information\nis put into the inventory service prior to the first provisioning of the cluster. Some properties\nmay be updated based on metadata from the cluster.\n",
+                "description": "getCluster returns information on a specific cluster instance.\n\nA cluster represents a Kubernetes cluster operated and managed with the Netic cloud stack. Information\nis put into the inventory service prior to the first provisioning of the cluster. Some properties\nmay be updated based on metadata from the cluster.\n",
                 "operationId": "getCluster",
                 "parameters": [
                     {
@@ -501,13 +685,55 @@
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "deleteCluster deletes a cluster\n",
+                "operationId": "deleteCluster",
+                "responses": {
+                    "204": {
+                        "description": "Cluster deleted"
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Insufficient permissions",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal errors communication with backends or other",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "cluster deleted"
+                    }
+                }
             }
         }
     },
     "components": {
         "schemas": {
             "Cluster": {
-                "description": "Cluster represent a secure cloud stack Kubernetes cluster",
+                "description": "Cluster represents a secure cloud stack Kubernetes cluster",
                 "type": "object",
                 "properties": {
                     "@context": {
@@ -684,6 +910,78 @@
                         "description": "TotalCount is the total number of clusters",
                         "type": "integer",
                         "format": "int32"
+                    }
+                }
+            },
+            "CreateCluster": {
+                "description": "CreateCluster represents the information used to create a secure cloud stack Kubernetes cluster",
+                "type": "object",
+                "properties": {
+                    "apiEndpoint": {
+                        "description": "APIEndpoint is the URL for the Kubernetes API server endpoint",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "customOperationsURL": {
+                        "description": "CustomOperationsURL is the URL for the site that documents the custom operations for the cluster. This must be et if HasCustomOperations is enabled.",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "description": {
+                        "description": "Description is the humanreadable cluster description of the cluster",
+                        "type": "string"
+                    },
+                    "environmentName": {
+                        "description": "EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., \"production\"",
+                        "type": "string"
+                    },
+                    "hasApplicationManagement": {
+                        "description": "HasApplicationManagement specifies that the service level of the cluster includes Application Management",
+                        "type": "boolean"
+                    },
+                    "hasApplicationOperations": {
+                        "description": "HasApplicationOperations specifies that the service level of the cluster includes Application Operations. This must be enabled if HasApplicationManagement is enabled.",
+                        "type": "boolean"
+                    },
+                    "hasCustomOperations": {
+                        "description": "HasCustomOperations specifies that the service level of the cluster includes Custom Operations. This must en enabled if HasTechnicalManagement is disabled.",
+                        "type": "boolean"
+                    },
+                    "hasTechnicalManagement": {
+                        "description": "HasTechnicalManagement specifies that the service level of the cluster includes Technical Management. This must be enabled if HasApplicationOperations is enabled.",
+                        "type": "boolean"
+                    },
+                    "hasTechnicalOperations": {
+                        "description": "HasTechnicalOperations specifies that the service level of the cluster includes Technical Operations. This must be enabled if HasTechnicalManagement is enabled.",
+                        "type": "boolean"
+                    },
+                    "infrastructureProvider": {
+                        "description": "InfrastructureProvider is the name of the entity that provides the infrastructure for the cluster. One of: \"netic\", \"azure\", \"aws\"",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name uniquely identifying the cluster within the provider of the cluster",
+                        "type": "string"
+                    },
+                    "partition": {
+                        "description": "Partition is the partition in which the cluster is running. One of: \"netic\", \"azure\", \"aws\"",
+                        "type": "string"
+                    },
+                    "provider": {
+                        "description": "Provider identification of cluster provider, i.e., the organizational unit responsible for providing the cluster to the tenants",
+                        "type": "string"
+                    },
+                    "region": {
+                        "description": "Region is the region within the partition in which the cluster is running",
+                        "type": "string"
+                    },
+                    "resilienceZone": {
+                        "description": "ResilienceZone is the name of the resilience zone the cluster is running in",
+                        "type": "string"
+                    },
+                    "subscriptionID": {
+                        "description": "SubscriptionID is the subscription ID associated with the cluster",
+                        "type": "string"
                     }
                 }
             },

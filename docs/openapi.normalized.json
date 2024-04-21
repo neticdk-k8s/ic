@@ -689,6 +689,17 @@
             "delete": {
                 "description": "deleteCluster deletes a cluster\n",
                 "operationId": "deleteCluster",
+                "parameters": [
+                    {
+                        "description": "the cluster id",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "Cluster deleted"
@@ -705,6 +716,16 @@
                     },
                     "403": {
                         "description": "Insufficient permissions",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The request instance was not found (or user does not have access)",
                         "content": {
                             "application/problem+json": {
                                 "schema": {

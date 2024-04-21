@@ -13,6 +13,7 @@ import (
 	"github.com/neticdk-k8s/ic/internal/ui"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication/authcode"
+	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
 
@@ -31,6 +32,9 @@ type OIDCConfig struct {
 // the application
 type ExecutionContext struct {
 	Stdout, Stderr io.Writer
+
+	// Command is the current command
+	Command *cobra.Command
 
 	// Version is the CLI version
 	Version string
@@ -89,8 +93,9 @@ func NewExecutionContext(in ExecutionContextInput) *ExecutionContext {
 		Version:      in.Version,
 		OutputFormat: "text",
 		OIDC:         OIDCConfig{},
-		Logger:       logger.New(in.Stderr, "info"),
+		LogLevel:     "info",
 	}
+	ec.Logger = logger.New(in.Stderr, ec.LogLevel)
 
 	stdout, ok := ec.Stdout.(*os.File)
 	if !ok {
@@ -98,6 +103,8 @@ func NewExecutionContext(in ExecutionContextInput) *ExecutionContext {
 		stdout = os.Stdout
 	}
 	ec.IsTerminal = term.IsTerminal(int(stdout.Fd()))
+
+	ec.Logger.SetInteractive("auto", ec.IsTerminal)
 
 	ec.setupSpinner()
 	return ec

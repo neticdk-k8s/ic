@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,7 +23,7 @@ const (
 )
 
 func NewRootCmd(ec *ExecutionContext) *cobra.Command {
-	command := &cobra.Command{
+	c := &cobra.Command{
 		Use:                   "ic [command] [flags]",
 		DisableFlagsInUseLine: true,
 		Short:                 "Inventory CLI",
@@ -35,6 +34,7 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 			if err := initConfig(cmd); err != nil {
 				return err
 			}
+			ec.Command = cmd
 			ec.SetLogLevel()
 			ec.SetupDefaultAuthenticator()
 			ec.SetupDefaultOIDCProvider()
@@ -54,7 +54,7 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 		},
 	}
 
-	f := command.PersistentFlags()
+	f := c.PersistentFlags()
 	f.StringVarP(&ec.LogLevel, "log-level", "l", "info", "Log level")
 	f.StringVarP(&ec.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
 	f.StringVarP(&ec.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
@@ -68,15 +68,15 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 	f.StringVar(&ec.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
 	f.StringVar(&ec.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
 
-	viper.BindPFlags(command.PersistentFlags()) // nolint:errcheck
+	viper.BindPFlags(c.PersistentFlags()) // nolint:errcheck
 
-	command.Flags().SortFlags = false
-	command.PersistentFlags().SortFlags = false
+	c.Flags().SortFlags = false
+	c.PersistentFlags().SortFlags = false
 
-	command.SetOut(ec.Stdout)
-	command.SetErr(ec.Stderr)
+	c.SetOut(ec.Stdout)
+	c.SetErr(ec.Stderr)
 
-	command.AddGroup(
+	c.AddGroup(
 		&cobra.Group{
 			ID:    groupBase,
 			Title: "Basic Commands:",
@@ -91,10 +91,10 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 		},
 	)
 
-	command.SetHelpCommandGroupID(groupOther)
-	command.SetCompletionCommandGroupID(groupOther)
+	c.SetHelpCommandGroupID(groupOther)
+	c.SetCompletionCommandGroupID(groupOther)
 
-	command.AddCommand(
+	c.AddCommand(
 		NewLoginCmd(ec),
 		NewLogoutCmd(ec),
 		NewGetCmd(ec),
@@ -102,7 +102,7 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 		NewDeleteCmd(ec),
 	)
 
-	return command
+	return c
 }
 
 // initConfig ensures that precedence of configuration setting is correct
@@ -160,12 +160,12 @@ func Execute(version string) int {
 	}
 	ec := NewExecutionContext(in)
 	rootCmd := NewRootCmd(ec)
-	err := rootCmd.ExecuteContext(context.Background())
+	err := rootCmd.Execute()
 	if ec.Spinner.Running() {
 		ec.Spinner.Stop()
 	}
 	if err != nil {
-		fmt.Fprintln(ec.Stderr, err)
+		ec.Logger.Error(err.Error())
 		return 1
 	}
 	return 0

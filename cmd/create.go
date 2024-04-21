@@ -25,24 +25,25 @@ const createCommandExample = `  # Create a new Netic on-prem cluster with defaul
 
 // New creates a new create command
 func NewCreateCmd(ec *ExecutionContext) *cobra.Command {
-	command := &cobra.Command{
+	c := &cobra.Command{
 		Use:     "create",
 		Short:   "Create a resources",
 		GroupID: groupBase,
+		Args:    cobra.NoArgs,
 		Example: createCommandExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Usage()
 		},
 	}
-	command.AddCommand(
+	c.AddCommand(
 		NewCreateClusterCmd(ec),
 	)
 
-	command.AddGroup(
+	c.AddGroup(
 		&cobra.Group{
 			ID:    groupCluster,
 			Title: "Cluster Commands:",
 		},
 	)
-	return command
+	return c
 }

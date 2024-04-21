@@ -11,26 +11,36 @@ import (
 
 // New creates a new logout command
 func NewLogoutCmd(ec *ExecutionContext) *cobra.Command {
-	command := &cobra.Command{
+	o := logoutOptions{}
+	c := &cobra.Command{
 		Use:     "logout",
 		Short:   "Log out",
 		GroupID: groupAuth,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := ec.Logger.WithPrefix("Logout")
-			ec.Authenticator.SetLogger(logger)
-
-			logoutInput := authentication.LogoutInput{
-				Provider:   *ec.OIDCProvider,
-				TokenCache: ec.TokenCache,
-			}
-
-			ec.Spin("Logging out")
-			err := ec.Authenticator.Logout(cmd.Context(), logoutInput)
-			if err != nil && !errors.Is(err, &tokencache.CacheMissError{}) {
-				return fmt.Errorf("logging out: %w", err)
-			}
-			return nil
+			return o.run(ec)
 		},
 	}
-	return command
+	return c
+}
+
+type logoutOptions struct{}
+
+func (o *logoutOptions) run(ec *ExecutionContext) error {
+	logger := ec.Logger.WithPrefix("Logout")
+	ec.Authenticator.SetLogger(logger)
+
+	logoutInput := authentication.LogoutInput{
+		Provider:   *ec.OIDCProvider,
+		TokenCache: ec.TokenCache,
+	}
+
+	ec.Spin("Logging out")
+	err := ec.Authenticator.Logout(ec.Command.Context(), logoutInput)
+	if err != nil && !errors.Is(err, &tokencache.CacheMissError{}) {
+		return fmt.Errorf("logging out: %w", err)
+	}
+
+	ec.Logger.Info("Logout succeeded ✅")
+
+	return nil
 }

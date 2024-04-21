@@ -19,8 +19,6 @@ type LoginInput struct {
 	TokenCache tokencache.Cache
 	// AuthOptions are the options used for authentication
 	AuthOptions AuthOptions
-	// Silent indicates that informational messages should not be logged
-	Silent bool
 }
 
 // AuthenticateInput is the input given to Authenticate
@@ -61,8 +59,6 @@ type LogoutInput struct {
 	Provider oidc.Provider
 	// TokenCache is the interface used for caching tokens
 	TokenCache tokencache.Cache
-	// Silent indicates that informational messages should not be logged
-	Silent bool
 }
 
 // Authenticator represents an Authenticator
@@ -139,21 +135,13 @@ func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSe
 	a.logger.Debug("Token", "token", tokenClaims.Pretty)
 
 	if authResult.UsingCachedToken {
-		if !in.Silent {
-			a.logger.Info("Using cached token", "expires", tokenClaims.Expiry)
-		}
+		a.logger.Debug("Using cached token", "expires", tokenClaims.Expiry)
 	} else {
-		if !in.Silent {
-			a.logger.Info("Using new token", "expires", tokenClaims.Expiry)
-		}
+		a.logger.Debug("Using new token", "expires", tokenClaims.Expiry)
 		err = in.TokenCache.Save(tokenCacheKey, authResult.TokenSet)
 		if err != nil {
 			return nil, fmt.Errorf("caching token: %w", err)
 		}
-	}
-
-	if !in.Silent {
-		a.logger.Info("Login succeeded ✅")
 	}
 
 	return &authResult.TokenSet, nil
@@ -195,10 +183,6 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 	a.logger.Debug("Invalidating cached token")
 	if err := in.TokenCache.Invalidate(tokenCacheKey); err != nil {
 		return fmt.Errorf("invalidating cached token: %w", err)
-	}
-
-	if !in.Silent {
-		a.logger.Info("Logout succeeded ✅")
 	}
 
 	return nil

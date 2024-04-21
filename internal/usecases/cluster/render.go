@@ -1,11 +1,10 @@
 package cluster
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 
+	"github.com/neticdk-k8s/ic/internal/render"
 	"github.com/neticdk-k8s/ic/internal/ui"
 )
 
@@ -67,7 +66,7 @@ func (r *clusterRenderer) renderText() error {
 	ui.RenderKVTable(r.writer, "Base Information", data)
 
 	if r.cluster.ControlPlaneCapacity != nil {
-		allocMem, unit := bytesToBinarySI(r.cluster.ControlPlaneCapacity.MemoryBytes)
+		allocMem, unit := render.BytesToBinarySI(r.cluster.ControlPlaneCapacity.MemoryBytes)
 		data = [][]string{
 			{"Nodes:", fmt.Sprintf("%d", r.cluster.ControlPlaneCapacity.NodeCount)},
 			{"Allocatable CPU:", fmt.Sprintf("%dm", r.cluster.ControlPlaneCapacity.CoresMillis)},
@@ -77,7 +76,7 @@ func (r *clusterRenderer) renderText() error {
 	}
 
 	if r.cluster.WorkerNodesCapacity != nil {
-		allocMem, unit := bytesToBinarySI(r.cluster.WorkerNodesCapacity.MemoryBytes)
+		allocMem, unit := render.BytesToBinarySI(r.cluster.WorkerNodesCapacity.MemoryBytes)
 		data = [][]string{
 			{"Nodes:", fmt.Sprintf("%d", r.cluster.WorkerNodesCapacity.NodeCount)},
 			{"Allocatable CPU:", fmt.Sprintf("%dm", r.cluster.WorkerNodesCapacity.CoresMillis)},
@@ -90,7 +89,7 @@ func (r *clusterRenderer) renderText() error {
 }
 
 func (r *clusterRenderer) renderJSON() error {
-	return prettyPrintJSON(r.jsonData, r.writer)
+	return render.PrettyPrintJSON(r.jsonData, r.writer)
 }
 
 type clustersRenderer struct {
@@ -145,39 +144,5 @@ func (r *clustersRenderer) renderTable() error {
 }
 
 func (r *clustersRenderer) renderJSON() error {
-	return prettyPrintJSON(r.jsonData, r.writer)
-}
-
-func prettyPrintJSON(body []byte, writer io.Writer) error {
-	var prettyJSON bytes.Buffer
-	err := json.Indent(&prettyJSON, body, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Fprintln(writer, prettyJSON.String())
-	return nil
-}
-
-func bytesToBinarySI(bytes int64) (float64, string) {
-	const (
-		kibi float64 = 1024
-		mebi float64 = 1048576
-		gibi float64 = 1073741824
-		tebi float64 = 1099511627776
-		pebi float64 = 1125899906842624
-	)
-
-	b := float64(bytes)
-	if b >= pebi {
-		return b / pebi, "PiB"
-	} else if b >= tebi {
-		return b / tebi, "TiB"
-	} else if b >= gibi {
-		return b / gibi, "GiB"
-	} else if b >= mebi {
-		return b / mebi, "MiB"
-	} else if b >= kibi {
-		return b / kibi, "KiB"
-	}
-	return b, "B"
+	return render.PrettyPrintJSON(r.jsonData, r.writer)
 }

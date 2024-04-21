@@ -189,12 +189,12 @@ func TestListClusters(t *testing.T) {
 		},
 	}
 
-	got, gotJSON, err := ListClusters(context.TODO(), in)
+	got, err := ListClusters(context.TODO(), in)
 	assert.NoError(t, err)
-	assert.Equal(t, want, got)
+	assert.Equal(t, want, got.ClusterListResponse)
 
 	wantJSON := []byte(`{"clusters":[{"id":"my-cluster.my-provider","name":"my-cluster","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"},{"id":"my-cluster-2.my-provider","name":"my-cluster-2","provider_name":"my-provider","cluster_type":"my-cluster-type","environment_name":"my-environment","resilience_zone":"my-resilience-zone","kubernetes_version":"1.2.3"}]}`)
-	assert.Equal(t, wantJSON, gotJSON)
+	assert.Equal(t, wantJSON, got.JSONResponse)
 }
 
 func TestGetCluster(t *testing.T) {
@@ -251,10 +251,10 @@ func TestGetCluster(t *testing.T) {
 		Logger:    logger,
 		APIClient: mockClient,
 	}
-	got, gotJSON, err := GetCluster(context.TODO(), "my-cluster.my-provider", in)
+	got, err := GetCluster(context.TODO(), "my-cluster.my-provider", in)
 	assert.NoError(t, err)
-	assert.Equal(t, want, got)
+	assert.Equal(t, want, got.ClusterResponse)
 
 	wantJSON := []byte(`{"name":"my-cluster","provider_name":"my-provider"}`)
-	assert.Equal(t, wantJSON, gotJSON)
+	assert.Equal(t, wantJSON, got.JSONResponse)
 }

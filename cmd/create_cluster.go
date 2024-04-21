@@ -1,18 +1,54 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
-	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
-	"github.com/neticdk-k8s/ic/internal/usecases/authentication/authcode"
+	"github.com/neticdk-k8s/ic/internal/errors"
+	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
+	"github.com/neticdk-k8s/ic/internal/validation"
 	"github.com/neticdk/go-common/pkg/types"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
+
+// New creates a new "create cluster" command
+func NewCreateClusterCmd(ec *ExecutionContext) *cobra.Command {
+	o := createClusterOptions{}
+	c := &cobra.Command{
+		Use:     "cluster",
+		Short:   "Create a cluster",
+		GroupID: groupCluster,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			o.complete()
+			if err := o.validate(); err != nil {
+				return err
+			}
+			return o.run(ec)
+		},
+	}
+
+	o.bindFlags(c.Flags())
+	c.Flags().SortFlags = false
+	c.MarkFlagRequired("name")                    //nolint:errcheck
+	c.MarkFlagRequired("provider")                //nolint:errcheck
+	c.MarkFlagRequired("environment")             //nolint:errcheck
+	c.MarkFlagRequired("partition")               //nolint:errcheck
+	c.MarkFlagRequired("region")                  //nolint:errcheck
+	c.MarkFlagRequired("subscription")            //nolint:errcheck
+	c.MarkFlagRequired("infrastructure-provider") //nolint:errcheck
+	c.MarkFlagRequired("resilience-zone")         //nolint:errcheck
+	c.MarkFlagsRequiredTogether("has-co", "co-url")
+	return c
+}
 
 type createClusterOptions struct {
 	Name                     string
+	Description              string
 	ProviderName             string
 	EnvironmentName          string
 	Partition                string
@@ -29,119 +65,187 @@ type createClusterOptions struct {
 	CustomOperationsURL      string
 }
 
-// New creates a new "create cluster" command
-func NewCreateClusterCmd(ec *ExecutionContext) *cobra.Command {
-	opts := createClusterOptions{}
+func (o *createClusterOptions) bindFlags(f *pflag.FlagSet) {
+	f.StringVar(&o.Name, "name", "", "Cluster name")
+	f.StringVar(&o.ProviderName, "provider", "", "Provider Name")
+	f.StringVar(&o.Description, "description", "", "Cluster Description")
+	f.StringVar(&o.EnvironmentName, "environment", "", "Environment Name")
+	f.StringVar(&o.Partition, "partition", "netic", fmt.Sprintf("Partition. One of (%s)", strings.Join(types.AllPartitionsString(), "|")))
+	f.StringVar(&o.Region, "region", "dk-north", "Region. Depends on the partition.")
+	f.StringVar(&o.SubscriptionID, "subscription", "", "Subscription ID")
+	f.StringVar(&o.InfrastructureProvider, "infrastructure-provider", "netic", fmt.Sprintf("Infrastructure Provider. One of (%s)", strings.Join(types.AllInfrastructureProvidersString(), "|")))
+	f.StringVar(&o.ResilienceZone, "resilience-zone", "netic", fmt.Sprintf("Resilience Zone. One of (%s)", strings.Join(types.AllResilienceZonesString(), "|")))
+	f.StringVar(&o.APIEndpoint, "api-endpoint", "", "Cluster API Server endpoint (url)")
+	f.BoolVar(&o.HasTechnicalOperations, "has-to", true, "Technical Operations")
+	f.BoolVar(&o.HasTechnicalManagement, "has-tm", true, "Technical Management")
+	f.BoolVar(&o.HasApplicationOperations, "has-ao", false, "Application Operations")
+	f.BoolVar(&o.HasApplicationManagement, "has-am", false, "Application Management")
+	f.BoolVar(&o.HasCustomOperations, "has-co", false, "Custom Operations")
+	f.StringVar(&o.CustomOperationsURL, "co-url", "", "Custom Operations URL")
+}
 
-	var partitions []string
-	for _, p := range types.AllPartitions() {
-		partitions = append(partitions, p.String())
+func (o *createClusterOptions) validate() error {
+	p, ok := types.ParsePartition(o.Partition)
+	if !ok {
+		return &InvalidArgumentError{
+			Flag:  "--partition",
+			Val:   o.Partition,
+			OneOf: types.AllPartitionsString(),
+		}
 	}
-
-	command := &cobra.Command{
-		Use:     "cluster",
-		Short:   "Create a cluster",
-		GroupID: groupCluster,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			p, ok := types.ParsePartition(opts.Partition)
-			if !ok {
-				return fmt.Errorf(`invalid argument "%s" for "--partition" flag: must be one of: %s`, opts.Partition, strings.Join(partitions, "|"))
-			}
-			r, ok := types.ParseRegion(opts.Region)
-			if !ok {
-				return fmt.Errorf(`invalid argument "%s" for "--region" flag: see the "get regions" command`, opts.Region)
-			}
-			if !types.HasRegion(p, r) {
-				fmt.Fprintf(ec.Stderr, `invalid argument "%s" for "--region" flag: must be a region in the partition "%s"`, opts.Region, opts.Partition)
-				fmt.Fprintln(ec.Stderr)
-				fmt.Fprintln(ec.Stderr)
-				fmt.Fprintln(ec.Stderr, "Use one of the following regions:")
-				for _, r := range types.PartitionRegions(p) {
-					fmt.Fprintln(ec.Stderr, r)
-				}
-				return errors.New("")
-			}
-			return nil
+	r, ok := types.ParseRegion(o.Region)
+	if !ok {
+		return &InvalidArgumentError{
+			Flag:     "--region",
+			Val:      o.Region,
+			SeeOther: "get regions",
+		}
+	}
+	if !types.HasRegion(p, r) {
+		return &InvalidArgumentError{
+			Flag:     "--region",
+			Val:      o.Region,
+			SeeOther: fmt.Sprintf("get regions --partition %s", o.Partition),
+		}
+	}
+	if o.HasCustomOperations && !validation.IsWebURL(o.CustomOperationsURL) {
+		return &InvalidArgumentError{
+			Flag:    "--co-url",
+			Val:     o.CustomOperationsURL,
+			Context: "must be a URL using a http(s) scheme",
+		}
+	}
+	rfc1035FieldFlags := []struct {
+		Flag string
+		Val  string
+	}{
+		{
+			Flag: "--name",
+			Val:  o.Name,
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := ec.Logger.WithPrefix("Clusters")
-			ec.Authenticator.SetLogger(logger)
-
-			loginInput := authentication.LoginInput{
-				Provider:    *ec.OIDCProvider,
-				TokenCache:  ec.TokenCache,
-				AuthOptions: authentication.AuthOptions{},
-				Silent:      true,
-			}
-			if ec.OIDC.GrantType == "authcode-browser" {
-				ec.Spin("Logging in")
-				loginInput.AuthOptions.AuthCodeBrowser = &authcode.BrowserLoginInput{
-					BindAddress:         ec.OIDC.AuthBindAddr,
-					RedirectURLHostname: ec.OIDC.RedirectURLHostname,
-				}
-			} else if ec.OIDC.GrantType == "authcode-keyboard" {
-				loginInput.AuthOptions.AuthCodeKeyboard = &authcode.KeyboardLoginInput{
-					RedirectURI: ec.OIDC.RedirectURIAuthCodeKeyboard,
-				}
-			}
-
-			tokenSet, err := ec.Authenticator.Login(cmd.Context(), loginInput)
-			if err != nil {
-				return fmt.Errorf("logging in: %w", err)
-			}
-
-			ec.Spin("Creating cluster")
-
-			if err := ec.SetupDefaultAPIClient(tokenSet.AccessToken); err != nil {
-				return fmt.Errorf("setting up API client: %w", err)
-			}
-
-			// in := cluster.GetClusterInput{
-			// 	Logger:    logger,
-			// 	APIClient: ec.APIClient,
-			// }
-			// c, jsonData, err := cluster.GetCluster(cmd.Context(), args[0], in)
-			// if err != nil {
-			// 	return fmt.Errorf("getting cluster: %w", err)
-			// }
-			//
-			ec.Spinner.Stop()
-
-			ec.Logger.Info("Cluster created ✅")
-			//
-			// r := cluster.NewClusterRenderer(c, jsonData, ec.Stdout)
-			// if err := r.Render(ec.OutputFormat); err != nil {
-			// 	return fmt.Errorf("rendering output: %w", err)
-			// }
-
-			return nil
+		{
+			Flag: "--provider",
+			Val:  o.ProviderName,
+		},
+		{
+			Flag: "--resilience-zone",
+			Val:  o.ResilienceZone,
+		},
+		{
+			Flag: "--environment",
+			Val:  o.EnvironmentName,
 		},
 	}
+	for _, v := range rfc1035FieldFlags {
+		if !validation.IsDNSRFC1035Label(v.Val) {
+			return &InvalidArgumentError{
+				Flag:    v.Flag,
+				Val:     v.Val,
+				Context: "must be an RFC1035 DNS label",
+			}
+		}
+	}
+	if !slices.Contains(types.AllInfrastructureProvidersString(), o.InfrastructureProvider) {
+		return &InvalidArgumentError{
+			Flag:  "--infrastructure-provider",
+			Val:   o.InfrastructureProvider,
+			OneOf: types.AllInfrastructureProvidersString(),
+		}
+	}
+	if !slices.Contains(types.AllResilienceZonesString(), o.ResilienceZone) {
+		return &InvalidArgumentError{
+			Flag:  "--resilience-zone",
+			Val:   o.ResilienceZone,
+			OneOf: types.AllResilienceZonesString(),
+		}
+	}
+	if o.APIEndpoint != "" {
+		if !validation.IsWebURL(o.APIEndpoint) {
+			return &InvalidArgumentError{
+				Flag:    "--api-endpoint",
+				Val:     o.APIEndpoint,
+				Context: "must be a URL using a http(s) scheme",
+			}
+		}
+	}
+	if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
+		return &InvalidArgumentError{
+			Flag:    "--subscription",
+			Val:     o.SubscriptionID,
+			Context: "must be an ASCII string of minium 5 characters length",
+		}
+	}
+	return nil
+}
 
-	f := command.Flags()
-	f.StringVar(&opts.Name, "name", "", "Cluster name")
-	f.StringVar(&opts.ProviderName, "provider", "", "Provider Name")
-	f.StringVar(&opts.EnvironmentName, "environment", "", "Environment Name")
-	f.StringVar(&opts.Partition, "partition", "netic", fmt.Sprintf("Partition. One of (%s)", strings.Join(partitions, "|")))
-	f.StringVar(&opts.Region, "region", "dk-north", "Region. Depends on the partition.")
-	f.StringVar(&opts.SubscriptionID, "subscription", "", "Subscription ID")
-	f.StringVar(&opts.InfrastructureProvider, "infrastructure-provider", "netic", "Infrastructure Provider")
-	f.StringVar(&opts.ResilienceZone, "resilience-zone", "netic", "Resilience Zone")
-	f.StringVar(&opts.APIEndpoint, "api-endpoint", "", "Cluster API Server endpoint (url)")
-	f.BoolVar(&opts.HasTechnicalOperations, "has-to", true, "Technical Operations")
-	f.BoolVar(&opts.HasTechnicalManagement, "has-tm", true, "Technical Management")
-	f.BoolVar(&opts.HasApplicationOperations, "has-ao", false, "Application Operations")
-	f.BoolVar(&opts.HasApplicationManagement, "has-am", false, "Application Management")
-	f.BoolVar(&opts.HasCustomOperations, "has-co", false, "Custom Operations")
-	f.StringVar(&opts.CustomOperationsURL, "co-url", "", "Custom Operations URL")
-	command.Flags().SortFlags = false
-	command.MarkFlagRequired("name")                    //nolint:errcheck
-	command.MarkFlagRequired("provider")                //nolint:errcheck
-	command.MarkFlagRequired("environment")             //nolint:errcheck
-	command.MarkFlagRequired("partition")               //nolint:errcheck
-	command.MarkFlagRequired("region")                  //nolint:errcheck
-	command.MarkFlagRequired("subscription")            //nolint:errcheck
-	command.MarkFlagRequired("infrastructure-provider") //nolint:errcheck
-	command.MarkFlagRequired("resilience-zone")         //nolint:errcheck
-	return command
+func (o *createClusterOptions) complete() {
+	if o.HasCustomOperations {
+		o.HasTechnicalOperations = false
+		o.HasTechnicalManagement = false
+		o.HasApplicationOperations = false
+		o.HasApplicationManagement = false
+	}
+	if o.HasTechnicalManagement {
+		o.HasTechnicalOperations = true
+	}
+	if o.HasApplicationOperations {
+		o.HasTechnicalManagement = true
+	}
+	if o.HasApplicationManagement {
+		o.HasApplicationOperations = true
+	}
+}
+
+func (o *createClusterOptions) run(ec *ExecutionContext) error {
+	logger := ec.Logger.WithPrefix("Clusters")
+	ec.Authenticator.SetLogger(logger)
+
+	_, err := doLogin(ec)
+	if err != nil {
+		return fmt.Errorf("logging in: %w", err)
+	}
+
+	ec.Spin("Creating cluster")
+
+	in := cluster.CreateClusterInput{
+		Logger:                   logger,
+		APIClient:                ec.APIClient,
+		Name:                     o.Name,
+		Description:              o.Description,
+		EnvironmentName:          o.EnvironmentName,
+		Provider:                 o.ProviderName,
+		Partition:                o.Partition,
+		Region:                   o.Region,
+		ResilienceZone:           o.ResilienceZone,
+		SubscriptionID:           o.SubscriptionID,
+		InfrastructureProvider:   o.InfrastructureProvider,
+		HasTechnicalOperations:   o.HasTechnicalOperations,
+		HasTechnicalManagement:   o.HasTechnicalManagement,
+		HasApplicationOperations: o.HasApplicationOperations,
+		HasApplicationManagement: o.HasApplicationManagement,
+		HasCustomOperations:      o.HasCustomOperations,
+		CustomOperationsURL:      o.CustomOperationsURL,
+		APIEndpoint:              o.APIEndpoint,
+	}
+	result, err := cluster.CreateCluster(ec.Command.Context(), in)
+	if err != nil {
+		return fmt.Errorf("creating cluster: %w", err)
+	}
+	if result.Problem != nil {
+		return &errors.ProblemError{
+			Title:   "creating cluster",
+			Problem: result.Problem,
+		}
+	}
+
+	ec.Spinner.Stop()
+
+	ec.Logger.Info("Cluster created ✅")
+
+	r := cluster.NewClusterRenderer(result.ClusterResponse, result.JSONResponse, ec.Stdout)
+	if err := r.Render(ec.OutputFormat); err != nil {
+		return fmt.Errorf("rendering output: %w", err)
+	}
+
+	return nil
 }

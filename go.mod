@@ -14,7 +14,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/int128/oauth2cli v1.14.0
 	github.com/mattn/go-isatty v0.0.20
-	github.com/neticdk/go-common v0.0.0-20240419111452-365bf4b0f1c0
+	github.com/neticdk/go-common v0.0.0-20240421121313-0afb7972e17c
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
@@ -30,6 +30,7 @@ require (
 
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect

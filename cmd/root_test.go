@@ -14,6 +14,10 @@ func Test_Wiring(t *testing.T) {
 		"get",
 		"get cluster",
 		"get clusters",
+		"get regions",
+		"get partitions",
+		"create cluster",
+		"delete cluster",
 		"login",
 		"logout",
 	}

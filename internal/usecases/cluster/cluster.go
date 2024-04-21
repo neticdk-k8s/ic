@@ -97,21 +97,31 @@ type ListClustersInput struct {
 	PerPage int
 }
 
+// ListClusterResults is the result of ListClusters
+type ListClusterResults struct {
+	ClusterListResponse *clusterListResponse
+	JSONResponse        []byte
+	Problem             *apiclient.Problem
+}
+
 // ListClusters returns a non-paginated list of clusters
-func ListClusters(ctx context.Context, in ListClustersInput) (*clusterListResponse, []byte, error) {
+func ListClusters(ctx context.Context, in ListClustersInput) (*ListClusterResults, error) {
 	cl := &ClusterList{}
-	err := listClusters(ctx, &in, cl)
+	problem, err := listClusters(ctx, &in, cl)
 	if err != nil {
-		return nil, nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("apiclient: %w", err)
+	}
+	if problem != nil {
+		return &ListClusterResults{nil, nil, problem}, nil
 	}
 	jsonData, err := cl.MarshalJSON()
 	if err != nil {
-		return nil, nil, fmt.Errorf("marshaling cluster list: %w", err)
+		return nil, fmt.Errorf("marshaling cluster list: %w", err)
 	}
-	return cl.ToResponse(), jsonData, nil
+	return &ListClusterResults{cl.ToResponse(), jsonData, nil}, nil
 }
 
-func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) error {
+func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) (*apiclient.Problem, error) {
 	nextPage := func(ctx context.Context, req *http.Request) error {
 		q := req.URL.Query()
 		q.Add("per_page", fmt.Sprintf("%d", in.PerPage))
@@ -119,27 +129,33 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 		req.URL.RawQuery = q.Encode()
 		return nil
 	}
-	clusters, err := in.APIClient.ListClustersWithResponse(ctx, nextPage)
+	response, err := in.APIClient.ListClustersWithResponse(ctx, nextPage)
 	if err != nil {
-		return fmt.Errorf("reading clusters: %w", err)
+		return nil, fmt.Errorf("reading clusters: %w", err)
 	}
 	in.Logger.Debug("apiclient",
-		"status", clusters.StatusCode(),
-		"content-type", clusters.HTTPResponse.Header.Get("Content-Type"))
-	if clusters.StatusCode() != http.StatusOK {
-		return fmt.Errorf("bad status code: %d", clusters.StatusCode())
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusOK:
+	case http.StatusBadRequest:
+		return response.ApplicationproblemJSON400, nil
+	case http.StatusInternalServerError:
+		return response.ApplicationproblemJSON500, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
 	}
-	if clusters.ApplicationldJSONDefault.Clusters != nil {
-		clusterList.Clusters = append(clusterList.Clusters, *clusters.ApplicationldJSONDefault.Clusters...)
+	if response.ApplicationldJSONDefault.Clusters != nil {
+		clusterList.Clusters = append(clusterList.Clusters, *response.ApplicationldJSONDefault.Clusters...)
 	}
-	if clusters.ApplicationldJSONDefault.Included != nil {
-		clusterList.Included = append(clusterList.Included, *clusters.ApplicationldJSONDefault.Included...)
+	if response.ApplicationldJSONDefault.Included != nil {
+		clusterList.Included = append(clusterList.Included, *response.ApplicationldJSONDefault.Included...)
 	}
-	if clusters.ApplicationldJSONDefault.Pagination.Next != nil {
+	if response.ApplicationldJSONDefault.Pagination.Next != nil {
 		in.Page += 1
 		return listClusters(ctx, in, clusterList)
 	}
-	return nil
+	return nil, nil
 }
 
 // GetClusterInput is the input used by GetCluster()
@@ -148,73 +164,201 @@ type GetClusterInput struct {
 	APIClient apiclient.ClientWithResponsesInterface
 }
 
+// GetClusterResult is the result of GetCluster
+type GetClusterResult struct {
+	ClusterResponse *clusterResponse
+	JSONResponse    []byte
+	Problem         *apiclient.Problem
+}
+
 // GetCluster returns information abuot a cluster
-func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*clusterResponse, []byte, error) {
-	cluster, err := in.APIClient.GetClusterWithResponse(ctx, clusterID)
+func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*GetClusterResult, error) {
+	response, err := in.APIClient.GetClusterWithResponse(ctx, clusterID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("apiclient: %w", err)
 	}
 	in.Logger.Debug("apiclient",
-		"status", cluster.StatusCode(),
-		"content-type", cluster.HTTPResponse.Header.Get("Content-Type"))
-	if cluster.StatusCode() != http.StatusOK {
-		return nil, nil, fmt.Errorf("bad status code: %d", cluster.StatusCode())
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return &GetClusterResult{nil, nil, response.ApplicationproblemJSON404}, nil
+	case http.StatusInternalServerError:
+		return &GetClusterResult{nil, nil, response.ApplicationproblemJSON500}, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
 	}
 
+	cluster := toClusterResponse(response.ApplicationldJSONDefault)
+
+	jsonData, err := json.Marshal(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling cluster: %w", err)
+	}
+
+	return &GetClusterResult{cluster, jsonData, nil}, nil
+}
+
+// CreateClusterInput is the input used by CreateCluster()
+type CreateClusterInput struct {
+	Logger                   logger.Logger
+	APIClient                apiclient.ClientWithResponsesInterface
+	Name                     string
+	Description              string
+	EnvironmentName          string
+	Provider                 string
+	Partition                string
+	Region                   string
+	ResilienceZone           string
+	SubscriptionID           string
+	InfrastructureProvider   string
+	HasTechnicalOperations   bool
+	HasTechnicalManagement   bool
+	HasApplicationOperations bool
+	HasApplicationManagement bool
+	HasCustomOperations      bool
+	CustomOperationsURL      string
+	APIEndpoint              string
+}
+
+// CreateClusterResult is the result of CreateCluster
+type CreateClusterResult struct {
+	ClusterResponse *clusterResponse
+	JSONResponse    []byte
+	Problem         *apiclient.Problem
+}
+
+// CreateCluster creates a cluster
+func CreateCluster(ctx context.Context, in CreateClusterInput) (*CreateClusterResult, error) {
+	createCluster := apiclient.CreateCluster{
+		Name:                     &in.Name,
+		Description:              &in.Description,
+		EnvironmentName:          &in.EnvironmentName,
+		Provider:                 &in.Provider,
+		Partition:                &in.Partition,
+		Region:                   &in.Region,
+		ResilienceZone:           &in.ResilienceZone,
+		SubscriptionID:           &in.SubscriptionID,
+		InfrastructureProvider:   &in.InfrastructureProvider,
+		HasTechnicalOperations:   &in.HasTechnicalOperations,
+		HasTechnicalManagement:   &in.HasTechnicalManagement,
+		HasApplicationOperations: &in.HasApplicationOperations,
+		HasApplicationManagement: &in.HasApplicationManagement,
+		HasCustomOperations:      &in.HasCustomOperations,
+		CustomOperationsURL:      &in.CustomOperationsURL,
+		ApiEndpoint:              &in.APIEndpoint,
+	}
+	response, err := in.APIClient.CreateClusterWithResponse(ctx, createCluster)
+	if err != nil {
+		return nil, fmt.Errorf("apiclient: %w", err)
+	}
+	in.Logger.Debug("apiclient",
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusCreated:
+	case http.StatusBadRequest:
+		return &CreateClusterResult{nil, nil, response.ApplicationproblemJSON400}, nil
+	case http.StatusConflict:
+		return &CreateClusterResult{nil, nil, response.ApplicationproblemJSON409}, nil
+	case http.StatusInternalServerError:
+		return &CreateClusterResult{nil, nil, response.ApplicationproblemJSON500}, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
+	}
+
+	cluster := toClusterResponse(response.ApplicationldJSON201)
+
+	jsonData, err := json.Marshal(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling cluster: %w", err)
+	}
+
+	return &CreateClusterResult{cluster, jsonData, nil}, nil
+}
+
+// DeleteClusterInput is the input used by DeleteCluster()
+type DeleteClusterInput struct {
+	Logger    logger.Logger
+	APIClient apiclient.ClientWithResponsesInterface
+}
+
+// DeleteClusterResult is the result of DeleteCluster
+type DeleteClusterResult struct {
+	Problem *apiclient.Problem
+}
+
+// DeleteCluster deletes a cluster
+func DeleteCluster(ctx context.Context, clusterID string, in DeleteClusterInput) (*DeleteClusterResult, error) {
+	response, err := in.APIClient.DeleteClusterWithResponse(ctx, clusterID)
+	if err != nil {
+		return nil, fmt.Errorf("apiclient: %w", err)
+	}
+	in.Logger.Debug("apiclient",
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusNoContent:
+	case http.StatusNotFound:
+		return &DeleteClusterResult{response.ApplicationproblemJSON404}, nil
+	case http.StatusInternalServerError:
+		return &DeleteClusterResult{response.ApplicationproblemJSON500}, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
+	}
+	return &DeleteClusterResult{nil}, nil
+}
+
+func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	includeMap := make(map[string]interface{})
-	for _, i := range *cluster.ApplicationldJSONDefault.Included {
+	for _, i := range *cluster.Included {
 		includeMap[i["@id"].(string)] = i
 	}
-	cl := &clusterResponse{}
-	cl.Name = nilStr(cluster.ApplicationldJSONDefault.Name)
-	cl.NRN = nilStr(cluster.ApplicationldJSONDefault.Nrn)
-	cl.Description = nilStr(cluster.ApplicationldJSONDefault.Description)
-	cl.Partition = nilStr(cluster.ApplicationldJSONDefault.Partition)
-	cl.Region = nilStr(cluster.ApplicationldJSONDefault.Region)
-	cl.EnvironmentName = nilStr(cluster.ApplicationldJSONDefault.EnvironmentName)
-	cl.InfrastructureProvider = nilStr(cluster.ApplicationldJSONDefault.InfrastructureProvider)
-	cl.ClusterType = nilStr(cluster.ApplicationldJSONDefault.ClusterType)
-	cl.KubernetesProvider = nilStr(cluster.ApplicationldJSONDefault.KubernetesProvider)
-	if cluster.ApplicationldJSONDefault.KubernetesVersion != nil {
-		cl.KubernetesVersion = *cluster.ApplicationldJSONDefault.KubernetesVersion.Version
+	cr := &clusterResponse{}
+	cr.Name = nilStr(cluster.Name)
+	cr.NRN = nilStr(cluster.Nrn)
+	cr.Description = nilStr(cluster.Description)
+	cr.Partition = nilStr(cluster.Partition)
+	cr.Region = nilStr(cluster.Region)
+	cr.EnvironmentName = nilStr(cluster.EnvironmentName)
+	cr.InfrastructureProvider = nilStr(cluster.InfrastructureProvider)
+	cr.ClusterType = nilStr(cluster.ClusterType)
+	cr.KubernetesProvider = nilStr(cluster.KubernetesProvider)
+	if cluster.KubernetesVersion != nil {
+		cr.KubernetesVersion = *cluster.KubernetesVersion.Version
 	}
-	if cluster.ApplicationldJSONDefault.ClientVersion != nil {
-		cl.ClientVersion = *cluster.ApplicationldJSONDefault.ClientVersion.Version
+	if cluster.ClientVersion != nil {
+		cr.ClientVersion = *cluster.ClientVersion.Version
 	}
-	if cluster.ApplicationldJSONDefault.Capacity != nil {
-		cpct := *cluster.ApplicationldJSONDefault.Capacity
-		cl.ControlPlaneCapacity = &capacity{
+	if cluster.Capacity != nil {
+		cpct := *cluster.Capacity
+		cr.ControlPlaneCapacity = &capacity{
 			NodeCount:   *cpct["control-plane"].Nodes,
 			CoresMillis: *cpct["control-plane"].Cores,
 			MemoryBytes: *cpct["control-plane"].Memory,
 		}
-		cl.WorkerNodesCapacity = &capacity{
+		cr.WorkerNodesCapacity = &capacity{
 			NodeCount:   *cpct["worker"].Nodes,
 			CoresMillis: *cpct["worker"].Cores,
 			MemoryBytes: *cpct["worker"].Memory,
 		}
 	}
-	if cluster.ApplicationldJSONDefault.Provider != nil {
-		if provider, ok := includeMap[*cluster.ApplicationldJSONDefault.Provider]; ok {
+	if cluster.Provider != nil {
+		if provider, ok := includeMap[*cluster.Provider]; ok {
 			if p, ok := provider.(map[string]interface{})["name"]; ok {
-				cl.ProviderName = p.(string)
+				cr.ProviderName = p.(string)
 			}
 		}
 	}
-	if cluster.ApplicationldJSONDefault.ResilienceZone != nil {
-		if provider, ok := includeMap[*cluster.ApplicationldJSONDefault.ResilienceZone]; ok {
+	if cluster.ResilienceZone != nil {
+		if provider, ok := includeMap[*cluster.ResilienceZone]; ok {
 			if p, ok := provider.(map[string]interface{})["name"]; ok {
-				cl.ResilienceZone = p.(string)
+				cr.ResilienceZone = p.(string)
 			}
 		}
 	}
-
-	jsonData, err := json.Marshal(cl)
-	if err != nil {
-		return nil, nil, fmt.Errorf("marshaling cluster: %w", err)
-	}
-
-	return cl, jsonData, nil
+	return cr
 }
 
 func nilStr(s *string) string {

@@ -7,7 +7,7 @@ const deleteCommandExample = `  # Delete a cluster
 
 // New creates a new delete command
 func NewDeleteCmd(ec *ExecutionContext) *cobra.Command {
-	command := &cobra.Command{
+	c := &cobra.Command{
 		Use:     "delete",
 		Short:   "Delete a resources",
 		GroupID: groupBase,
@@ -16,15 +16,15 @@ func NewDeleteCmd(ec *ExecutionContext) *cobra.Command {
 			return cmd.Usage()
 		},
 	}
-	command.AddCommand(
+	c.AddCommand(
 		NewDeleteClusterCmd(ec),
 	)
 
-	command.AddGroup(
+	c.AddGroup(
 		&cobra.Group{
 			ID:    groupCluster,
 			Title: "Cluster Commands:",
 		},
 	)
-	return command
+	return c
 }

@@ -4,6 +4,7 @@
 package apiclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -16,7 +17,7 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// Cluster Cluster represent a secure cloud stack Kubernetes cluster
+// Cluster Cluster represents a secure cloud stack Kubernetes cluster
 type Cluster struct {
 	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
 	Context *map[string]interface{} `json:"@context,omitempty"`
@@ -126,6 +127,57 @@ type Clusters struct {
 	Total *int32 `json:"total,omitempty"`
 }
 
+// CreateCluster CreateCluster represents the information used to create a secure cloud stack Kubernetes cluster
+type CreateCluster struct {
+	// ApiEndpoint APIEndpoint is the URL for the Kubernetes API server endpoint
+	ApiEndpoint *string `json:"apiEndpoint,omitempty"`
+
+	// CustomOperationsURL CustomOperationsURL is the URL for the site that documents the custom operations for the cluster. This must be et if HasCustomOperations is enabled.
+	CustomOperationsURL *string `json:"customOperationsURL,omitempty"`
+
+	// Description Description is the humanreadable cluster description of the cluster
+	Description *string `json:"description,omitempty"`
+
+	// EnvironmentName EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., "production"
+	EnvironmentName *string `json:"environmentName,omitempty"`
+
+	// HasApplicationManagement HasApplicationManagement specifies that the service level of the cluster includes Application Management
+	HasApplicationManagement *bool `json:"hasApplicationManagement,omitempty"`
+
+	// HasApplicationOperations HasApplicationOperations specifies that the service level of the cluster includes Application Operations. This must be enabled if HasApplicationManagement is enabled.
+	HasApplicationOperations *bool `json:"hasApplicationOperations,omitempty"`
+
+	// HasCustomOperations HasCustomOperations specifies that the service level of the cluster includes Custom Operations. This must en enabled if HasTechnicalManagement is disabled.
+	HasCustomOperations *bool `json:"hasCustomOperations,omitempty"`
+
+	// HasTechnicalManagement HasTechnicalManagement specifies that the service level of the cluster includes Technical Management. This must be enabled if HasApplicationOperations is enabled.
+	HasTechnicalManagement *bool `json:"hasTechnicalManagement,omitempty"`
+
+	// HasTechnicalOperations HasTechnicalOperations specifies that the service level of the cluster includes Technical Operations. This must be enabled if HasTechnicalManagement is enabled.
+	HasTechnicalOperations *bool `json:"hasTechnicalOperations,omitempty"`
+
+	// InfrastructureProvider InfrastructureProvider is the name of the entity that provides the infrastructure for the cluster. One of: "netic", "azure", "aws"
+	InfrastructureProvider *string `json:"infrastructureProvider,omitempty"`
+
+	// Name Name uniquely identifying the cluster within the provider of the cluster
+	Name *string `json:"name,omitempty"`
+
+	// Partition Partition is the partition in which the cluster is running. One of: "netic", "azure", "aws"
+	Partition *string `json:"partition,omitempty"`
+
+	// Provider Provider identification of cluster provider, i.e., the organizational unit responsible for providing the cluster to the tenants
+	Provider *string `json:"provider,omitempty"`
+
+	// Region Region is the region within the partition in which the cluster is running
+	Region *string `json:"region,omitempty"`
+
+	// ResilienceZone ResilienceZone is the name of the resilience zone the cluster is running in
+	ResilienceZone *string `json:"resilienceZone,omitempty"`
+
+	// SubscriptionID SubscriptionID is the subscription ID associated with the cluster
+	SubscriptionID *string `json:"subscriptionID,omitempty"`
+}
+
 // Pagination Pagination contains data on other collection data
 type Pagination struct {
 	// First First is link to the first page in the collection
@@ -182,6 +234,9 @@ type Version struct {
 	// Version Version is the semver version
 	Version *string `json:"version,omitempty"`
 }
+
+// CreateClusterJSONRequestBody defines body for CreateCluster for application/json ContentType.
+type CreateClusterJSONRequestBody = CreateCluster
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -259,12 +314,56 @@ type ClientInterface interface {
 	// ListClusters request
 	ListClusters(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CreateClusterWithBody request with any body
+	CreateClusterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateCluster(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteCluster request
+	DeleteCluster(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetCluster request
 	GetCluster(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListClusters(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListClustersRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateClusterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateClusterRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateCluster(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateClusterRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteCluster(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteClusterRequest(c.Server, clusterId)
 	if err != nil {
 		return nil, err
 	}
@@ -307,6 +406,80 @@ func NewListClustersRequest(server string) (*http.Request, error) {
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateClusterRequest calls the generic CreateCluster builder with application/json body
+func NewCreateClusterRequest(server string, body CreateClusterJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateClusterRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateClusterRequestWithBody generates requests for CreateCluster with any type of body
+func NewCreateClusterRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteClusterRequest generates requests for DeleteCluster
+func NewDeleteClusterRequest(server string, clusterId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -394,6 +567,14 @@ type ClientWithResponsesInterface interface {
 	// ListClustersWithResponse request
 	ListClustersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListClustersResponse, error)
 
+	// CreateClusterWithBodyWithResponse request with any body
+	CreateClusterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error)
+
+	CreateClusterWithResponse(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error)
+
+	// DeleteClusterWithResponse request
+	DeleteClusterWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*DeleteClusterResponse, error)
+
 	// GetClusterWithResponse request
 	GetClusterWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*GetClusterResponse, error)
 }
@@ -421,6 +602,66 @@ func (r ListClustersResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListClustersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateClusterResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON201          *Cluster
+	ApplicationproblemJSON201     *Cluster
+	ApplicationldJSON400          *Problem
+	ApplicationproblemJSON400     *Problem
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON403          *Problem
+	ApplicationproblemJSON403     *Problem
+	ApplicationldJSON409          *Problem
+	ApplicationproblemJSON409     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
+	ApplicationldJSONDefault      *Cluster
+	ApplicationproblemJSONDefault *Cluster
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateClusterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateClusterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteClusterResponse struct {
+	Body                      []byte
+	HTTPResponse              *http.Response
+	ApplicationproblemJSON401 *Problem
+	ApplicationproblemJSON403 *Problem
+	ApplicationproblemJSON404 *Problem
+	ApplicationproblemJSON500 *Problem
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteClusterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteClusterResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -463,6 +704,32 @@ func (c *ClientWithResponses) ListClustersWithResponse(ctx context.Context, reqE
 		return nil, err
 	}
 	return ParseListClustersResponse(rsp)
+}
+
+// CreateClusterWithBodyWithResponse request with arbitrary body returning *CreateClusterResponse
+func (c *ClientWithResponses) CreateClusterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error) {
+	rsp, err := c.CreateClusterWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateClusterResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateClusterWithResponse(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error) {
+	rsp, err := c.CreateCluster(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateClusterResponse(rsp)
+}
+
+// DeleteClusterWithResponse request returning *DeleteClusterResponse
+func (c *ClientWithResponses) DeleteClusterWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*DeleteClusterResponse, error) {
+	rsp, err := c.DeleteCluster(ctx, clusterId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteClusterResponse(rsp)
 }
 
 // GetClusterWithResponse request returning *GetClusterResponse
@@ -543,6 +810,170 @@ func ParseListClustersResponse(rsp *http.Response) (*ListClustersResponse, error
 			return nil, err
 		}
 		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateClusterResponse parses an HTTP response from a CreateClusterWithResponse call
+func ParseCreateClusterResponse(rsp *http.Response) (*CreateClusterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateClusterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 201:
+		var dest Cluster
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON201 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON403 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 409:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON409 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Cluster
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 201:
+		var dest Cluster
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON201 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON403 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 409:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON409 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Cluster
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteClusterResponse parses an HTTP response from a DeleteClusterWithResponse call
+func ParseDeleteClusterResponse(rsp *http.Response) (*DeleteClusterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteClusterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
 
 	}
 

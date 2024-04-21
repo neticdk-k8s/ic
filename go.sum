@@ -36,6 +36,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/RaveNoX/go-jsoncommentstrip v1.0.0/go.mod h1:78ihd09MekBnJnxpICcwzCMzGrKSKYe4AqU6PDYYpjk=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0 h1:axGnT1gRIfimI7gJifB699GoE/oq+F2MU7Dml6nw9rQ=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0/go.mod h1:lvDnEdqiQrp0O42VQGgmlKpxL1AP2+08jFMw88y4klk=
+github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
+github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/bmatcuk/doublestar v1.1.1/go.mod h1:UD6OnuiIn0yFxxA2le/rnRU1G4RaI4UvFv1sNto9p6w=
@@ -189,6 +191,12 @@ github.com/muesli/termenv v0.15.2 h1:GohcuySI0QmI3wN8Ok9PtKGkgkFIk7y6Vpb5PvrY+Wo
 github.com/muesli/termenv v0.15.2/go.mod h1:Epx+iuz8sNs7mNKhxzH4fWXGNpZwUaJKRS1noLXviQ8=
 github.com/neticdk/go-common v0.0.0-20240419111452-365bf4b0f1c0 h1:Zagc+8HHQ/YYqkMCcrbR2YOLRyXfYjWMvybL6dfzixI=
 github.com/neticdk/go-common v0.0.0-20240419111452-365bf4b0f1c0/go.mod h1:HwYC62HdSfMeGxVjNDvtHTiBpUcprYyHMmzIze9eJV8=
+github.com/neticdk/go-common v0.0.0-20240421105958-df45e6fd9949 h1:YGSsoQtemcbJRRiAO964PxphRX4iM4gpSV81MXISUWA=
+github.com/neticdk/go-common v0.0.0-20240421105958-df45e6fd9949/go.mod h1:HwYC62HdSfMeGxVjNDvtHTiBpUcprYyHMmzIze9eJV8=
+github.com/neticdk/go-common v0.0.0-20240421110346-276e135acb6c h1:EpPiYqjdcotMiJuojlX9iwAMHCO5a1WFpPUpiwVJaWs=
+github.com/neticdk/go-common v0.0.0-20240421110346-276e135acb6c/go.mod h1:HwYC62HdSfMeGxVjNDvtHTiBpUcprYyHMmzIze9eJV8=
+github.com/neticdk/go-common v0.0.0-20240421121313-0afb7972e17c h1:CXi2xHuIhYPK2xYbXT+ECWKpIBqy7tmJzt7i0yevYEU=
+github.com/neticdk/go-common v0.0.0-20240421121313-0afb7972e17c/go.mod h1:HwYC62HdSfMeGxVjNDvtHTiBpUcprYyHMmzIze9eJV8=
 github.com/oapi-codegen/runtime v1.1.1 h1:EXLHh0DXIJnWhdRPN2w4MXAzFyE4CskzhNLUmtpMYro=
 github.com/oapi-codegen/runtime v1.1.1/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=

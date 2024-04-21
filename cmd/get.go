@@ -15,23 +15,25 @@ const getCommandExample = `  # Get a list of clusters
 
 // New creates a new get command
 func NewGetCmd(ec *ExecutionContext) *cobra.Command {
-	command := &cobra.Command{
+	c := &cobra.Command{
 		Use:     "get",
 		Short:   "Get one or many resources",
+		Args:    cobra.NoArgs,
 		GroupID: groupBase,
 		Example: getCommandExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Usage()
 		},
 	}
-	command.AddCommand(
+	c.AddCommand(
 		NewGetClustersCmd(ec),
 		NewGetClusterCmd(ec),
 		NewGetPartitionsCmd(ec),
 		NewGetRegionsCmd(ec),
+		NewGetResilienceZonesCmd(ec),
 	)
 
-	command.AddGroup(
+	c.AddGroup(
 		&cobra.Group{
 			ID:    groupCluster,
 			Title: "Cluster Commands:",
@@ -41,5 +43,5 @@ func NewGetCmd(ec *ExecutionContext) *cobra.Command {
 			Title: "Other Commands:",
 		},
 	)
-	return command
+	return c
 }

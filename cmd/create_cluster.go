@@ -20,9 +20,6 @@ func NewCreateClusterCmd(ec *ExecutionContext) *cobra.Command {
 		Use:     "cluster",
 		Short:   "Create a cluster",
 		GroupID: groupCluster,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.complete()
 			if err := o.validate(); err != nil {
@@ -34,14 +31,11 @@ func NewCreateClusterCmd(ec *ExecutionContext) *cobra.Command {
 
 	o.bindFlags(c.Flags())
 	c.Flags().SortFlags = false
-	c.MarkFlagRequired("name")                    //nolint:errcheck
-	c.MarkFlagRequired("provider")                //nolint:errcheck
-	c.MarkFlagRequired("environment")             //nolint:errcheck
-	c.MarkFlagRequired("partition")               //nolint:errcheck
-	c.MarkFlagRequired("region")                  //nolint:errcheck
-	c.MarkFlagRequired("subscription")            //nolint:errcheck
-	c.MarkFlagRequired("infrastructure-provider") //nolint:errcheck
-	c.MarkFlagRequired("resilience-zone")         //nolint:errcheck
+	c.MarkFlagRequired("name")            //nolint:errcheck
+	c.MarkFlagRequired("provider")        //nolint:errcheck
+	c.MarkFlagRequired("environment")     //nolint:errcheck
+	c.MarkFlagRequired("subscription")    //nolint:errcheck
+	c.MarkFlagRequired("resilience-zone") //nolint:errcheck
 	c.MarkFlagsRequiredTogether("has-co", "co-url")
 	return c
 }
@@ -172,7 +166,7 @@ func (o *createClusterOptions) validate() error {
 		return &InvalidArgumentError{
 			Flag:    "--subscription",
 			Val:     o.SubscriptionID,
-			Context: "must be an ASCII string of minium 5 characters length",
+			Context: "must be an ASCII string of minimum 5 characters length",
 		}
 	}
 	return nil

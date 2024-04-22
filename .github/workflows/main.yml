@@ -15,8 +15,6 @@ jobs:
   build:
     name: Release docker image
     runs-on: ubuntu-latest
-    env:
-      GOPRIVATE: github.com/neticdk-k8s/scs-domain-model,github.com/neticdk/go-common
     permissions:
       contents: read
       packages: write
@@ -53,4 +51,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ github.ref_name }}
-            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            GITHUB_USERNAME=${{ secrets.GIT_USERNAME }}
+            GITHUB_TOKEN=${{ secrets.GIT_TOKEN }}

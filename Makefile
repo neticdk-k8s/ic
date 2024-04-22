@@ -2,7 +2,7 @@
 VERSION ?= $(shell (git describe --tags --always --match=v* 2> /dev/null || echo v0) | sed -e s/^v//)
 COMMIT = $(shell git rev-parse HEAD)
 MODULEPATH := $(shell go mod edit -json 2> /dev/null | jq -r '.Module.Path')
-GOPRIVATE := "github.com/neticdk-k8s/scs-domain-model"
+GOPRIVATE := "github.com/neticdk/go-common"
 GITHUB_USER := $(shell printf "protocol=https\\nhost=github.com\\n" | git credential-manager get | grep username | cut -d= -f2)
 GITHUB_TOKEN := $(shell printf "protocol=https\\nhost=github.com\\n" | git credential-manager get | grep password | cut -d= -f2)
 

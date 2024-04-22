@@ -211,6 +211,45 @@ type Problem struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// UpdateCluster UpdateCluster represents the information used to update a secure cloud stack Kubernetes cluster's metadata
+type UpdateCluster struct {
+	// ApiEndpoint APIEndpoint is the URL for the Kubernetes API server endpoint
+	ApiEndpoint *string `json:"apiEndpoint,omitempty"`
+
+	// CustomOperationsURL CustomOperationsURL is the URL for the site that documents the custom operations for the cluster. This must be et if HasCustomOperations is enabled.
+	CustomOperationsURL *string `json:"customOperationsURL,omitempty"`
+
+	// Description Description is the humanreadable cluster description of the cluster
+	Description *string `json:"description,omitempty"`
+
+	// EnvironmentName EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., "production"
+	EnvironmentName *string `json:"environmentName,omitempty"`
+
+	// HasApplicationManagement HasApplicationManagement specifies that the service level of the cluster includes Application Management
+	HasApplicationManagement *bool `json:"hasApplicationManagement,omitempty"`
+
+	// HasApplicationOperations HasApplicationOperations specifies that the service level of the cluster includes Application Operations. This must be enabled if HasApplicationManagement is enabled.
+	HasApplicationOperations *bool `json:"hasApplicationOperations,omitempty"`
+
+	// HasCustomOperations HasCustomOperations specifies that the service level of the cluster includes Custom Operations. This must en enabled if HasTechnicalManagement is disabled.
+	HasCustomOperations *bool `json:"hasCustomOperations,omitempty"`
+
+	// HasTechnicalManagement HasTechnicalManagement specifies that the service level of the cluster includes Technical Management. This must be enabled if HasApplicationOperations is enabled.
+	HasTechnicalManagement *bool `json:"hasTechnicalManagement,omitempty"`
+
+	// HasTechnicalOperations HasTechnicalOperations specifies that the service level of the cluster includes Technical Operations. This must be enabled if HasTechnicalManagement is enabled.
+	HasTechnicalOperations *bool `json:"hasTechnicalOperations,omitempty"`
+
+	// InfrastructureProvider InfrastructureProvider is the name of the entity that provides the infrastructure for the cluster. One of: "netic", "azure", "aws"
+	InfrastructureProvider *string `json:"infrastructureProvider,omitempty"`
+
+	// ResilienceZone ResilienceZone is the name of the resilience zone the cluster is running in
+	ResilienceZone *string `json:"resilienceZone,omitempty"`
+
+	// SubscriptionID SubscriptionID is the subscription ID associated with the cluster
+	SubscriptionID *string `json:"subscriptionID,omitempty"`
+}
+
 // Capacity defines model for capacity.
 type Capacity struct {
 	// Cores CPU is the total amount of allocatable millicores
@@ -237,6 +276,9 @@ type Version struct {
 
 // CreateClusterJSONRequestBody defines body for CreateCluster for application/json ContentType.
 type CreateClusterJSONRequestBody = CreateCluster
+
+// UpdateClusterJSONRequestBody defines body for UpdateCluster for application/json ContentType.
+type UpdateClusterJSONRequestBody = UpdateCluster
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -324,6 +366,11 @@ type ClientInterface interface {
 
 	// GetCluster request
 	GetCluster(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateClusterWithBody request with any body
+	UpdateClusterWithBody(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateCluster(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListClusters(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -376,6 +423,30 @@ func (c *Client) DeleteCluster(ctx context.Context, clusterId string, reqEditors
 
 func (c *Client) GetCluster(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetClusterRequest(c.Server, clusterId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateClusterWithBody(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateClusterRequestWithBody(c.Server, clusterId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateCluster(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateClusterRequest(c.Server, clusterId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -521,6 +592,53 @@ func NewGetClusterRequest(server string, clusterId string) (*http.Request, error
 	return req, nil
 }
 
+// NewUpdateClusterRequest calls the generic UpdateCluster builder with application/json body
+func NewUpdateClusterRequest(server string, clusterId string, body UpdateClusterJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateClusterRequestWithBody(server, clusterId, "application/json", bodyReader)
+}
+
+// NewUpdateClusterRequestWithBody generates requests for UpdateCluster with any type of body
+func NewUpdateClusterRequestWithBody(server string, clusterId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -577,6 +695,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetClusterWithResponse request
 	GetClusterWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*GetClusterResponse, error)
+
+	// UpdateClusterWithBodyWithResponse request with any body
+	UpdateClusterWithBodyWithResponse(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error)
+
+	UpdateClusterWithResponse(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error)
 }
 
 type ListClustersResponse struct {
@@ -697,6 +820,39 @@ func (r GetClusterResponse) StatusCode() int {
 	return 0
 }
 
+type UpdateClusterResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON400          *Problem
+	ApplicationproblemJSON400     *Problem
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON403          *Problem
+	ApplicationproblemJSON403     *Problem
+	ApplicationldJSON404          *Problem
+	ApplicationproblemJSON404     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
+	ApplicationldJSONDefault      *Cluster
+	ApplicationproblemJSONDefault *Cluster
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateClusterResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateClusterResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // ListClustersWithResponse request returning *ListClustersResponse
 func (c *ClientWithResponses) ListClustersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListClustersResponse, error) {
 	rsp, err := c.ListClusters(ctx, reqEditors...)
@@ -739,6 +895,23 @@ func (c *ClientWithResponses) GetClusterWithResponse(ctx context.Context, cluste
 		return nil, err
 	}
 	return ParseGetClusterResponse(rsp)
+}
+
+// UpdateClusterWithBodyWithResponse request with arbitrary body returning *UpdateClusterResponse
+func (c *ClientWithResponses) UpdateClusterWithBodyWithResponse(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error) {
+	rsp, err := c.UpdateClusterWithBody(ctx, clusterId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateClusterResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateClusterWithResponse(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error) {
+	rsp, err := c.UpdateCluster(ctx, clusterId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateClusterResponse(rsp)
 }
 
 // ParseListClustersResponse parses an HTTP response from a ListClustersWithResponse call
@@ -1028,6 +1201,109 @@ func ParseGetClusterResponse(rsp *http.Response) (*GetClusterResponse, error) {
 			return nil, err
 		}
 		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Cluster
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateClusterResponse parses an HTTP response from a UpdateClusterWithResponse call
+func ParseUpdateClusterResponse(rsp *http.Response) (*UpdateClusterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateClusterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON403 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON404 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Cluster
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON403 = &dest
 
 	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 404:
 		var dest Problem

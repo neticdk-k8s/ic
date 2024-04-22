@@ -82,7 +82,7 @@ func (o *createClusterOptions) validate() error {
 	p, ok := types.ParsePartition(o.Partition)
 	if !ok {
 		return &InvalidArgumentError{
-			Flag:  "--partition",
+			Flag:  "partition",
 			Val:   o.Partition,
 			OneOf: types.AllPartitionsString(),
 		}
@@ -90,21 +90,21 @@ func (o *createClusterOptions) validate() error {
 	r, ok := types.ParseRegion(o.Region)
 	if !ok {
 		return &InvalidArgumentError{
-			Flag:     "--region",
+			Flag:     "region",
 			Val:      o.Region,
 			SeeOther: "get regions",
 		}
 	}
 	if !types.HasRegion(p, r) {
 		return &InvalidArgumentError{
-			Flag:     "--region",
+			Flag:     "region",
 			Val:      o.Region,
 			SeeOther: fmt.Sprintf("get regions --partition %s", o.Partition),
 		}
 	}
 	if o.HasCustomOperations && !validation.IsWebURL(o.CustomOperationsURL) {
 		return &InvalidArgumentError{
-			Flag:    "--co-url",
+			Flag:    "co-url",
 			Val:     o.CustomOperationsURL,
 			Context: "must be a URL using a http(s) scheme",
 		}
@@ -114,19 +114,19 @@ func (o *createClusterOptions) validate() error {
 		Val  string
 	}{
 		{
-			Flag: "--name",
+			Flag: "name",
 			Val:  o.Name,
 		},
 		{
-			Flag: "--provider",
+			Flag: "provider",
 			Val:  o.ProviderName,
 		},
 		{
-			Flag: "--resilience-zone",
+			Flag: "resilience-zone",
 			Val:  o.ResilienceZone,
 		},
 		{
-			Flag: "--environment",
+			Flag: "environment",
 			Val:  o.EnvironmentName,
 		},
 	}
@@ -141,14 +141,14 @@ func (o *createClusterOptions) validate() error {
 	}
 	if !slices.Contains(types.AllInfrastructureProvidersString(), o.InfrastructureProvider) {
 		return &InvalidArgumentError{
-			Flag:  "--infrastructure-provider",
+			Flag:  "infrastructure-provider",
 			Val:   o.InfrastructureProvider,
 			OneOf: types.AllInfrastructureProvidersString(),
 		}
 	}
 	if !slices.Contains(types.AllResilienceZonesString(), o.ResilienceZone) {
 		return &InvalidArgumentError{
-			Flag:  "--resilience-zone",
+			Flag:  "resilience-zone",
 			Val:   o.ResilienceZone,
 			OneOf: types.AllResilienceZonesString(),
 		}
@@ -156,7 +156,7 @@ func (o *createClusterOptions) validate() error {
 	if o.APIEndpoint != "" {
 		if !validation.IsWebURL(o.APIEndpoint) {
 			return &InvalidArgumentError{
-				Flag:    "--api-endpoint",
+				Flag:    "api-endpoint",
 				Val:     o.APIEndpoint,
 				Context: "must be a URL using a http(s) scheme",
 			}
@@ -164,7 +164,7 @@ func (o *createClusterOptions) validate() error {
 	}
 	if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
 		return &InvalidArgumentError{
-			Flag:    "--subscription",
+			Flag:    "subscription",
 			Val:     o.SubscriptionID,
 			Context: "must be an ASCII string of minimum 5 characters length",
 		}

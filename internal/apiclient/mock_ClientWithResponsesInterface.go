@@ -392,6 +392,157 @@ func (_c *MockClientWithResponsesInterface_ListClustersWithResponse_Call) RunAnd
 	return _c
 }
 
+// UpdateClusterWithBodyWithResponse provides a mock function with given fields: ctx, clusterId, contentType, body, reqEditors
+func (_m *MockClientWithResponsesInterface) UpdateClusterWithBodyWithResponse(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error) {
+	_va := make([]interface{}, len(reqEditors))
+	for _i := range reqEditors {
+		_va[_i] = reqEditors[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, clusterId, contentType, body)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateClusterWithBodyWithResponse")
+	}
+
+	var r0 *UpdateClusterResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*UpdateClusterResponse, error)); ok {
+		return rf(ctx, clusterId, contentType, body, reqEditors...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *UpdateClusterResponse); ok {
+		r0 = rf(ctx, clusterId, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateClusterResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = rf(ctx, clusterId, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateClusterWithBodyWithResponse'
+type MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateClusterWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - clusterId string
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateClusterWithBodyWithResponse(ctx interface{}, clusterId interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call{Call: _e.mock.On("UpdateClusterWithBodyWithResponse",
+		append([]interface{}{ctx, clusterId, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call) Run(run func(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]RequestEditorFn, len(args)-4)
+		for i, a := range args[4:] {
+			if a != nil {
+				variadicArgs[i] = a.(RequestEditorFn)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call) Return(_a0 *UpdateClusterResponse, _a1 error) *MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call) RunAndReturn(run func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*UpdateClusterResponse, error)) *MockClientWithResponsesInterface_UpdateClusterWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateClusterWithResponse provides a mock function with given fields: ctx, clusterId, body, reqEditors
+func (_m *MockClientWithResponsesInterface) UpdateClusterWithResponse(ctx context.Context, clusterId string, body UpdateCluster, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error) {
+	_va := make([]interface{}, len(reqEditors))
+	for _i := range reqEditors {
+		_va[_i] = reqEditors[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, clusterId, body)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateClusterWithResponse")
+	}
+
+	var r0 *UpdateClusterResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, UpdateCluster, ...RequestEditorFn) (*UpdateClusterResponse, error)); ok {
+		return rf(ctx, clusterId, body, reqEditors...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, UpdateCluster, ...RequestEditorFn) *UpdateClusterResponse); ok {
+		r0 = rf(ctx, clusterId, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateClusterResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, UpdateCluster, ...RequestEditorFn) error); ok {
+		r1 = rf(ctx, clusterId, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateClusterWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateClusterWithResponse'
+type MockClientWithResponsesInterface_UpdateClusterWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateClusterWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - clusterId string
+//   - body UpdateCluster
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateClusterWithResponse(ctx interface{}, clusterId interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateClusterWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateClusterWithResponse_Call{Call: _e.mock.On("UpdateClusterWithResponse",
+		append([]interface{}{ctx, clusterId, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterWithResponse_Call) Run(run func(ctx context.Context, clusterId string, body UpdateCluster, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateClusterWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]RequestEditorFn, len(args)-3)
+		for i, a := range args[3:] {
+			if a != nil {
+				variadicArgs[i] = a.(RequestEditorFn)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(UpdateCluster), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterWithResponse_Call) Return(_a0 *UpdateClusterResponse, _a1 error) *MockClientWithResponsesInterface_UpdateClusterWithResponse_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterWithResponse_Call) RunAndReturn(run func(context.Context, string, UpdateCluster, ...RequestEditorFn) (*UpdateClusterResponse, error)) *MockClientWithResponsesInterface_UpdateClusterWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockClientWithResponsesInterface creates a new instance of MockClientWithResponsesInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockClientWithResponsesInterface(t interface {

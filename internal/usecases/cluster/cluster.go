@@ -278,6 +278,76 @@ func CreateCluster(ctx context.Context, in CreateClusterInput) (*CreateClusterRe
 	return &CreateClusterResult{cluster, jsonData, nil}, nil
 }
 
+// UpdateClusterInput is the input used by UpdateCluster()
+type UpdateClusterInput struct {
+	Logger                   logger.Logger
+	APIClient                apiclient.ClientWithResponsesInterface
+	Description              *string
+	EnvironmentName          *string
+	ResilienceZone           *string
+	SubscriptionID           *string
+	InfrastructureProvider   *string
+	HasTechnicalOperations   *bool
+	HasTechnicalManagement   *bool
+	HasApplicationOperations *bool
+	HasApplicationManagement *bool
+	HasCustomOperations      *bool
+	CustomOperationsURL      *string
+	APIEndpoint              *string
+}
+
+// UpdateClusterResult is the result of UpdateCluster
+type UpdateClusterResult struct {
+	ClusterResponse *clusterResponse
+	JSONResponse    []byte
+	Problem         *apiclient.Problem
+}
+
+// UpdateCluster creates a cluster
+func UpdateCluster(ctx context.Context, clusterID string, in UpdateClusterInput) (*UpdateClusterResult, error) {
+	updateCluster := apiclient.UpdateCluster{
+		Description:              in.Description,
+		EnvironmentName:          in.EnvironmentName,
+		ResilienceZone:           in.ResilienceZone,
+		SubscriptionID:           in.SubscriptionID,
+		InfrastructureProvider:   in.InfrastructureProvider,
+		HasTechnicalOperations:   in.HasTechnicalOperations,
+		HasTechnicalManagement:   in.HasTechnicalManagement,
+		HasApplicationOperations: in.HasApplicationOperations,
+		HasApplicationManagement: in.HasApplicationManagement,
+		HasCustomOperations:      in.HasCustomOperations,
+		CustomOperationsURL:      in.CustomOperationsURL,
+		ApiEndpoint:              in.APIEndpoint,
+	}
+	response, err := in.APIClient.UpdateClusterWithResponse(ctx, clusterID, updateCluster)
+	if err != nil {
+		return nil, fmt.Errorf("apiclient: %w", err)
+	}
+	in.Logger.Debug("apiclient",
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusOK:
+	case http.StatusBadRequest:
+		return &UpdateClusterResult{nil, nil, response.ApplicationproblemJSON400}, nil
+	case http.StatusNotFound:
+		return &UpdateClusterResult{nil, nil, response.ApplicationproblemJSON404}, nil
+	case http.StatusInternalServerError:
+		return &UpdateClusterResult{nil, nil, response.ApplicationproblemJSON500}, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
+	}
+
+	cluster := toClusterResponse(response.ApplicationldJSONDefault)
+
+	jsonData, err := json.Marshal(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling cluster: %w", err)
+	}
+
+	return &UpdateClusterResult{cluster, jsonData, nil}, nil
+}
+
 // DeleteClusterInput is the input used by DeleteCluster()
 type DeleteClusterInput struct {
 	Logger    logger.Logger

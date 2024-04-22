@@ -16,7 +16,7 @@ import (
 
 func Test_CreateClusterCommand(t *testing.T) {
 	t.Parallel()
-	ec, got := newMockedExecutionContext(t)
+	ec, got := newMockedCreateClusterEC(t)
 	cmd := NewRootCmd(ec)
 
 	cmd.SetArgs([]string{"create", "cluster", "--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123456", "--infrastructure-provider", "netic", "--resilience-zone", "platform"})
@@ -30,7 +30,7 @@ func Test_CreateClusterCommand(t *testing.T) {
 
 func Test_CreateClusterCommandWithJSONOutput(t *testing.T) {
 	t.Parallel()
-	ec, got := newMockedExecutionContext(t)
+	ec, got := newMockedCreateClusterEC(t)
 	cmd := NewRootCmd(ec)
 
 	cmd.SetArgs([]string{"create", "cluster", "--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123456", "--infrastructure-provider", "netic", "--resilience-zone", "platform", "-o", "json"})
@@ -91,91 +91,76 @@ func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
 	testCases := []struct {
 		testName     string
 		args         []string
-		expErr       error
 		expErrString string
 	}{
 		{
 			testName:     "invalid partition",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "invalid"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "invalid argument",
 		},
 		{
 			testName:     "invalid region",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "invalid"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "invalid argument",
 		},
 		{
 			testName:     "invalid region in partition",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "invalid"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "invalid argument",
 		},
 		{
 			testName:     "custom operations without valid url",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north", "--has-co", "--co-url", "invalid://host"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "must be a URL",
 		},
 		{
 			testName:     "name is invalid rfc1035 label",
 			args:         []string{"--name", "my cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "must be an RFC1035",
 		},
 		{
 			testName:     "provider is invalid rfc1035 label",
 			args:         []string{"--name", "mycluster", "--provider", "my provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "must be an RFC1035",
 		},
 		{
 			testName:     "resilience zone is invalid rfc1035 label",
 			args:         []string{"--name", "mycluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "my platform", "--partition", "netic", "--region", "dk-north"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "must be an RFC1035",
 		},
 		{
 			testName:     "environment is invalid rfc1035 label",
 			args:         []string{"--name", "mycluster", "--provider", "my-provider", "--environment", "invalid environment", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "must be an RFC1035",
 		},
 		{
 			testName:     "invalid infrastructure provider",
 			args:         []string{"--name", "mycluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north", "--infrastructure-provider", "invalid"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "invalid",
 		},
 		{
 			testName:     "invalid resilience zone",
 			args:         []string{"--name", "mycluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "myplatform", "--partition", "netic", "--region", "dk-north"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "invalid",
 		},
 		{
 			testName:     "invalid api endpoint url",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north", "--api-endpoint", "invalid://host"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "must be a URL",
 		},
 		{
 			testName:     "invalid subscription length",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "minimum 5 characters",
 		},
 		{
 			testName:     "invalid subscription",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "ΩΩΩΩΩ", "--resilience-zone", "platform"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "must be an ASCII string",
 		},
 		{
 			testName:     "has-co required with co-url",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123456", "--resilience-zone", "platform", "--has-co"},
-			expErr:       &InvalidArgumentError{},
 			expErrString: "they must all be set",
 		},
 	}
@@ -192,7 +177,7 @@ func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
 			args := append([]string{"create", "cluster"}, tc.args...)
 			cmd.SetArgs(args)
 			err := cmd.Execute()
-			assert.Error(t, tc.expErr)
+			assert.Error(t, err)
 			if err != nil {
 				assert.Contains(t, err.Error(), tc.expErrString)
 			}
@@ -263,7 +248,7 @@ func Test_CreateClusterCommandServiceLevels(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			ec, _ := newMockedExecutionContext(t)
+			ec, _ := newMockedCreateClusterEC(t)
 			cmd := NewRootCmd(ec)
 			cmd.SetArgs(tc.args)
 			o := &createClusterOptions{}
@@ -284,7 +269,7 @@ func Test_CreateClusterCommandServiceLevels(t *testing.T) {
 	}
 }
 
-func newMockedExecutionContext(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
+func newMockedCreateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
 	got := new(bytes.Buffer)
 	in := ExecutionContextInput{
 		Stdout: got,

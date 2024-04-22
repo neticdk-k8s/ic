@@ -32,6 +32,7 @@ jobs:
 
   release-matrix:
     name: Release go binary
+    needs: lint
     runs-on: ubuntu-latest
     env:
       GOPRIVATE: "github.com/neticdk-k8s/scs-domain-model,github.com/neticdk/go-common"

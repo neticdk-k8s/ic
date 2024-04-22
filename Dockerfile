@@ -6,13 +6,13 @@ RUN apk add git
 
 RUN adduser -S -u 20000 -H inventory
 
-WORKDIR /src
-ARG GITHUB_USER
 ARG GITHUB_TOKEN
+
+WORKDIR /src
 ENV CGO_ENABLED=0
-ENV GOPRIVATE="github.com/neticdk-k8s/scs-domain-model,github.com/neticdk/go-common"
 COPY go.* .
-RUN echo "machine github.com login $GITHUB_USER password $GITHUB_TOKEN" > ~/.netrc
+RUN go env -w GOPRIVATE="github.com/neticdk-k8s/scs-domain-model,github.com/neticdk/go-common"
+RUN git config --global url."https://${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
 RUN --mount=type=cache,target=/go/pkg/modx \
     go mod download
 

@@ -197,6 +197,8 @@ github.com/neticdk/go-common v0.0.0-20240421110346-276e135acb6c h1:EpPiYqjdcotMi
 github.com/neticdk/go-common v0.0.0-20240421110346-276e135acb6c/go.mod h1:HwYC62HdSfMeGxVjNDvtHTiBpUcprYyHMmzIze9eJV8=
 github.com/neticdk/go-common v0.0.0-20240421121313-0afb7972e17c h1:CXi2xHuIhYPK2xYbXT+ECWKpIBqy7tmJzt7i0yevYEU=
 github.com/neticdk/go-common v0.0.0-20240421121313-0afb7972e17c/go.mod h1:HwYC62HdSfMeGxVjNDvtHTiBpUcprYyHMmzIze9eJV8=
+github.com/neticdk/go-common v0.0.0-20240429113525-f9cb58302a99 h1:i8QbpVssvDaSiweVm5oEFy6KRQdWwKMuWmu9FmpHMJw=
+github.com/neticdk/go-common v0.0.0-20240429113525-f9cb58302a99/go.mod h1:cxWwG26H6wX1svqoRy+Pxm+/eOvOCG/7Q1gYN1TVH78=
 github.com/oapi-codegen/runtime v1.1.1 h1:EXLHh0DXIJnWhdRPN2w4MXAzFyE4CskzhNLUmtpMYro=
 github.com/oapi-codegen/runtime v1.1.1/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=

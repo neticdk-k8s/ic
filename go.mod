@@ -14,7 +14,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/int128/oauth2cli v1.14.0
 	github.com/mattn/go-isatty v0.0.20
-	github.com/neticdk/go-common v0.0.0-20240421121313-0afb7972e17c
+	github.com/neticdk/go-common v0.0.0-20240429113525-f9cb58302a99
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8

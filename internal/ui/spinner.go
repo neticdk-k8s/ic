@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -121,6 +122,8 @@ func (s *Spinner) Stop() {
 
 	s.model.finished = true
 
+	// prevent race condition
+	time.Sleep(50 * time.Millisecond)
 	if err := s.program.ReleaseTerminal(); err != nil {
 		s.logger.Error("Failed to release terminal", "err", err)
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
 	"github.com/neticdk-k8s/ic/internal/logger"
+	"github.com/neticdk/go-common/pkg/qsparser"
 )
 
 type capacity struct {
@@ -95,6 +96,8 @@ type ListClustersInput struct {
 	Page int
 	// PerPage is the number of items requested for each page
 	PerPage int
+	// Filters is a list of search filters to apply
+	Filters map[string]*qsparser.SearchField
 }
 
 // ListClusterResults is the result of ListClusters
@@ -123,10 +126,12 @@ func ListClusters(ctx context.Context, in ListClustersInput) (*ListClusterResult
 
 func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) (*apiclient.Problem, error) {
 	nextPage := func(ctx context.Context, req *http.Request) error {
-		q := req.URL.Query()
-		q.Add("per_page", fmt.Sprintf("%d", in.PerPage))
-		q.Add("page", fmt.Sprintf("%d", in.Page))
-		req.URL.RawQuery = q.Encode()
+		sp := qsparser.SearchParams{
+			Page:    &in.Page,
+			PerPage: &in.PerPage,
+			Fields:  in.Filters,
+		}
+		sp.SetRawQuery(req)
 		return nil
 	}
 	response, err := in.APIClient.ListClustersWithResponse(ctx, nextPage)

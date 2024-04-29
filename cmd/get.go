@@ -21,9 +21,6 @@ func NewGetCmd(ec *ExecutionContext) *cobra.Command {
 		Args:    cobra.NoArgs,
 		GroupID: groupBase,
 		Example: getCommandExample,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.Usage()
-		},
 	}
 	c.AddCommand(
 		NewGetClustersCmd(ec),

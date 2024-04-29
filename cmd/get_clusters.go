@@ -15,8 +15,17 @@ import (
 func NewGetClustersCmd(ec *ExecutionContext) *cobra.Command {
 	o := getClustersOptions{}
 	c := &cobra.Command{
-		Use:     "clusters",
-		Short:   "Get list of clusters",
+		Use:   "clusters",
+		Short: "Get list of clusters",
+		Long: `Get list of clusters.
+
+Supported field names for filters:
+
+name, description, clusterID, clusterType, region, environmentName,
+providerName, navisionSubscriptionNumber, navisionCustomerNumber,
+navisionCustomerName, resilienceZone, clientVersion, kubernetesVersion
+`,
+
 		GroupID: groupCluster,
 		Example: `
 # get all cluster

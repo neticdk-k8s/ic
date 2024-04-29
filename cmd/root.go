@@ -101,6 +101,7 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 		NewCreateCmd(ec),
 		NewDeleteCmd(ec),
 		NewUpdateCmd(ec),
+		NewFiltersHelpCmd(ec),
 	)
 
 	return c

@@ -206,3 +206,62 @@ func (r *clusterNodesRenderer) renderTable() error {
 func (r *clusterNodesRenderer) renderJSON() error {
 	return render.PrettyPrintJSON(r.jsonData, r.writer)
 }
+
+type clusterNodeRenderer struct {
+	renderer
+	node *clusterNodeResponse
+}
+
+// NewClusterNodeRenderer creates a new renderer of a single cluster node
+func NewClusterNodeRenderer(node *clusterNodeResponse, jsonData []byte, writer io.Writer) *clusterNodeRenderer {
+	cnr := &clusterNodeRenderer{
+		renderer: renderer{
+			jsonData: jsonData,
+			writer:   writer,
+		},
+		node: node,
+	}
+	return cnr
+}
+
+// Render renders the cluster node
+func (r *clusterNodeRenderer) Render(format string) error {
+	switch format {
+	case "json":
+		return r.renderJSON()
+	case "text", "table":
+		return r.renderText()
+	default:
+		return fmt.Errorf("unknown format: %s", format)
+	}
+}
+
+func (r *clusterNodeRenderer) renderText() error {
+	allocMem, allocMemUnit := render.BytesToBinarySI(int64(r.node.AllocatableMemoryBytes))
+	capMem, capMemUnit := render.BytesToBinarySI(int64(r.node.CapacityMemoryBytes))
+	data := [][]string{
+		{"Name:", r.node.Name},
+		{"Role:", r.node.Role},
+		{"KubeProxyVersion:", r.node.KubeProxyVersion},
+		{"KubeletVersion:", r.node.KubeletVersion},
+		{"KernelVersion:", r.node.KernelVersion},
+		{"CRI Name:", r.node.CRIName},
+		{"CRI Version:", r.node.CRIVersion},
+		{"Container Runtime:", r.node.ContainerRuntimeVersion},
+		{"Control Panel", fmt.Sprintf("%t", r.node.IsControlPlane)},
+		{"Provider", r.node.Provider},
+		{"Topology Region", r.node.TopologyRegion},
+		{"Topology Zone", r.node.TopologyZone},
+		{"CPU (Alloc)", fmt.Sprintf("%dm", int64(r.node.AllocatableCPUMillis))},
+		{"Memory (Alloc)", fmt.Sprintf("%.f%s", allocMem, allocMemUnit)},
+		{"CPU (Cap)", fmt.Sprintf("%dm", int64(r.node.CapacityCPUMillis))},
+		{"Memory (Cap)", fmt.Sprintf("%.f%s", capMem, capMemUnit)},
+	}
+	ui.RenderKVTable(r.writer, "Node Information", data)
+
+	return nil
+}
+
+func (r *clusterNodeRenderer) renderJSON() error {
+	return render.PrettyPrintJSON(r.jsonData, r.writer)
+}

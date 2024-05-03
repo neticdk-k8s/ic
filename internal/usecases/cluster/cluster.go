@@ -522,6 +522,50 @@ func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *
 	return nil, nil
 }
 
+// GetClusterNodeInput is the input used by GetClusterNode()
+type GetClusterNodeInput struct {
+	Logger      logger.Logger
+	APIClient   apiclient.ClientWithResponsesInterface
+	ClusterName string
+	NodeName    string
+}
+
+// GetClusterNodeResult is the result of GetClusterNode()
+type GetClusterNodeResult struct {
+	ClusterNodeResponse *clusterNodeResponse
+	JSONResponse        []byte
+	Problem             *apiclient.Problem
+}
+
+// GetClusterNode returns information abuot a cluster node
+func GetClusterNode(ctx context.Context, in GetClusterNodeInput) (*GetClusterNodeResult, error) {
+	response, err := in.APIClient.GetNodeWithResponse(ctx, in.ClusterName, in.NodeName)
+	if err != nil {
+		return nil, fmt.Errorf("apiclient: %w", err)
+	}
+	in.Logger.Debug("apiclient",
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return &GetClusterNodeResult{nil, nil, response.ApplicationproblemJSON404}, nil
+	case http.StatusInternalServerError:
+		return &GetClusterNodeResult{nil, nil, response.ApplicationproblemJSON500}, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
+	}
+
+	node := toClusterNodeResponse(response.ApplicationldJSONDefault)
+
+	jsonData, err := json.Marshal(node)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling cluste node: %w", err)
+	}
+
+	return &GetClusterNodeResult{node, jsonData, nil}, nil
+}
+
 func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	includeMap := make(map[string]interface{})
 	for _, i := range *cluster.Included {
@@ -573,9 +617,45 @@ func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	return cr
 }
 
+func toClusterNodeResponse(node *apiclient.Node) *clusterNodeResponse {
+	cn := &clusterNodeResponse{}
+	cn.Name = nilStr(node.Name)
+	cn.Role = nilStr(node.Role)
+	cn.KubeProxyVersion = nilStr(node.KubeProxyVersion)
+	cn.KubeletVersion = nilStr(node.KubeletVersion)
+	cn.KernelVersion = nilStr(node.KernelVersion)
+	cn.CRIName = nilStr(node.CriName)
+	cn.CRIVersion = nilStr(node.CriVersion)
+	cn.ContainerRuntimeVersion = nilStr(node.ContainerRuntimeVersion)
+	cn.IsControlPlane = nilBool(node.IsControlPlane)
+	cn.Provider = nilStr(node.Provider)
+	cn.TopologyRegion = nilStr(node.TopologyRegion)
+	cn.TopologyZone = nilStr(node.TopologyZone)
+	cn.AllocatableCPUMillis = float64(nilInt64(node.AllocatableCoresMillis))
+	cn.AllocatableMemoryBytes = float64(nilInt64(node.AllocatableMemoryBytes))
+	cn.CapacityCPUMillis = float64(nilInt64(node.CapacityCoresMillis))
+	cn.CapacityMemoryBytes = float64(nilInt64(node.CapacityMemoryBytes))
+
+	return cn
+}
+
 func nilStr(s *string) string {
 	if s != nil {
 		return *s
 	}
 	return ""
+}
+
+func nilBool(b *bool) bool {
+	if b != nil {
+		return *b
+	}
+	return false
+}
+
+func nilInt64(i *int64) int64 {
+	if i != nil {
+		return *i
+	}
+	return 0
 }

@@ -46,7 +46,7 @@ func (o *getClusterOptions) run(ec *ExecutionContext, args []string) error {
 	}
 	if result.Problem != nil {
 		return &errors.ProblemError{
-			Title:   "creating cluster",
+			Title:   "getting cluster",
 			Problem: result.Problem,
 		}
 	}

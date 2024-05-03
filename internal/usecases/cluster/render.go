@@ -146,3 +146,63 @@ func (r *clustersRenderer) renderTable() error {
 func (r *clustersRenderer) renderJSON() error {
 	return render.PrettyPrintJSON(r.jsonData, r.writer)
 }
+
+type clusterNodesRenderer struct {
+	renderer
+	noHeaders bool
+	nodes     *clusterNodesListResponse
+}
+
+// NewClusterNodesRenderer creates a new renderer for a list of cluster nodes
+func NewClusterNodesRenderer(nodes *clusterNodesListResponse, jsonData []byte, writer io.Writer, noHeaders bool) *clusterNodesRenderer {
+	cnr := &clusterNodesRenderer{
+		renderer: renderer{
+			writer:   writer,
+			jsonData: jsonData,
+		},
+		noHeaders: noHeaders,
+		nodes:     nodes,
+	}
+	return cnr
+}
+
+// Render renders the cluster node list
+func (r *clusterNodesRenderer) Render(format string) error {
+	switch format {
+	case "json":
+		return r.renderJSON()
+	case "text", "table":
+		return r.renderTable()
+	default:
+		return fmt.Errorf("unknown format: %s", format)
+	}
+}
+
+func (r *clusterNodesRenderer) renderTable() error {
+	var headers []string
+	if !r.noHeaders {
+		headers = []string{"name", "cp", "kubelet", "cpu (alloc)", "mem (alloc)", "cpu (cap)", "mem (cap)"}
+	}
+	table := ui.NewTable(r.writer, headers)
+	for _, n := range r.nodes.Nodes {
+		allocMem, allocMemUnit := render.BytesToBinarySI(int64(n.AllocatableMemoryBytes))
+		capMem, capMemUnit := render.BytesToBinarySI(int64(n.CapacityMemoryBytes))
+		table.Append(
+			[]string{
+				n.Name,
+				fmt.Sprintf("%t", n.IsControlPlane),
+				n.KubeletVersion,
+				fmt.Sprintf("%dm", int64(n.AllocatableMemoryBytes)),
+				fmt.Sprintf("%.f%s", allocMem, allocMemUnit),
+				fmt.Sprintf("%dm", int64(n.CapacityCPUMillis)),
+				fmt.Sprintf("%.f%s", capMem, capMemUnit),
+			},
+		)
+	}
+	table.Render()
+	return nil
+}
+
+func (r *clusterNodesRenderer) renderJSON() error {
+	return render.PrettyPrintJSON(r.jsonData, r.writer)
+}

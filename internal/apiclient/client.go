@@ -208,25 +208,25 @@ type Node struct {
 	CapacityMemoryBytes *int64 `json:"capacityMemoryBytes,omitempty"`
 
 	// ContainerRuntimeVersion ContainerRuntimeVersion is the version of the container runtime running on the node
-	ContainerRuntimeVersion *string `json:"container_runtime_version,omitempty"`
+	ContainerRuntimeVersion *string `json:"containerRuntimeVersion,omitempty"`
 
 	// CriName CRI is the name of the CRI
-	CriName *string `json:"cri_name,omitempty"`
+	CriName *string `json:"criName,omitempty"`
 
 	// CriVersion CRIVersion is the version of the CRI
-	CriVersion *string `json:"cri_version,omitempty"`
+	CriVersion *string `json:"criVersion,omitempty"`
 
 	// IsControlPlane IsControlPlane is true if the node is a control plane node
 	IsControlPlane *bool `json:"isControlPlane,omitempty"`
 
 	// KernelVersion KernelVersion is the version of the linux kernel running on the node
-	KernelVersion *string `json:"kernel_version,omitempty"`
+	KernelVersion *string `json:"kernelVersion,omitempty"`
 
 	// KubeProxyVersion KubeProxyVersion is the version of kubeproxy running on the node
-	KubeProxyVersion *string `json:"kube_proxy_version,omitempty"`
+	KubeProxyVersion *string `json:"kubeProxyVersion,omitempty"`
 
 	// KubeletVersion KubeletVersion is the version of kubelet running on the node
-	KubeletVersion *string `json:"kubelet_version,omitempty"`
+	KubeletVersion *string `json:"kubeletVersion,omitempty"`
 
 	// Name Name is the name of the Node
 	Name *string `json:"name,omitempty"`
@@ -238,10 +238,10 @@ type Node struct {
 	Role *string `json:"role,omitempty"`
 
 	// TopologyRegion TopologyRegion is the region in which the node exists
-	TopologyRegion *string `json:"topology_region,omitempty"`
+	TopologyRegion *string `json:"topologyRegion,omitempty"`
 
 	// TopologyZone TopologyZone is the zone in which the node exists
-	TopologyZone *string `json:"topology_zone,omitempty"`
+	TopologyZone *string `json:"topologyZone,omitempty"`
 }
 
 // Nodes Nodes represents a partial collection of nodes
@@ -1143,6 +1143,10 @@ type ListNodesResponse struct {
 	ApplicationproblemJSON400     *Problem
 	ApplicationldJSON401          *Problem
 	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON403          *Problem
+	ApplicationproblemJSON403     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
 	ApplicationldJSONDefault      *Nodes
 	ApplicationproblemJSONDefault *Nodes
 }
@@ -1752,6 +1756,20 @@ func ParseListNodesResponse(rsp *http.Response) (*ListNodesResponse, error) {
 		}
 		response.ApplicationldJSON401 = &dest
 
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON403 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
 	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
 		var dest Nodes
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -1772,6 +1790,20 @@ func ParseListNodesResponse(rsp *http.Response) (*ListNodesResponse, error) {
 			return nil, err
 		}
 		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON403 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
 
 	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
 		var dest Nodes

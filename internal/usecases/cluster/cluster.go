@@ -385,6 +385,143 @@ func DeleteCluster(ctx context.Context, clusterID string, in DeleteClusterInput)
 	return &DeleteClusterResult{nil}, nil
 }
 
+type clusterNodeResponse struct {
+	Name                    string  `json:"name,omitempty"`
+	Role                    string  `json:"role,omitempty"`
+	KubeProxyVersion        string  `json:"kube_proxy_version,omitempty"`
+	KubeletVersion          string  `json:"kubelet_version,omitempty"`
+	KernelVersion           string  `json:"kernel_version,omitempty"`
+	CRIName                 string  `json:"cri_name,omitempty"`
+	CRIVersion              string  `json:"cri_version,omitempty"`
+	ContainerRuntimeVersion string  `json:"container_runtime_version,omitempty"`
+	IsControlPlane          bool    `json:"is_control_plane"`
+	Provider                string  `json:"provider,omitempty"`
+	TopologyRegion          string  `json:"topology_region,omitempty"`
+	TopologyZone            string  `json:"topology_zone,omitempty"`
+	AllocatableCPUMillis    float64 `json:"allocatable_cpu_millis,omitempty"`
+	AllocatableMemoryBytes  float64 `json:"allocatable_memory_bytes,omitempty"`
+	CapacityCPUMillis       float64 `json:"capacity_cpu_millis,omitempty"`
+	CapacityMemoryBytes     float64 `json:"capacity_memory_bytes,omitempty"`
+}
+
+type clusterNodesListResponse struct {
+	Nodes []clusterNodeResponse `json:"nodes,omitempty"`
+}
+
+type ClusterNodesList struct {
+	Included []map[string]interface{}
+	Nodes    []string
+}
+
+func (cl *ClusterNodesList) ToResponse() *clusterNodesListResponse {
+	cnlr := &clusterNodesListResponse{
+		Nodes: make([]clusterNodeResponse, 0),
+	}
+	includeMap := make(map[string]interface{})
+	for _, i := range cl.Included {
+		includeMap[i["@id"].(string)] = i
+	}
+	for _, i := range cl.Included {
+		if i["@type"].(string) != "Node" {
+			continue
+		}
+		cr := clusterNodeResponse{}
+		cr.Name = i["name"].(string)
+		cr.IsControlPlane = i["isControlPlane"].(bool)
+		cr.KubeletVersion = i["kubeletVersion"].(string)
+		cr.AllocatableCPUMillis = i["allocatableCoresMillis"].(float64)
+		cr.AllocatableMemoryBytes = i["allocatableMemoryBytes"].(float64)
+		cr.CapacityCPUMillis = i["capacityCoresMillis"].(float64)
+		cr.CapacityMemoryBytes = i["capacityMemoryBytes"].(float64)
+
+		cnlr.Nodes = append(cnlr.Nodes, cr)
+	}
+	return cnlr
+}
+
+func (cl *ClusterNodesList) MarshalJSON() ([]byte, error) {
+	return json.Marshal(cl.ToResponse())
+}
+
+// ListClusterNodesInput is the input given to ListClusterNodes()
+type ListClusterNodesInput struct {
+	// Logger is a logger
+	Logger logger.Logger
+	// APIClient is the inventory server API client used to make requests
+	APIClient apiclient.ClientWithResponsesInterface
+	// Page is the initial page (0-based index)
+	Page int
+	// PerPage is the number of items requested for each page
+	PerPage int
+	// Filters is a list of search filters to apply
+	Filters map[string]*qsparser.SearchField
+	// ClusterName is the name of the cluster
+	ClusterName string
+}
+
+// ListClusterNodesResults is the result of ListClusterNodes()
+type ListClusterNodesResults struct {
+	ClusterNodeListResponse *clusterNodesListResponse
+	JSONResponse            []byte
+	Problem                 *apiclient.Problem
+}
+
+// ListClusterNodes returns a non-paginated list of cluster nodes
+func ListClusterNodes(ctx context.Context, in ListClusterNodesInput) (*ListClusterNodesResults, error) {
+	nl := &ClusterNodesList{}
+	problem, err := listClusterNodes(ctx, &in, nl)
+	if err != nil {
+		return nil, fmt.Errorf("apiclient: %w", err)
+	}
+	if problem != nil {
+		return &ListClusterNodesResults{nil, nil, problem}, nil
+	}
+	jsonData, err := nl.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("marshaling cluster list: %w", err)
+	}
+	return &ListClusterNodesResults{nl.ToResponse(), jsonData, nil}, nil
+}
+
+func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *ClusterNodesList) (*apiclient.Problem, error) {
+	nextPage := func(ctx context.Context, req *http.Request) error {
+		sp := qsparser.SearchParams{
+			Page:    &in.Page,
+			PerPage: &in.PerPage,
+			Fields:  in.Filters,
+		}
+		sp.SetRawQuery(req)
+		return nil
+	}
+	response, err := in.APIClient.ListNodesWithResponse(ctx, in.ClusterName, nextPage)
+	if err != nil {
+		return nil, fmt.Errorf("reading cluster node list: %w", err)
+	}
+	in.Logger.Debug("apiclient",
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusOK:
+	case http.StatusBadRequest:
+		return response.ApplicationproblemJSON400, nil
+	case http.StatusInternalServerError:
+		return response.ApplicationproblemJSON500, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
+	}
+	if response.ApplicationldJSONDefault.Nodes != nil {
+		nodeList.Nodes = append(nodeList.Nodes, *response.ApplicationldJSONDefault.Nodes...)
+	}
+	if response.ApplicationldJSONDefault.Included != nil {
+		nodeList.Included = append(nodeList.Included, *response.ApplicationldJSONDefault.Included...)
+	}
+	if response.ApplicationldJSONDefault.Pagination.Next != nil {
+		in.Page += 1
+		return listClusterNodes(ctx, in, nodeList)
+	}
+	return nil, nil
+}
+
 func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	includeMap := make(map[string]interface{})
 	for _, i := range *cluster.Included {

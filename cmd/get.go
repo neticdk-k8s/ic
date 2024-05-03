@@ -25,6 +25,8 @@ func NewGetCmd(ec *ExecutionContext) *cobra.Command {
 	c.AddCommand(
 		NewGetClustersCmd(ec),
 		NewGetClusterCmd(ec),
+		NewGetClusterNodesCmd(ec),
+		// NewGetClusterNodeCmd(ec),
 		NewGetPartitionsCmd(ec),
 		NewGetRegionsCmd(ec),
 		NewGetResilienceZonesCmd(ec),

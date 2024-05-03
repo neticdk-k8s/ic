@@ -2051,6 +2051,36 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Insufficient permissions",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal errors communication with backends or other",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
                     "default": {
                         "description": "collection of nodes for cluster",
                         "content": {
@@ -2629,15 +2659,15 @@
                         "type": "integer",
                         "format": "int64"
                     },
-                    "container_runtime_version": {
+                    "containerRuntimeVersion": {
                         "description": "ContainerRuntimeVersion is the version of the container runtime running on the node",
                         "type": "string"
                     },
-                    "cri_name": {
+                    "criName": {
                         "description": "CRI is the name of the CRI",
                         "type": "string"
                     },
-                    "cri_version": {
+                    "criVersion": {
                         "description": "CRIVersion is the version of the CRI",
                         "type": "string"
                     },
@@ -2645,15 +2675,15 @@
                         "description": "IsControlPlane is true if the node is a control plane node",
                         "type": "boolean"
                     },
-                    "kernel_version": {
+                    "kernelVersion": {
                         "description": "KernelVersion is the version of the linux kernel running on the node",
                         "type": "string"
                     },
-                    "kube_proxy_version": {
+                    "kubeProxyVersion": {
                         "description": "KubeProxyVersion is the version of kubeproxy running on the node",
                         "type": "string"
                     },
-                    "kubelet_version": {
+                    "kubeletVersion": {
                         "description": "KubeletVersion is the version of kubelet running on the node",
                         "type": "string"
                     },
@@ -2669,11 +2699,11 @@
                         "description": "Role is the role of the Node",
                         "type": "string"
                     },
-                    "topology_region": {
+                    "topologyRegion": {
                         "description": "TopologyRegion is the region in which the node exists",
                         "type": "string"
                     },
-                    "topology_zone": {
+                    "topologyZone": {
                         "description": "TopologyZone is the zone in which the node exists",
                         "type": "string"
                     }

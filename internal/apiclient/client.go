@@ -75,6 +75,9 @@ type Cluster struct {
 	// Partition Partition specifies the partition in which the cluster is running
 	Partition *string `json:"partition,omitempty"`
 
+	// Pods Pods is a reference to the collection of pods for the cluster
+	Pods *string `json:"pods,omitempty"`
+
 	// Provider Provider identification of cluster provider, i.e., the organizational unit responsible for providing the cluster to the tenants
 	Provider *string `json:"provider,omitempty"`
 
@@ -178,6 +181,96 @@ type CreateCluster struct {
 	SubscriptionID *string `json:"subscriptionID,omitempty"`
 }
 
+// Node Node represents properties of a node running in a cluster
+type Node struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type *string `json:"@type,omitempty"`
+
+	// AllocatableCoresMillis AllocatableCPUMillis is the total amount of allocatable millicores
+	AllocatableCoresMillis *int64 `json:"allocatableCoresMillis,omitempty"`
+
+	// AllocatableMemoryBytes AllocatableMemoryBytes is the total amount of allocatable bytes of memory
+	AllocatableMemoryBytes *int64 `json:"allocatableMemoryBytes,omitempty"`
+
+	// CapacityCoresMillis CapacityCPUMillis is the total amount of millicores
+	CapacityCoresMillis *int64 `json:"capacityCoresMillis,omitempty"`
+
+	// CapacityMemoryBytes CapacityMemoryBytes is the total amount of bytes of memory
+	CapacityMemoryBytes *int64 `json:"capacityMemoryBytes,omitempty"`
+
+	// ContainerRuntimeVersion ContainerRuntimeVersion is the version of the container runtime running on the node
+	ContainerRuntimeVersion *string `json:"container_runtime_version,omitempty"`
+
+	// CriName CRI is the name of the CRI
+	CriName *string `json:"cri_name,omitempty"`
+
+	// CriVersion CRIVersion is the version of the CRI
+	CriVersion *string `json:"cri_version,omitempty"`
+
+	// IsControlPlane IsControlPlane is true if the node is a control plane node
+	IsControlPlane *bool `json:"isControlPlane,omitempty"`
+
+	// KernelVersion KernelVersion is the version of the linux kernel running on the node
+	KernelVersion *string `json:"kernel_version,omitempty"`
+
+	// KubeProxyVersion KubeProxyVersion is the version of kubeproxy running on the node
+	KubeProxyVersion *string `json:"kube_proxy_version,omitempty"`
+
+	// KubeletVersion KubeletVersion is the version of kubelet running on the node
+	KubeletVersion *string `json:"kubelet_version,omitempty"`
+
+	// Name Name is the name of the Node
+	Name *string `json:"name,omitempty"`
+
+	// Provider Provider is the name of the provider that created the cluster node
+	Provider *string `json:"provider,omitempty"`
+
+	// Role Role is the role of the Node
+	Role *string `json:"role,omitempty"`
+
+	// TopologyRegion TopologyRegion is the region in which the node exists
+	TopologyRegion *string `json:"topology_region,omitempty"`
+
+	// TopologyZone TopologyZone is the zone in which the node exists
+	TopologyZone *string `json:"topology_zone,omitempty"`
+}
+
+// Nodes Nodes represents a partial collection of nodes
+type Nodes struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type *string `json:"@type,omitempty"`
+
+	// Count Count is the number of nodes in the returned collection
+	Count *int32 `json:"count,omitempty"`
+
+	// Nodes Nodes is the identification of the nodes in the collection
+	Nodes *[]string `json:"nodes,omitempty"`
+
+	// Pagination Pagination contains data on other collection data
+	Pagination *Pagination `json:"pagination,omitempty"`
+
+	// Total TotalCount is the total number of nodes
+	Total *int32 `json:"total,omitempty"`
+}
+
 // Pagination Pagination contains data on other collection data
 type Pagination struct {
 	// First First is link to the first page in the collection
@@ -191,6 +284,33 @@ type Pagination struct {
 
 	// Prev Prev is link to the previous page, if any
 	Prev *string `json:"prev,omitempty"`
+}
+
+// Pods Pods represents a partial collection of pods
+type Pods struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type *string `json:"@type,omitempty"`
+
+	// Count Count is the number of pods in the returned collection
+	Count *int32 `json:"count,omitempty"`
+
+	// Pagination Pagination contains data on other collection data
+	Pagination *Pagination `json:"pagination,omitempty"`
+
+	// Pods Pods is the identification of the pods in the collection
+	Pods *[]string `json:"pods,omitempty"`
+
+	// Total TotalCount is the total number of pods
+	Total *int32 `json:"total,omitempty"`
 }
 
 // Problem Problem is simple implementation of (RFC9457)[https://datatracker.ietf.org/doc/html/rfc9457]
@@ -252,11 +372,11 @@ type UpdateCluster struct {
 
 // Capacity defines model for capacity.
 type Capacity struct {
-	// Cores CPU is the total amount of allocatable millicores
-	Cores *int64 `json:"cores,omitempty"`
+	// CoresMillis CPU is the total amount of allocatable millicores
+	CoresMillis *int64 `json:"coresMillis,omitempty"`
 
-	// Memory Memory is the total amount of allocatable bytes of memory
-	Memory *int64 `json:"memory,omitempty"`
+	// MemoryBytes Memory is the total amount of allocatable bytes of memory
+	MemoryBytes *int64 `json:"memoryBytes,omitempty"`
 
 	// Nodes Nodes is the total number of nodes
 	Nodes *int64 `json:"nodes,omitempty"`
@@ -371,6 +491,15 @@ type ClientInterface interface {
 	UpdateClusterWithBody(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateCluster(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListNodes request
+	ListNodes(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetNode request
+	GetNode(ctx context.Context, clusterId string, nodeName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPods request
+	ListPods(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListClusters(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -447,6 +576,42 @@ func (c *Client) UpdateClusterWithBody(ctx context.Context, clusterId string, co
 
 func (c *Client) UpdateCluster(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateClusterRequest(c.Server, clusterId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListNodes(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNodesRequest(c.Server, clusterId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetNode(ctx context.Context, clusterId string, nodeName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNodeRequest(c.Server, clusterId, nodeName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPods(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPodsRequest(c.Server, clusterId)
 	if err != nil {
 		return nil, err
 	}
@@ -639,6 +804,115 @@ func NewUpdateClusterRequestWithBody(server string, clusterId string, contentTyp
 	return req, nil
 }
 
+// NewListNodesRequest generates requests for ListNodes
+func NewListNodesRequest(server string, clusterId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s/nodes", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNodeRequest generates requests for GetNode
+func NewGetNodeRequest(server string, clusterId string, nodeName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "nodeName", runtime.ParamLocationPath, nodeName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s/nodes/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListPodsRequest generates requests for ListPods
+func NewListPodsRequest(server string, clusterId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s/pods", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -700,6 +974,15 @@ type ClientWithResponsesInterface interface {
 	UpdateClusterWithBodyWithResponse(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error)
 
 	UpdateClusterWithResponse(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error)
+
+	// ListNodesWithResponse request
+	ListNodesWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListNodesResponse, error)
+
+	// GetNodeWithResponse request
+	GetNodeWithResponse(ctx context.Context, clusterId string, nodeName string, reqEditors ...RequestEditorFn) (*GetNodeResponse, error)
+
+	// ListPodsWithResponse request
+	ListPodsWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListPodsResponse, error)
 }
 
 type ListClustersResponse struct {
@@ -853,6 +1136,89 @@ func (r UpdateClusterResponse) StatusCode() int {
 	return 0
 }
 
+type ListNodesResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON400          *Problem
+	ApplicationproblemJSON400     *Problem
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSONDefault      *Nodes
+	ApplicationproblemJSONDefault *Nodes
+}
+
+// Status returns HTTPResponse.Status
+func (r ListNodesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListNodesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetNodeResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON404          *Problem
+	ApplicationproblemJSON404     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
+	ApplicationldJSONDefault      *Node
+	ApplicationproblemJSONDefault *Node
+}
+
+// Status returns HTTPResponse.Status
+func (r GetNodeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetNodeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPodsResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON400          *Problem
+	ApplicationproblemJSON400     *Problem
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSONDefault      *Pods
+	ApplicationproblemJSONDefault *Pods
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPodsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPodsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // ListClustersWithResponse request returning *ListClustersResponse
 func (c *ClientWithResponses) ListClustersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListClustersResponse, error) {
 	rsp, err := c.ListClusters(ctx, reqEditors...)
@@ -912,6 +1278,33 @@ func (c *ClientWithResponses) UpdateClusterWithResponse(ctx context.Context, clu
 		return nil, err
 	}
 	return ParseUpdateClusterResponse(rsp)
+}
+
+// ListNodesWithResponse request returning *ListNodesResponse
+func (c *ClientWithResponses) ListNodesWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListNodesResponse, error) {
+	rsp, err := c.ListNodes(ctx, clusterId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListNodesResponse(rsp)
+}
+
+// GetNodeWithResponse request returning *GetNodeResponse
+func (c *ClientWithResponses) GetNodeWithResponse(ctx context.Context, clusterId string, nodeName string, reqEditors ...RequestEditorFn) (*GetNodeResponse, error) {
+	rsp, err := c.GetNode(ctx, clusterId, nodeName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetNodeResponse(rsp)
+}
+
+// ListPodsWithResponse request returning *ListPodsResponse
+func (c *ClientWithResponses) ListPodsWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListPodsResponse, error) {
+	rsp, err := c.ListPods(ctx, clusterId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPodsResponse(rsp)
 }
 
 // ParseListClustersResponse parses an HTTP response from a ListClustersWithResponse call
@@ -1321,6 +1714,203 @@ func ParseUpdateClusterResponse(rsp *http.Response) (*UpdateClusterResponse, err
 
 	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
 		var dest Cluster
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListNodesResponse parses an HTTP response from a ListNodesWithResponse call
+func ParseListNodesResponse(rsp *http.Response) (*ListNodesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListNodesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Nodes
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Nodes
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetNodeResponse parses an HTTP response from a GetNodeWithResponse call
+func ParseGetNodeResponse(rsp *http.Response) (*GetNodeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetNodeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON404 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Node
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Node
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPodsResponse parses an HTTP response from a ListPodsWithResponse call
+func ParseListPodsResponse(rsp *http.Response) (*ListPodsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPodsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Pods
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Pods
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

@@ -410,13 +410,13 @@ func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 		cpct := *cluster.Capacity
 		cr.ControlPlaneCapacity = &capacity{
 			NodeCount:   *cpct["control-plane"].Nodes,
-			CoresMillis: *cpct["control-plane"].Cores,
-			MemoryBytes: *cpct["control-plane"].Memory,
+			CoresMillis: *cpct["control-plane"].CoresMillis,
+			MemoryBytes: *cpct["control-plane"].MemoryBytes,
 		}
 		cr.WorkerNodesCapacity = &capacity{
 			NodeCount:   *cpct["worker"].Nodes,
-			CoresMillis: *cpct["worker"].Cores,
-			MemoryBytes: *cpct["worker"].Memory,
+			CoresMillis: *cpct["worker"].CoresMillis,
+			MemoryBytes: *cpct["worker"].MemoryBytes,
 		}
 	}
 	if cluster.Provider != nil {

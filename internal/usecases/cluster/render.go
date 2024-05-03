@@ -192,7 +192,7 @@ func (r *clusterNodesRenderer) renderTable() error {
 				n.Name,
 				fmt.Sprintf("%t", n.IsControlPlane),
 				n.KubeletVersion,
-				fmt.Sprintf("%dm", int64(n.AllocatableMemoryBytes)),
+				fmt.Sprintf("%dm", int64(n.AllocatableCPUMillis)),
 				fmt.Sprintf("%.f%s", allocMem, allocMemUnit),
 				fmt.Sprintf("%dm", int64(n.CapacityCPUMillis)),
 				fmt.Sprintf("%.f%s", capMem, capMemUnit),

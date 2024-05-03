@@ -97,6 +97,7 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 	c.AddCommand(
 		NewLoginCmd(ec),
 		NewLogoutCmd(ec),
+		NewAPITokenCmd(ec),
 		NewGetCmd(ec),
 		NewCreateCmd(ec),
 		NewDeleteCmd(ec),

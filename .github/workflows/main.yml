@@ -11,13 +11,14 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     name: Release docker image
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,9 +56,9 @@ jobs:
             GITHUB_TOKEN=${{ secrets.GIT_TOKEN }}
 
       - name: Create release
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v1
         with:
-          generateReleaseNotes: true
+          generate_release_notes: true
 
-      - name: Release
-        uses: ./.github/workflows/release.yaml
+  distribute:
+    uses: ./.github/workflows/release.yaml

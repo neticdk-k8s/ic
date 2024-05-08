@@ -5,10 +5,7 @@ on:
   workflow_dispatch:
   release:
     types: [created]
-  workflow_run:
-    workflows: ["ci"]
-    types:
-      - completed
+  workflow_call:
 
 permissions:
   contents: write
@@ -66,3 +63,4 @@ jobs:
           binary_name: "ic"
           ldflags: -s -w -X main.version=${{ github.ref_name }}
           extra_files: README.md
+          release_tag: ${{ github.ref_name }}

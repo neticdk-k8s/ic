@@ -58,3 +58,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           generateReleaseNotes: true
+
+      - name: Release
+        uses: ./.github/workflows/release.yaml

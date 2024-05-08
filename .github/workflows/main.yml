@@ -62,3 +62,5 @@ jobs:
 
   distribute:
     uses: ./.github/workflows/release.yaml
+    needs: build
+    secrets: inherit

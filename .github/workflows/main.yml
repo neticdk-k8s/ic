@@ -16,7 +16,7 @@ jobs:
     name: Release docker image
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - name: Checkout
@@ -53,3 +53,8 @@ jobs:
             VERSION=${{ github.ref_name }}
             GITHUB_USERNAME=${{ secrets.GIT_USERNAME }}
             GITHUB_TOKEN=${{ secrets.GIT_TOKEN }}
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          generateReleaseNotes: true

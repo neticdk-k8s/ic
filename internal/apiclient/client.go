@@ -31,9 +31,6 @@ type Cluster struct {
 	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
 	Type *string `json:"@type,omitempty"`
 
-	// ApiEndpoint ApiEndpoint is the uri for the Kubernetes api, this may be empty
-	ApiEndpoint *string `json:"apiEndpoint,omitempty"`
-
 	// Capacity Capacity is the capacity per node type, i.e., control-plane and worker nodes
 	Capacity      *map[string]Capacity `json:"capacity,omitempty"`
 	ClientVersion *Version             `json:"clientVersion,omitempty"`
@@ -132,9 +129,6 @@ type Clusters struct {
 
 // CreateCluster CreateCluster represents the information used to create a secure cloud stack Kubernetes cluster
 type CreateCluster struct {
-	// ApiEndpoint APIEndpoint is the URL for the Kubernetes API server endpoint
-	ApiEndpoint *string `json:"apiEndpoint,omitempty"`
-
 	// CustomOperationsURL CustomOperationsURL is the URL for the site that documents the custom operations for the cluster. This must be et if HasCustomOperations is enabled.
 	CustomOperationsURL *string `json:"customOperationsURL,omitempty"`
 
@@ -179,6 +173,42 @@ type CreateCluster struct {
 
 	// SubscriptionID SubscriptionID is the subscription ID associated with the cluster
 	SubscriptionID *string `json:"subscriptionID,omitempty"`
+}
+
+// GenericResource GenericResource represents a generic resource from the cluster
+type GenericResource struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type *string `json:"@type,omitempty"`
+
+	// Annotations Annotations contains an object with resource annotations
+	Annotations *map[string]string `json:"annotations,omitempty"`
+
+	// ApiVersion ApiVersion represents the Kubernetes "apiVersion" (group and version) of the resource
+	ApiVersion *string `json:"apiVersion,omitempty"`
+
+	// Kind Kind represent the Kubernetes "kind" of the resource
+	Kind *string `json:"kind,omitempty"`
+
+	// Labels Labels contains an object with resource labels
+	Labels *map[string]string `json:"labels,omitempty"`
+
+	// Name Name is the name of the Pod
+	Name *string `json:"name,omitempty"`
+
+	// Namespace Namespace is the Kubernetes namespace the pod is running inside of
+	Namespace *string `json:"namespace,omitempty"`
+
+	// Owner Owner represents the ultimate owner of the resource. That is the owner reference chain is traversed.
+	Owner *string `json:"owner,omitempty"`
 }
 
 // Node Node represents properties of a node running in a cluster
@@ -331,11 +361,35 @@ type Problem struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// Resources Resources represents a partial collection of resources which may be of different type
+type Resources struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type *string `json:"@type,omitempty"`
+
+	// Count Count is the number of pods in the returned collection
+	Count *int32 `json:"count,omitempty"`
+
+	// Pagination Pagination contains data on other collection data
+	Pagination *Pagination `json:"pagination,omitempty"`
+
+	// Resource Resources is the identifiers for the resources in the collection
+	Resource *[]string `json:"resource,omitempty"`
+
+	// Total TotalCount is the total number of pods
+	Total *int32 `json:"total,omitempty"`
+}
+
 // UpdateCluster UpdateCluster represents the information used to update a secure cloud stack Kubernetes cluster's metadata
 type UpdateCluster struct {
-	// ApiEndpoint APIEndpoint is the URL for the Kubernetes API server endpoint
-	ApiEndpoint *string `json:"apiEndpoint,omitempty"`
-
 	// CustomOperationsURL CustomOperationsURL is the URL for the site that documents the custom operations for the cluster. This must be et if HasCustomOperations is enabled.
 	CustomOperationsURL *string `json:"customOperationsURL,omitempty"`
 
@@ -492,6 +546,12 @@ type ClientInterface interface {
 
 	UpdateCluster(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetClusterKubeConfig request
+	GetClusterKubeConfig(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateClusterKubeConfig request
+	UpdateClusterKubeConfig(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListNodes request
 	ListNodes(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -500,6 +560,12 @@ type ClientInterface interface {
 
 	// ListPods request
 	ListPods(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetResource request
+	GetResource(ctx context.Context, clusterId string, group string, version string, namespace string, resource string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListResourcesByType request
+	ListResourcesByType(ctx context.Context, clusterId string, group string, version string, resourceType string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListClusters(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -586,6 +652,30 @@ func (c *Client) UpdateCluster(ctx context.Context, clusterId string, body Updat
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetClusterKubeConfig(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetClusterKubeConfigRequest(c.Server, clusterId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateClusterKubeConfig(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateClusterKubeConfigRequest(c.Server, clusterId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListNodes(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListNodesRequest(c.Server, clusterId)
 	if err != nil {
@@ -612,6 +702,30 @@ func (c *Client) GetNode(ctx context.Context, clusterId string, nodeName string,
 
 func (c *Client) ListPods(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPodsRequest(c.Server, clusterId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetResource(ctx context.Context, clusterId string, group string, version string, namespace string, resource string, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetResourceRequest(c.Server, clusterId, group, version, namespace, resource, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListResourcesByType(ctx context.Context, clusterId string, group string, version string, resourceType string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListResourcesByTypeRequest(c.Server, clusterId, group, version, resourceType)
 	if err != nil {
 		return nil, err
 	}
@@ -804,6 +918,74 @@ func NewUpdateClusterRequestWithBody(server string, clusterId string, contentTyp
 	return req, nil
 }
 
+// NewGetClusterKubeConfigRequest generates requests for GetClusterKubeConfig
+func NewGetClusterKubeConfigRequest(server string, clusterId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s/kubeconfig", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateClusterKubeConfigRequest generates requests for UpdateClusterKubeConfig
+func NewUpdateClusterKubeConfigRequest(server string, clusterId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s/kubeconfig", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListNodesRequest generates requests for ListNodes
 func NewListNodesRequest(server string, clusterId string) (*http.Request, error) {
 	var err error
@@ -913,6 +1095,130 @@ func NewListPodsRequest(server string, clusterId string) (*http.Request, error) 
 	return req, nil
 }
 
+// NewGetResourceRequest generates requests for GetResource
+func NewGetResourceRequest(server string, clusterId string, group string, version string, namespace string, resource string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "group", runtime.ParamLocationPath, group)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "namespace", runtime.ParamLocationPath, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam4 string
+
+	pathParam4, err = runtime.StyleParamWithLocation("simple", false, "resource", runtime.ParamLocationPath, resource)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam5 string
+
+	pathParam5, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s/resources/%s/%s/namespaces/%s/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3, pathParam4, pathParam5)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListResourcesByTypeRequest generates requests for ListResourcesByType
+func NewListResourcesByTypeRequest(server string, clusterId string, group string, version string, resourceType string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterId", runtime.ParamLocationPath, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "group", runtime.ParamLocationPath, group)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam3 string
+
+	pathParam3, err = runtime.StyleParamWithLocation("simple", false, "resourceType", runtime.ParamLocationPath, resourceType)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/clusters/%s/resources/%s/%s/%s", pathParam0, pathParam1, pathParam2, pathParam3)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -975,6 +1281,12 @@ type ClientWithResponsesInterface interface {
 
 	UpdateClusterWithResponse(ctx context.Context, clusterId string, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error)
 
+	// GetClusterKubeConfigWithResponse request
+	GetClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*GetClusterKubeConfigResponse, error)
+
+	// UpdateClusterKubeConfigWithResponse request
+	UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)
+
 	// ListNodesWithResponse request
 	ListNodesWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListNodesResponse, error)
 
@@ -983,6 +1295,12 @@ type ClientWithResponsesInterface interface {
 
 	// ListPodsWithResponse request
 	ListPodsWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListPodsResponse, error)
+
+	// GetResourceWithResponse request
+	GetResourceWithResponse(ctx context.Context, clusterId string, group string, version string, namespace string, resource string, name string, reqEditors ...RequestEditorFn) (*GetResourceResponse, error)
+
+	// ListResourcesByTypeWithResponse request
+	ListResourcesByTypeWithResponse(ctx context.Context, clusterId string, group string, version string, resourceType string, reqEditors ...RequestEditorFn) (*ListResourcesByTypeResponse, error)
 }
 
 type ListClustersResponse struct {
@@ -1136,6 +1454,56 @@ func (r UpdateClusterResponse) StatusCode() int {
 	return 0
 }
 
+type GetClusterKubeConfigResponse struct {
+	Body                      []byte
+	HTTPResponse              *http.Response
+	ApplicationproblemJSON401 *Problem
+	ApplicationproblemJSON404 *Problem
+	ApplicationproblemJSON500 *Problem
+}
+
+// Status returns HTTPResponse.Status
+func (r GetClusterKubeConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetClusterKubeConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateClusterKubeConfigResponse struct {
+	Body                      []byte
+	HTTPResponse              *http.Response
+	ApplicationproblemJSON400 *Problem
+	ApplicationproblemJSON401 *Problem
+	ApplicationproblemJSON403 *Problem
+	ApplicationproblemJSON404 *Problem
+	ApplicationproblemJSON500 *Problem
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateClusterKubeConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateClusterKubeConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListNodesResponse struct {
 	Body                          []byte
 	HTTPResponse                  *http.Response
@@ -1223,6 +1591,62 @@ func (r ListPodsResponse) StatusCode() int {
 	return 0
 }
 
+type GetResourceResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
+	ApplicationldJSONDefault      *GenericResource
+	ApplicationproblemJSONDefault *GenericResource
+}
+
+// Status returns HTTPResponse.Status
+func (r GetResourceResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetResourceResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListResourcesByTypeResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON400          *Problem
+	ApplicationproblemJSON400     *Problem
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
+	ApplicationldJSONDefault      *Resources
+	ApplicationproblemJSONDefault *Resources
+}
+
+// Status returns HTTPResponse.Status
+func (r ListResourcesByTypeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListResourcesByTypeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // ListClustersWithResponse request returning *ListClustersResponse
 func (c *ClientWithResponses) ListClustersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListClustersResponse, error) {
 	rsp, err := c.ListClusters(ctx, reqEditors...)
@@ -1284,6 +1708,24 @@ func (c *ClientWithResponses) UpdateClusterWithResponse(ctx context.Context, clu
 	return ParseUpdateClusterResponse(rsp)
 }
 
+// GetClusterKubeConfigWithResponse request returning *GetClusterKubeConfigResponse
+func (c *ClientWithResponses) GetClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*GetClusterKubeConfigResponse, error) {
+	rsp, err := c.GetClusterKubeConfig(ctx, clusterId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetClusterKubeConfigResponse(rsp)
+}
+
+// UpdateClusterKubeConfigWithResponse request returning *UpdateClusterKubeConfigResponse
+func (c *ClientWithResponses) UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error) {
+	rsp, err := c.UpdateClusterKubeConfig(ctx, clusterId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateClusterKubeConfigResponse(rsp)
+}
+
 // ListNodesWithResponse request returning *ListNodesResponse
 func (c *ClientWithResponses) ListNodesWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListNodesResponse, error) {
 	rsp, err := c.ListNodes(ctx, clusterId, reqEditors...)
@@ -1309,6 +1751,24 @@ func (c *ClientWithResponses) ListPodsWithResponse(ctx context.Context, clusterI
 		return nil, err
 	}
 	return ParseListPodsResponse(rsp)
+}
+
+// GetResourceWithResponse request returning *GetResourceResponse
+func (c *ClientWithResponses) GetResourceWithResponse(ctx context.Context, clusterId string, group string, version string, namespace string, resource string, name string, reqEditors ...RequestEditorFn) (*GetResourceResponse, error) {
+	rsp, err := c.GetResource(ctx, clusterId, group, version, namespace, resource, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetResourceResponse(rsp)
+}
+
+// ListResourcesByTypeWithResponse request returning *ListResourcesByTypeResponse
+func (c *ClientWithResponses) ListResourcesByTypeWithResponse(ctx context.Context, clusterId string, group string, version string, resourceType string, reqEditors ...RequestEditorFn) (*ListResourcesByTypeResponse, error) {
+	rsp, err := c.ListResourcesByType(ctx, clusterId, group, version, resourceType, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListResourcesByTypeResponse(rsp)
 }
 
 // ParseListClustersResponse parses an HTTP response from a ListClustersWithResponse call
@@ -1728,6 +2188,100 @@ func ParseUpdateClusterResponse(rsp *http.Response) (*UpdateClusterResponse, err
 	return response, nil
 }
 
+// ParseGetClusterKubeConfigResponse parses an HTTP response from a GetClusterKubeConfigWithResponse call
+func ParseGetClusterKubeConfigResponse(rsp *http.Response) (*GetClusterKubeConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetClusterKubeConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateClusterKubeConfigResponse parses an HTTP response from a UpdateClusterKubeConfigWithResponse call
+func ParseUpdateClusterKubeConfigResponse(rsp *http.Response) (*UpdateClusterKubeConfigResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateClusterKubeConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListNodesResponse parses an HTTP response from a ListNodesWithResponse call
 func ParseListNodesResponse(rsp *http.Response) (*ListNodesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1943,6 +2497,142 @@ func ParseListPodsResponse(rsp *http.Response) (*ListPodsResponse, error) {
 
 	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
 		var dest Pods
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetResourceResponse parses an HTTP response from a GetResourceWithResponse call
+func ParseGetResourceResponse(rsp *http.Response) (*GetResourceResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetResourceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest GenericResource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest GenericResource
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListResourcesByTypeResponse parses an HTTP response from a ListResourcesByTypeWithResponse call
+func ParseListResourcesByTypeResponse(rsp *http.Response) (*ListResourcesByTypeResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListResourcesByTypeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Resources
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Resources
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

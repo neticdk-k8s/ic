@@ -2005,6 +2005,137 @@
                 }
             }
         },
+        "/clusters/{clusterId}/kubeconfig": {
+            "get": {
+                "description": "getClusterKubeConfig returns the kubeconfig for a specific cluster instance.\n\n//openapi:responseContent default application/yaml KubeConfig\n//openapi:responseContent json application/json KubeConfig\n",
+                "operationId": "getClusterKubeConfig",
+                "parameters": [
+                    {
+                        "description": "the cluster id",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The request instance was not found (or user does not have access)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal errors communication with backends or other",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "cluster kubeconfig",
+                        "content": {
+                            "application/yaml": {
+                                "examples": {
+                                    "response": {
+                                        "value": "apiVersion: v1\nclusters:\n  - cluster:\n      certificate-authority-data: ...\n      server: https://127.0.0.1:54663\n    name: test\ncontexts:\n  - context:\n      cluster: test\n      user: test\n    name: test\ncurrent-context: test\nkind: Config\npreferences: {}\nusers:\n  - name: test\n    user:\n      exec:\n        apiVersion: client.authentication.k8s.io/v1beta1\n        args:\n          - --region\n          - eu-west-1\n          - eks\n          - get-token\n          - --cluster-name\n          - test-cluster\n        command: aws\n        env:\n          - name: AWS_PROFILE\n            value: test\n        interactiveMode: IfAvailable\n        provideClusterInfo: false\n"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "updateClusterKubeConfig updates a cluster's kubeconfig\n\n//openapi:requestBody application/json KubeConfig \"The kubeconfig data in JSON format\"\n//openapi:requestBody application/yaml KubeConfig \"The kubeconfig data in YAML format\"\n",
+                "operationId": "updateClusterKubeConfig",
+                "parameters": [
+                    {
+                        "description": "the cluster id",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid payload",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Insufficient permissions",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The request instance was not found (or user does not have access)",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal errors communication with backends or other",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "kubeconfig updated"
+                    }
+                }
+            }
+        },
         "/clusters/{clusterId}/nodes": {
             "get": {
                 "description": "listNodes returns a view listing all nodes in the cluster.\n\nThe returned collection will include embedded data on the nodes to support clients\nnot having to do queries for the individual nodes.\n",
@@ -2353,6 +2484,524 @@
                     }
                 }
             }
+        },
+        "/clusters/{clusterId}/resources/{group}/{version}/namespaces/{namespace}/{resource}/{name}": {
+            "get": {
+                "description": "getResource returns a specific resource collected from the cluster.\n\nThe resource path is based on the principles of the Kubernetes API except ther is no distinction\nbetween core and non core APIs. The group of the core APIs is \"core\". See also https://kubernetes.io/docs/reference/using-api/api-concepts/\n",
+                "operationId": "getResource",
+                "parameters": [
+                    {
+                        "description": "the cluster id",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the resource group, e.g., 'apps' or 'core'",
+                        "name": "group",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the resource version, e.g., 'v1'",
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the namespace of the resource",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the resource type, e.g., 'deployments' or 'pods'",
+                        "name": "resource",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the resource name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected internal error occurred - our problem",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "collection of resources from the cluster",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericResource"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/apps/v1/namespaces/application-operations-system/deployments/aoi-grafana",
+                                            "@type": "Resource",
+                                            "annotations": {
+                                                "deployment.kubernetes.io/revision": "2",
+                                                "meta.helm.sh/release-name": "aoi",
+                                                "meta.helm.sh/release-namespace": "application-operations-system"
+                                            },
+                                            "apiVersion": "apps/v1",
+                                            "kind": "Deployment",
+                                            "labels": {
+                                                "app.kubernetes.io/instance": "aoi",
+                                                "app.kubernetes.io/managed-by": "Helm",
+                                                "app.kubernetes.io/name": "grafana",
+                                                "app.kubernetes.io/version": "10.4.0",
+                                                "helm.sh/chart": "grafana-7.3.7",
+                                                "helm.toolkit.fluxcd.io/name": "application-operations-infrastructure",
+                                                "helm.toolkit.fluxcd.io/namespace": "application-operations-system"
+                                            },
+                                            "name": "aoi-grafana",
+                                            "namespace": "application-operations-system"
+                                        }
+                                    }
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericResource"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/resources/{group}/{version}/{resourceType}": {
+            "get": {
+                "description": "listResourcesByType lists all resources based on the type requested through the URL parameters - cross namespace\n",
+                "operationId": "listResourcesByType",
+                "parameters": [
+                    {
+                        "description": "the cluster id",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the resource group, e.g., 'apps' or 'core'",
+                        "name": "group",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the resource version, e.g., 'v1'",
+                        "name": "version",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the resource type, e.g., 'deployments' or 'pods'",
+                        "name": "resourceType",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid input parameters such as cluster id or pagination parameters",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected internal error occurred - our problem",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "collection of resources from the cluster",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Resources"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/pods?per_page=5",
+                                            "@included": [
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/application-operations-system/pods/aoi-grafana-768dfdc864-htj4n",
+                                                    "@type": "Pod",
+                                                    "annotations": {
+                                                        "checksum/config": "c6bee86f3ddfc441d0c6031b7ac3dd7ec9b3301dc00e156f77b86881231cd43e",
+                                                        "checksum/sc-dashboard-provider-config": "c942752180ddff51a3ab63b7d256cf3d856d90757b6f804cbc420562989d5a84",
+                                                        "checksum/secret": "5b6692c6b4eaee061836a5941f8dd31e0ef4c1f8a625df24e3de0dd15e3f359b",
+                                                        "cni.projectcalico.org/containerID": "6f4f52965d38da6dfa709f479eacaf7a29ce910f495c0e9b59f7ca47016b5a70",
+                                                        "cni.projectcalico.org/podIP": "10.64.13.107/32",
+                                                        "cni.projectcalico.org/podIPs": "10.64.13.107/32",
+                                                        "kubectl.kubernetes.io/default-container": "grafana"
+                                                    },
+                                                    "apiVersion": "v1",
+                                                    "containers": [
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/grafana/grafana:10.4.0",
+                                                            "imageID": "registry.netic.dk/netic-apaas/grafana/grafana@sha256:f9811e4e687ffecf1a43adb9b64096c50bc0d7a782f8608530f478b6542de7d5",
+                                                            "name": "grafana",
+                                                            "type": "Container"
+                                                        },
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/kiwigrid/k8s-sidecar:1.26.1",
+                                                            "imageID": "registry.netic.dk/netic-apaas/kiwigrid/k8s-sidecar@sha256:b8d5067137fec093cf48670dc3a1dbb38f9e734f3a6683015c2e89a45db5fd16",
+                                                            "name": "grafana-sc-dashboard",
+                                                            "type": "Container"
+                                                        },
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/kiwigrid/k8s-sidecar:1.26.1",
+                                                            "imageID": "registry.netic.dk/netic-apaas/kiwigrid/k8s-sidecar@sha256:b8d5067137fec093cf48670dc3a1dbb38f9e734f3a6683015c2e89a45db5fd16",
+                                                            "name": "grafana-sc-datasources",
+                                                            "type": "Container"
+                                                        }
+                                                    ],
+                                                    "kind": "Pod",
+                                                    "labels": {
+                                                        "app.kubernetes.io/instance": "aoi",
+                                                        "app.kubernetes.io/name": "grafana",
+                                                        "pod-template-hash": "768dfdc864"
+                                                    },
+                                                    "name": "aoi-grafana-768dfdc864-htj4n",
+                                                    "namespace": "application-operations-system",
+                                                    "owner": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/apps/v1/namespaces/application-operations-system/deployments/aoi-grafana"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/apps/v1/namespaces/application-operations-system/deployments/aoi-grafana",
+                                                    "@type": "Resource",
+                                                    "annotations": {
+                                                        "deployment.kubernetes.io/revision": "2",
+                                                        "meta.helm.sh/release-name": "aoi",
+                                                        "meta.helm.sh/release-namespace": "application-operations-system"
+                                                    },
+                                                    "apiVersion": "apps/v1",
+                                                    "kind": "Deployment",
+                                                    "labels": {
+                                                        "app.kubernetes.io/instance": "aoi",
+                                                        "app.kubernetes.io/managed-by": "Helm",
+                                                        "app.kubernetes.io/name": "grafana",
+                                                        "app.kubernetes.io/version": "10.4.0",
+                                                        "helm.sh/chart": "grafana-7.3.7",
+                                                        "helm.toolkit.fluxcd.io/name": "application-operations-infrastructure",
+                                                        "helm.toolkit.fluxcd.io/namespace": "application-operations-system"
+                                                    },
+                                                    "name": "aoi-grafana",
+                                                    "namespace": "application-operations-system"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/application-operations-system/pods/aoi-victoria-metrics-single-1-server-0",
+                                                    "@type": "Pod",
+                                                    "annotations": {
+                                                        "cni.projectcalico.org/containerID": "4e71570b8b98bc493afde3992a030803323f89a3809024084f55f361e50dfec3",
+                                                        "cni.projectcalico.org/podIP": "10.64.59.131/32",
+                                                        "cni.projectcalico.org/podIPs": "10.64.59.131/32"
+                                                    },
+                                                    "apiVersion": "v1",
+                                                    "containers": [
+                                                        {
+                                                            "image": "docker.io/victoriametrics/victoria-metrics:v1.99.0",
+                                                            "imageID": "docker.io/victoriametrics/victoria-metrics@sha256:e3e18b05a2c056ac2daa0215b284f0583dcb47c8a0db2965a8eaf9f219535734",
+                                                            "name": "victoria-metrics-single-1-server",
+                                                            "type": "Container"
+                                                        }
+                                                    ],
+                                                    "kind": "Pod",
+                                                    "labels": {
+                                                        "app": "server",
+                                                        "app.kubernetes.io/instance": "aoi",
+                                                        "app.kubernetes.io/managed-by": "Helm",
+                                                        "app.kubernetes.io/name": "victoria-metrics-single-1",
+                                                        "apps.kubernetes.io/pod-index": "0",
+                                                        "controller-revision-hash": "aoi-victoria-metrics-single-1-server-578bdfcbd6",
+                                                        "helm.sh/chart": "victoria-metrics-single-1-0.9.17",
+                                                        "statefulset.kubernetes.io/pod-name": "aoi-victoria-metrics-single-1-server-0"
+                                                    },
+                                                    "name": "aoi-victoria-metrics-single-1-server-0",
+                                                    "namespace": "application-operations-system",
+                                                    "owner": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/apps/v1/namespaces/application-operations-system/statefulsets/aoi-victoria-metrics-single-1-server"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/apps/v1/namespaces/application-operations-system/statefulsets/aoi-victoria-metrics-single-1-server",
+                                                    "@type": "Resource",
+                                                    "annotations": {
+                                                        "meta.helm.sh/release-name": "aoi",
+                                                        "meta.helm.sh/release-namespace": "application-operations-system"
+                                                    },
+                                                    "apiVersion": "apps/v1",
+                                                    "kind": "StatefulSet",
+                                                    "labels": {
+                                                        "app": "server",
+                                                        "app.kubernetes.io/instance": "aoi",
+                                                        "app.kubernetes.io/managed-by": "Helm",
+                                                        "app.kubernetes.io/name": "victoria-metrics-single-1",
+                                                        "helm.sh/chart": "victoria-metrics-single-1-0.9.17",
+                                                        "helm.toolkit.fluxcd.io/name": "application-operations-infrastructure",
+                                                        "helm.toolkit.fluxcd.io/namespace": "application-operations-system"
+                                                    },
+                                                    "name": "aoi-victoria-metrics-single-1-server",
+                                                    "namespace": "application-operations-system"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/netic-backup-system/pods/application-backup-controller-manager-74d9cdbc96-7sg7t",
+                                                    "@type": "Pod",
+                                                    "annotations": {
+                                                        "cni.projectcalico.org/containerID": "72eaec8570dd869357ddd5c8490eab44f152a44833ba4025fcec3bab48a951f7",
+                                                        "cni.projectcalico.org/podIP": "10.64.3.67/32",
+                                                        "cni.projectcalico.org/podIPs": "10.64.3.67/32",
+                                                        "kubectl.kubernetes.io/default-container": "manager"
+                                                    },
+                                                    "apiVersion": "v1",
+                                                    "containers": [
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/application-backup:v1alpha1_experimental_7y",
+                                                            "imageID": "registry.netic.dk/netic-apaas/application-backup@sha256:4a2b850e10f9adf2dcdcccd25ed821c8241a3bb0ebaad869d9d524f93b11a0ac",
+                                                            "name": "manager",
+                                                            "type": "Container"
+                                                        }
+                                                    ],
+                                                    "kind": "Pod",
+                                                    "labels": {
+                                                        "app.kubernetes.io/component": "manager",
+                                                        "app.kubernetes.io/created-by": "application-backup",
+                                                        "app.kubernetes.io/instance": "application-backup-operator",
+                                                        "app.kubernetes.io/managed-by": "kustomize",
+                                                        "app.kubernetes.io/name": "application-backup-operator",
+                                                        "app.kubernetes.io/part-of": "application-backup",
+                                                        "component": "application-backup",
+                                                        "component-type": "install",
+                                                        "control-plane": "controller-manager",
+                                                        "install": "application-backup",
+                                                        "pod-template-hash": "74d9cdbc96"
+                                                    },
+                                                    "name": "application-backup-controller-manager-74d9cdbc96-7sg7t",
+                                                    "namespace": "netic-backup-system",
+                                                    "owner": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/apps/v1/namespaces/netic-backup-system/deployments/application-backup-controller-manager"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/apps/v1/namespaces/netic-backup-system/deployments/application-backup-controller-manager",
+                                                    "@type": "Resource",
+                                                    "annotations": {
+                                                        "deployment.kubernetes.io/revision": "41"
+                                                    },
+                                                    "apiVersion": "apps/v1",
+                                                    "kind": "Deployment",
+                                                    "labels": {
+                                                        "app.kubernetes.io/component": "manager",
+                                                        "app.kubernetes.io/created-by": "application-backup",
+                                                        "app.kubernetes.io/instance": "application-backup-operator",
+                                                        "app.kubernetes.io/managed-by": "kustomize",
+                                                        "app.kubernetes.io/name": "application-backup-operator",
+                                                        "app.kubernetes.io/part-of": "application-backup",
+                                                        "component": "application-backup",
+                                                        "component-type": "install",
+                                                        "control-plane": "controller-manager",
+                                                        "install": "application-backup",
+                                                        "kustomize.toolkit.fluxcd.io/name": "cluster-releases",
+                                                        "kustomize.toolkit.fluxcd.io/namespace": "netic-gitops-system"
+                                                    },
+                                                    "name": "application-backup-controller-manager",
+                                                    "namespace": "netic-backup-system"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/calico-system/pods/calico-kube-controllers-b465556bd-hh9xt",
+                                                    "@type": "Pod",
+                                                    "annotations": {
+                                                        "cni.projectcalico.org/containerID": "814b76825048011560eeb6c0eddc8ab7a3d6b5accfc104f2d5a781f735606144",
+                                                        "cni.projectcalico.org/podIP": "10.64.3.75/32",
+                                                        "cni.projectcalico.org/podIPs": "10.64.3.75/32",
+                                                        "hash.operator.tigera.io/node-certs": "d7ff4a6f2b8ceed6b356ea285873e6a81cdd1962",
+                                                        "hash.operator.tigera.io/system": "bb4746872201725da2dea19756c475aa67d9c1e9",
+                                                        "hash.operator.tigera.io/tigera-ca-private": "ceeee022073e1845298be3aa309a8070a68740bd",
+                                                        "hash.operator.tigera.io/typha-ca": "f78378ce2b5ad617c6aebfad5d4a1ad4ddf16852",
+                                                        "hash.operator.tigera.io/typha-certs": "6907929756be15c232fb8df679b00c9edd04834b"
+                                                    },
+                                                    "apiVersion": "v1",
+                                                    "containers": [
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/calico/kube-controllers:v3.26.1",
+                                                            "imageID": "registry.netic.dk/netic-apaas/calico/kube-controllers@sha256:2c5526ad8cd69740448207b90f4077fd68a5d2e922014e32141b38a529295c55",
+                                                            "name": "calico-kube-controllers",
+                                                            "type": "Container"
+                                                        }
+                                                    ],
+                                                    "kind": "Pod",
+                                                    "labels": {
+                                                        "app.kubernetes.io/name": "calico-kube-controllers",
+                                                        "k8s-app": "calico-kube-controllers",
+                                                        "pod-template-hash": "b465556bd"
+                                                    },
+                                                    "name": "calico-kube-controllers-b465556bd-hh9xt",
+                                                    "namespace": "calico-system"
+                                                },
+                                                {
+                                                    "@id": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/calico-system/pods/calico-node-7lgnb",
+                                                    "@type": "Pod",
+                                                    "annotations": {
+                                                        "hash.operator.tigera.io/cni-config": "b9384860da2b869729d2d87ca67bbe5d2bb13015",
+                                                        "hash.operator.tigera.io/node-cert": "a1c014ef178a6ab769f747fa143432a47fe329d5",
+                                                        "hash.operator.tigera.io/node-certs": "d7ff4a6f2b8ceed6b356ea285873e6a81cdd1962",
+                                                        "hash.operator.tigera.io/system": "bb4746872201725da2dea19756c475aa67d9c1e9",
+                                                        "hash.operator.tigera.io/tigera-ca-private": "ceeee022073e1845298be3aa309a8070a68740bd",
+                                                        "hash.operator.tigera.io/typha-ca": "f78378ce2b5ad617c6aebfad5d4a1ad4ddf16852",
+                                                        "hash.operator.tigera.io/typha-certs": "6907929756be15c232fb8df679b00c9edd04834b"
+                                                    },
+                                                    "apiVersion": "v1",
+                                                    "containers": [
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/calico/node:v3.26.1",
+                                                            "imageID": "registry.netic.dk/netic-apaas/calico/node@sha256:9459d1b2831955120fdf0037e6816b21e5d88dd11110d6d89398e5ef53cdf54c",
+                                                            "name": "calico-node",
+                                                            "type": "Container"
+                                                        },
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/calico/pod2daemon-flexvol:v3.26.1",
+                                                            "imageID": "registry.netic.dk/netic-apaas/calico/pod2daemon-flexvol@sha256:1f99e783eaef47c62c53f0090b0eba5d0e9a43674fb5faba3ed6041cc5a0ecb5",
+                                                            "name": "flexvol-driver",
+                                                            "type": "InitContainer"
+                                                        },
+                                                        {
+                                                            "image": "registry.netic.dk/netic-apaas/calico/cni:v3.26.1",
+                                                            "imageID": "registry.netic.dk/netic-apaas/calico/cni@sha256:86779fab56f3c0c51abcae6d5c5d712f54ed86b50eebf83e54b8c80fdcb4a76e",
+                                                            "name": "install-cni",
+                                                            "type": "InitContainer"
+                                                        }
+                                                    ],
+                                                    "kind": "Pod",
+                                                    "labels": {
+                                                        "app.kubernetes.io/name": "calico-node",
+                                                        "controller-revision-hash": "754b5dcc56",
+                                                        "k8s-app": "calico-node",
+                                                        "pod-template-generation": "7"
+                                                    },
+                                                    "name": "calico-node-7lgnb",
+                                                    "namespace": "calico-system"
+                                                }
+                                            ],
+                                            "@type": "ResourceCollection",
+                                            "count": 5,
+                                            "pagination": {
+                                                "first": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/pods?per_page=5",
+                                                "last": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/pods?page=53&per_page=5",
+                                                "next": "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/pods?page=1&per_page=5"
+                                            },
+                                            "resource": [
+                                                "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/application-operations-system/pods/aoi-grafana-768dfdc864-htj4n",
+                                                "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/application-operations-system/pods/aoi-victoria-metrics-single-1-server-0",
+                                                "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/netic-backup-system/pods/application-backup-controller-manager-74d9cdbc96-7sg7t",
+                                                "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/calico-system/pods/calico-kube-controllers-b465556bd-hh9xt",
+                                                "https://api.k8s.netic.dk/clusters/prod1.netic-platform/resources/core/v1/namespaces/calico-system/pods/calico-node-7lgnb"
+                                            ],
+                                            "total": 267
+                                        }
+                                    }
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Resources"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -2380,11 +3029,6 @@
                     "@type": {
                         "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
                         "type": "string"
-                    },
-                    "apiEndpoint": {
-                        "description": "ApiEndpoint is the uri for the Kubernetes api, this may be empty",
-                        "type": "string",
-                        "format": "uri"
                     },
                     "capacity": {
                         "description": "Capacity is the capacity per node type, i.e., control-plane and worker nodes",
@@ -2547,11 +3191,6 @@
                 "description": "CreateCluster represents the information used to create a secure cloud stack Kubernetes cluster",
                 "type": "object",
                 "properties": {
-                    "apiEndpoint": {
-                        "description": "APIEndpoint is the URL for the Kubernetes API server endpoint",
-                        "type": "string",
-                        "format": "uri"
-                    },
                     "customOperationsURL": {
                         "description": "CustomOperationsURL is the URL for the site that documents the custom operations for the cluster. This must be et if HasCustomOperations is enabled.",
                         "type": "string",
@@ -2612,6 +3251,67 @@
                     "subscriptionID": {
                         "description": "SubscriptionID is the subscription ID associated with the cluster",
                         "type": "string"
+                    }
+                }
+            },
+            "GenericResource": {
+                "description": "GenericResource represents a generic resource from the cluster",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "annotations": {
+                        "description": "Annotations contains an object with resource annotations",
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "apiVersion": {
+                        "description": "ApiVersion represents the Kubernetes \"apiVersion\" (group and version) of the resource",
+                        "type": "string"
+                    },
+                    "kind": {
+                        "description": "Kind represent the Kubernetes \"kind\" of the resource",
+                        "type": "string"
+                    },
+                    "labels": {
+                        "description": "Labels contains an object with resource labels",
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "name": {
+                        "description": "Name is the name of the Pod",
+                        "type": "string"
+                    },
+                    "namespace": {
+                        "description": "Namespace is the Kubernetes namespace the pod is running inside of",
+                        "type": "string"
+                    },
+                    "owner": {
+                        "description": "Owner represents the ultimate owner of the resource. That is the owner reference chain is traversed.",
+                        "type": "string",
+                        "format": "uri"
                     }
                 }
             },
@@ -2913,6 +3613,52 @@
                     }
                 }
             },
+            "Resources": {
+                "description": "Resources represents a partial collection of resources which may be of different type",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "count": {
+                        "description": "Count is the number of pods in the returned collection",
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/Pagination"
+                    },
+                    "resource": {
+                        "description": "Resources is the identifiers for the resources in the collection",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "total": {
+                        "description": "TotalCount is the total number of pods",
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
             "Subscription": {
                 "description": "Subscription models a subscription accounting wise",
                 "type": "object",
@@ -2951,11 +3697,6 @@
                 "description": "UpdateCluster represents the information used to update a secure cloud stack Kubernetes cluster's metadata",
                 "type": "object",
                 "properties": {
-                    "apiEndpoint": {
-                        "description": "APIEndpoint is the URL for the Kubernetes API server endpoint",
-                        "type": "string",
-                        "format": "uri"
-                    },
                     "customOperationsURL": {
                         "description": "CustomOperationsURL is the URL for the site that documents the custom operations for the cluster. This must be et if HasCustomOperations is enabled.",
                         "type": "string",

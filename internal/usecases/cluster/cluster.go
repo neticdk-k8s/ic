@@ -224,7 +224,6 @@ type CreateClusterInput struct {
 	HasApplicationManagement bool
 	HasCustomOperations      bool
 	CustomOperationsURL      string
-	APIEndpoint              string
 }
 
 // CreateClusterResult is the result of CreateCluster
@@ -252,7 +251,6 @@ func CreateCluster(ctx context.Context, in CreateClusterInput) (*CreateClusterRe
 		HasApplicationManagement: &in.HasApplicationManagement,
 		HasCustomOperations:      &in.HasCustomOperations,
 		CustomOperationsURL:      &in.CustomOperationsURL,
-		ApiEndpoint:              &in.APIEndpoint,
 	}
 	response, err := in.APIClient.CreateClusterWithResponse(ctx, createCluster)
 	if err != nil {
@@ -298,7 +296,6 @@ type UpdateClusterInput struct {
 	HasApplicationManagement *bool
 	HasCustomOperations      *bool
 	CustomOperationsURL      *string
-	APIEndpoint              *string
 }
 
 // UpdateClusterResult is the result of UpdateCluster
@@ -322,7 +319,6 @@ func UpdateCluster(ctx context.Context, clusterID string, in UpdateClusterInput)
 		HasApplicationManagement: in.HasApplicationManagement,
 		HasCustomOperations:      in.HasCustomOperations,
 		CustomOperationsURL:      in.CustomOperationsURL,
-		ApiEndpoint:              in.APIEndpoint,
 	}
 	response, err := in.APIClient.UpdateClusterWithResponse(ctx, clusterID, updateCluster)
 	if err != nil {

@@ -50,7 +50,6 @@ type createClusterOptions struct {
 	SubscriptionID           string
 	InfrastructureProvider   string
 	ResilienceZone           string
-	APIEndpoint              string
 	HasTechnicalOperations   bool
 	HasTechnicalManagement   bool
 	HasApplicationOperations bool
@@ -69,7 +68,6 @@ func (o *createClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.SubscriptionID, "subscription", "", "Subscription ID")
 	f.StringVar(&o.InfrastructureProvider, "infrastructure-provider", "netic", fmt.Sprintf("Infrastructure Provider. One of (%s)", strings.Join(types.AllInfrastructureProvidersString(), "|")))
 	f.StringVar(&o.ResilienceZone, "resilience-zone", "netic", fmt.Sprintf("Resilience Zone. One of (%s)", strings.Join(types.AllResilienceZonesString(), "|")))
-	f.StringVar(&o.APIEndpoint, "api-endpoint", "", "Cluster API Server endpoint (url)")
 	f.BoolVar(&o.HasTechnicalOperations, "has-to", true, "Technical Operations")
 	f.BoolVar(&o.HasTechnicalManagement, "has-tm", true, "Technical Management")
 	f.BoolVar(&o.HasApplicationOperations, "has-ao", false, "Application Operations")
@@ -153,15 +151,6 @@ func (o *createClusterOptions) validate() error {
 			OneOf: types.AllResilienceZonesString(),
 		}
 	}
-	if o.APIEndpoint != "" {
-		if !validation.IsWebURL(o.APIEndpoint) {
-			return &InvalidArgumentError{
-				Flag:    "api-endpoint",
-				Val:     o.APIEndpoint,
-				Context: "must be a URL using a http(s) scheme",
-			}
-		}
-	}
 	if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
 		return &InvalidArgumentError{
 			Flag:    "subscription",
@@ -219,7 +208,6 @@ func (o *createClusterOptions) run(ec *ExecutionContext) error {
 		HasApplicationManagement: o.HasApplicationManagement,
 		HasCustomOperations:      o.HasCustomOperations,
 		CustomOperationsURL:      o.CustomOperationsURL,
-		APIEndpoint:              o.APIEndpoint,
 	}
 	result, err := cluster.CreateCluster(ec.Command.Context(), in)
 	if err != nil {

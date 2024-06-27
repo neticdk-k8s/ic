@@ -26,6 +26,7 @@ require (
 	golang.org/x/oauth2 v0.19.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.19.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

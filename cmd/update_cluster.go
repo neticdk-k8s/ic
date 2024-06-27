@@ -33,7 +33,7 @@ func NewUpdateClusterCmd(ec *ExecutionContext) *cobra.Command {
 	o.bindFlags(c.Flags())
 	c.Flags().SortFlags = false
 	c.MarkFlagsRequiredTogether("has-co", "co-url")
-	c.MarkFlagsOneRequired("description", "environment", "subscription", "infrastructure-provider", "resilience-zone", "api-endpoint", "has-to", "has-tm", "has-ao", "has-am", "has-co")
+	c.MarkFlagsOneRequired("description", "environment", "subscription", "infrastructure-provider", "resilience-zone", "has-to", "has-tm", "has-ao", "has-am", "has-co")
 	return c
 }
 
@@ -43,7 +43,6 @@ type updateClusterOptions struct {
 	SubscriptionID           string
 	InfrastructureProvider   string
 	ResilienceZone           string
-	APIEndpoint              string
 	HasTechnicalOperations   bool
 	HasTechnicalManagement   bool
 	HasApplicationOperations bool
@@ -58,7 +57,6 @@ func (o *updateClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.SubscriptionID, "subscription", "", "Subscription ID")
 	f.StringVar(&o.InfrastructureProvider, "infrastructure-provider", "netic", fmt.Sprintf("Infrastructure Provider. One of (%s)", strings.Join(types.AllInfrastructureProvidersString(), "|")))
 	f.StringVar(&o.ResilienceZone, "resilience-zone", "netic", fmt.Sprintf("Resilience Zone. One of (%s)", strings.Join(types.AllResilienceZonesString(), "|")))
-	f.StringVar(&o.APIEndpoint, "api-endpoint", "", "Cluster API Server endpoint (url)")
 	f.BoolVar(&o.HasTechnicalOperations, "has-to", true, "Technical Operations")
 	f.BoolVar(&o.HasTechnicalManagement, "has-tm", true, "Technical Management")
 	f.BoolVar(&o.HasApplicationOperations, "has-ao", false, "Application Operations")
@@ -114,17 +112,6 @@ func (o *updateClusterOptions) validate(cmd *cobra.Command) error {
 				Flag:  "resilience-zone",
 				Val:   o.ResilienceZone,
 				OneOf: types.AllResilienceZonesString(),
-			}
-		}
-	}
-	if cmd.Flags().Changed("api-endpoint") {
-		if o.APIEndpoint != "" {
-			if !validation.IsWebURL(o.APIEndpoint) {
-				return &InvalidArgumentError{
-					Flag:    "api-endpoint",
-					Val:     o.APIEndpoint,
-					Context: "must be a URL using a http(s) scheme",
-				}
 			}
 		}
 	}
@@ -201,9 +188,6 @@ func (o *updateClusterOptions) run(ec *ExecutionContext, args []string) error {
 	}
 	if ec.Command.Flags().Changed("co-url") {
 		in.CustomOperationsURL = &o.CustomOperationsURL
-	}
-	if ec.Command.Flags().Changed("api-endpoint") {
-		in.APIEndpoint = &o.APIEndpoint
 	}
 	result, err := cluster.UpdateCluster(ec.Command.Context(), args[0], in)
 	if err != nil {

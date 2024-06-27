@@ -144,11 +144,6 @@ func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
 			expErrString: "invalid",
 		},
 		{
-			testName:     "invalid api endpoint url",
-			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north", "--api-endpoint", "invalid://host"},
-			expErrString: "must be a URL",
-		},
-		{
 			testName:     "invalid subscription length",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "446", "--resilience-zone", "platform", "--partition", "netic", "--region", "dk-north"},
 			expErrString: "minimum 5 characters",

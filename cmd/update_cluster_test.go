@@ -85,11 +85,6 @@ func Test_UpdateClusterCommandInvalidParameters(t *testing.T) {
 			expErrString: "invalid",
 		},
 		{
-			testName:     "invalid api endpoint url",
-			args:         []string{"my-cluster.my-provider", "--api-endpoint", "invalid://host"},
-			expErrString: "must be a URL",
-		},
-		{
 			testName:     "invalid subscription length",
 			args:         []string{"my-cluster.my-provider", "--subscription", "446"},
 			expErrString: "minimum 5 characters",

@@ -6,6 +6,7 @@ import (
 
 	"github.com/neticdk-k8s/ic/internal/render"
 	"github.com/neticdk-k8s/ic/internal/ui"
+	"sigs.k8s.io/yaml"
 )
 
 type Renderer interface {
@@ -13,8 +14,8 @@ type Renderer interface {
 }
 
 type renderer struct {
-	jsonData []byte
-	writer   io.Writer
+	data   []byte
+	writer io.Writer
 }
 
 type clusterRenderer struct {
@@ -26,8 +27,8 @@ type clusterRenderer struct {
 func NewClusterRenderer(cluster *clusterResponse, jsonData []byte, writer io.Writer) *clusterRenderer {
 	cr := &clusterRenderer{
 		renderer: renderer{
-			jsonData: jsonData,
-			writer:   writer,
+			data:   jsonData,
+			writer: writer,
 		},
 		cluster: cluster,
 	}
@@ -89,7 +90,7 @@ func (r *clusterRenderer) renderText() error {
 }
 
 func (r *clusterRenderer) renderJSON() error {
-	return render.PrettyPrintJSON(r.jsonData, r.writer)
+	return render.PrettyPrintJSON(r.data, r.writer)
 }
 
 type clustersRenderer struct {
@@ -102,8 +103,8 @@ type clustersRenderer struct {
 func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer io.Writer, noHeaders bool) *clustersRenderer {
 	cr := &clustersRenderer{
 		renderer: renderer{
-			writer:   writer,
-			jsonData: jsonData,
+			writer: writer,
+			data:   jsonData,
 		},
 		noHeaders: noHeaders,
 		clusters:  clusters,
@@ -144,7 +145,7 @@ func (r *clustersRenderer) renderTable() error {
 }
 
 func (r *clustersRenderer) renderJSON() error {
-	return render.PrettyPrintJSON(r.jsonData, r.writer)
+	return render.PrettyPrintJSON(r.data, r.writer)
 }
 
 type clusterNodesRenderer struct {
@@ -157,8 +158,8 @@ type clusterNodesRenderer struct {
 func NewClusterNodesRenderer(nodes *clusterNodesListResponse, jsonData []byte, writer io.Writer, noHeaders bool) *clusterNodesRenderer {
 	cnr := &clusterNodesRenderer{
 		renderer: renderer{
-			writer:   writer,
-			jsonData: jsonData,
+			writer: writer,
+			data:   jsonData,
 		},
 		noHeaders: noHeaders,
 		nodes:     nodes,
@@ -204,7 +205,7 @@ func (r *clusterNodesRenderer) renderTable() error {
 }
 
 func (r *clusterNodesRenderer) renderJSON() error {
-	return render.PrettyPrintJSON(r.jsonData, r.writer)
+	return render.PrettyPrintJSON(r.data, r.writer)
 }
 
 type clusterNodeRenderer struct {
@@ -216,8 +217,8 @@ type clusterNodeRenderer struct {
 func NewClusterNodeRenderer(node *clusterNodeResponse, jsonData []byte, writer io.Writer) *clusterNodeRenderer {
 	cnr := &clusterNodeRenderer{
 		renderer: renderer{
-			jsonData: jsonData,
-			writer:   writer,
+			data:   jsonData,
+			writer: writer,
 		},
 		node: node,
 	}
@@ -263,5 +264,39 @@ func (r *clusterNodeRenderer) renderText() error {
 }
 
 func (r *clusterNodeRenderer) renderJSON() error {
-	return render.PrettyPrintJSON(r.jsonData, r.writer)
+	return render.PrettyPrintJSON(r.data, r.writer)
+}
+
+type clusterKubeConfigRenderer struct {
+	renderer
+}
+
+// NewClusterKubeConfigRenderer creates a new renderer of a cluster kubeconfig
+func NewClusterKubeConfigRenderer(data []byte, writer io.Writer) *clusterKubeConfigRenderer {
+	r := &clusterKubeConfigRenderer{
+		renderer: renderer{
+			data:   data,
+			writer: writer,
+		},
+	}
+	return r
+}
+
+// Render renders the cluster node
+func (r *clusterKubeConfigRenderer) Render(format string) error {
+	switch format {
+	case "json":
+		return r.renderJSON()
+	default:
+		render.String(r.data, r.writer)
+		return nil
+	}
+}
+
+func (r *clusterKubeConfigRenderer) renderJSON() error {
+	jsonData, err := yaml.YAMLToJSON(r.data)
+	if err != nil {
+		return err
+	}
+	return render.PrettyPrintJSON(jsonData, r.writer)
 }

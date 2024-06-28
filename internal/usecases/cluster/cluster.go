@@ -562,6 +562,41 @@ func GetClusterNode(ctx context.Context, in GetClusterNodeInput) (*GetClusterNod
 	return &GetClusterNodeResult{node, jsonData, nil}, nil
 }
 
+// GetClusterKubeConfigInput is the input used by GetClusterKubeConfig()
+type GetClusterKubeConfigInput struct {
+	Logger      logger.Logger
+	APIClient   apiclient.ClientWithResponsesInterface
+	ClusterName string
+}
+
+// GetClusterKubeConfigResult is the result of GetClusterKubeConfig()
+type GetClusterKubeConfigResult struct {
+	Response []byte
+	Problem  *apiclient.Problem
+}
+
+// GetClusterKubeConfig returns kubeconfig for a cluster
+func GetClusterKubeConfig(ctx context.Context, in GetClusterKubeConfigInput) (*GetClusterKubeConfigResult, error) {
+	response, err := in.APIClient.GetClusterKubeConfigWithResponse(ctx, in.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("apiclient: %w", err)
+	}
+	in.Logger.Debug("apiclient",
+		"status", response.StatusCode(),
+		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	switch response.StatusCode() {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return &GetClusterKubeConfigResult{nil, response.ApplicationproblemJSON404}, nil
+	case http.StatusInternalServerError:
+		return &GetClusterKubeConfigResult{nil, response.ApplicationproblemJSON500}, nil
+	default:
+		return nil, fmt.Errorf("bad status code: %d", response.StatusCode())
+	}
+
+	return &GetClusterKubeConfigResult{response.Body, nil}, nil
+}
+
 func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	includeMap := make(map[string]interface{})
 	for _, i := range *cluster.Included {

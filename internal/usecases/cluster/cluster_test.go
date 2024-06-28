@@ -506,3 +506,49 @@ func TestGetClusterNode(t *testing.T) {
 	wantJSON := []byte(`{"name":"my-cluster","provider_name":"my-provider"}`)
 	assert.Equal(t, wantJSON, got.JSONResponse)
 }
+
+func TestGetClusterKubeConfig(t *testing.T) {
+	logger := logger.NewTestLogger(t)
+
+	want := []byte(`apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: test
+    server: https://test.test.dedicated.k8s.netic.dk:6443
+  name: test
+contexts:
+- context:
+    cluster: test
+    user: test
+  name: test
+current-context: test
+kind: Config
+preferences: {}
+users:
+- name: test
+  user:
+    password: REDACTED
+    username: test
+`)
+
+	mockClient := apiclient.NewMockClientWithResponsesInterface(t)
+	mockClient.EXPECT().
+		GetClusterKubeConfigWithResponse(mock.Anything, mock.Anything).
+		Return(
+			&apiclient.GetClusterKubeConfigResponse{
+				Body: want,
+				HTTPResponse: &http.Response{
+					Status:     "200 OK",
+					StatusCode: 200,
+				},
+			}, nil)
+
+	in := GetClusterKubeConfigInput{
+		Logger:      logger,
+		APIClient:   mockClient,
+		ClusterName: "my-cluster.my-provider",
+	}
+	got, err := GetClusterKubeConfig(context.TODO(), in)
+	assert.NoError(t, err)
+	assert.Equal(t, want, got.Response)
+}

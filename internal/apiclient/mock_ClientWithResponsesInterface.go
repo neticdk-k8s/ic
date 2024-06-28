@@ -845,14 +845,90 @@ func (_c *MockClientWithResponsesInterface_ListResourcesByTypeWithResponse_Call)
 	return _c
 }
 
-// UpdateClusterKubeConfigWithResponse provides a mock function with given fields: ctx, clusterId, reqEditors
-func (_m *MockClientWithResponsesInterface) UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error) {
+// UpdateClusterKubeConfigWithBodyWithResponse provides a mock function with given fields: ctx, clusterId, contentType, body, reqEditors
+func (_m *MockClientWithResponsesInterface) UpdateClusterKubeConfigWithBodyWithResponse(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error) {
 	_va := make([]interface{}, len(reqEditors))
 	for _i := range reqEditors {
 		_va[_i] = reqEditors[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, clusterId)
+	_ca = append(_ca, ctx, clusterId, contentType, body)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateClusterKubeConfigWithBodyWithResponse")
+	}
+
+	var r0 *UpdateClusterKubeConfigResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)); ok {
+		return rf(ctx, clusterId, contentType, body, reqEditors...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *UpdateClusterKubeConfigResponse); ok {
+		r0 = rf(ctx, clusterId, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateClusterKubeConfigResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = rf(ctx, clusterId, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateClusterKubeConfigWithBodyWithResponse'
+type MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateClusterKubeConfigWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - clusterId string
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateClusterKubeConfigWithBodyWithResponse(ctx interface{}, clusterId interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call{Call: _e.mock.On("UpdateClusterKubeConfigWithBodyWithResponse",
+		append([]interface{}{ctx, clusterId, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]RequestEditorFn, len(args)-4)
+		for i, a := range args[4:] {
+			if a != nil {
+				variadicArgs[i] = a.(RequestEditorFn)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call) Return(_a0 *UpdateClusterKubeConfigResponse, _a1 error) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call) RunAndReturn(run func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateClusterKubeConfigWithResponse provides a mock function with given fields: ctx, clusterId, body, reqEditors
+func (_m *MockClientWithResponsesInterface) UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, body KubeConfig, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error) {
+	_va := make([]interface{}, len(reqEditors))
+	for _i := range reqEditors {
+		_va[_i] = reqEditors[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, clusterId, body)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -862,19 +938,19 @@ func (_m *MockClientWithResponsesInterface) UpdateClusterKubeConfigWithResponse(
 
 	var r0 *UpdateClusterKubeConfigResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)); ok {
-		return rf(ctx, clusterId, reqEditors...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, KubeConfig, ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)); ok {
+		return rf(ctx, clusterId, body, reqEditors...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *UpdateClusterKubeConfigResponse); ok {
-		r0 = rf(ctx, clusterId, reqEditors...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, KubeConfig, ...RequestEditorFn) *UpdateClusterKubeConfigResponse); ok {
+		r0 = rf(ctx, clusterId, body, reqEditors...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*UpdateClusterKubeConfigResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
-		r1 = rf(ctx, clusterId, reqEditors...)
+	if rf, ok := ret.Get(1).(func(context.Context, string, KubeConfig, ...RequestEditorFn) error); ok {
+		r1 = rf(ctx, clusterId, body, reqEditors...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -890,21 +966,22 @@ type MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call s
 // UpdateClusterKubeConfigWithResponse is a helper method to define mock.On call
 //   - ctx context.Context
 //   - clusterId string
+//   - body KubeConfig
 //   - reqEditors ...RequestEditorFn
-func (_e *MockClientWithResponsesInterface_Expecter) UpdateClusterKubeConfigWithResponse(ctx interface{}, clusterId interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call {
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateClusterKubeConfigWithResponse(ctx interface{}, clusterId interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call{Call: _e.mock.On("UpdateClusterKubeConfigWithResponse",
-		append([]interface{}{ctx, clusterId}, reqEditors...)...)}
+		append([]interface{}{ctx, clusterId, body}, reqEditors...)...)}
 }
 
-func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call) Run(run func(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call {
+func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call) Run(run func(ctx context.Context, clusterId string, body KubeConfig, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]RequestEditorFn, len(args)-2)
-		for i, a := range args[2:] {
+		variadicArgs := make([]RequestEditorFn, len(args)-3)
+		for i, a := range args[3:] {
 			if a != nil {
 				variadicArgs[i] = a.(RequestEditorFn)
 			}
 		}
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		run(args[0].(context.Context), args[1].(string), args[2].(KubeConfig), variadicArgs...)
 	})
 	return _c
 }
@@ -914,7 +991,7 @@ func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_C
 	return _c
 }
 
-func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call) RunAndReturn(run func(context.Context, string, ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call {
+func (_c *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call) RunAndReturn(run func(context.Context, string, KubeConfig, ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)) *MockClientWithResponsesInterface_UpdateClusterKubeConfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }

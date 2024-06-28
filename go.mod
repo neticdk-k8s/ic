@@ -11,7 +11,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/go-cmp v0.5.9
-	github.com/hashicorp/go-retryablehttp v0.7.5
+	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/int128/oauth2cli v1.14.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/neticdk/go-common v0.0.0-20240429113525-f9cb58302a99
@@ -69,7 +69,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
-	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

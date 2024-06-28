@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -211,6 +213,245 @@ type GenericResource struct {
 	Owner *string `json:"owner,omitempty"`
 }
 
+// KubeConfig KubeConfig represents a kubeconfig yaml/json document for a cluster
+type KubeConfig struct {
+	// ApiVersion Legacy field from pkg/api/types.go TypeMeta.
+	ApiVersion *string `json:"apiVersion,omitempty"`
+
+	// Clusters Clusters is a map of referencable names to cluster configs
+	Clusters *[]KubeConfigNamedCluster `json:"clusters,omitempty"`
+
+	// Contexts Contexts is a map of referencable names to context configs
+	Contexts *[]KubeConfigNamedContext `json:"contexts,omitempty"`
+
+	// CurrentContext CurrentContext is the name of the context that you would like to use by
+	// default
+	CurrentContext *string `json:"current-context,omitempty"`
+
+	// Extensions Extensions holds additional information. This is useful for extenders so
+	// that reads and writes don't clobber unknown fields
+	Extensions *[]KubeConfigNamedExtension `json:"extensions,omitempty"`
+
+	// Kind Legacy field from pkg/api/types.go TypeMeta.
+	Kind *string `json:"kind,omitempty"`
+
+	// Preferences Preferences holds general information to be use for cli interactions
+	Preferences *KubeConfigPreferences `json:"preferences,omitempty"`
+
+	// Users AuthInfos is a map of referencable names to user configs
+	Users *[]KubeConfigNamedAuthInfo `json:"users,omitempty"`
+}
+
+// KubeConfigAuthInfo AuthInfo holds the auth information
+type KubeConfigAuthInfo struct {
+	// As Impersonate is the username to impersonate.  The name matches the flag.
+	As *string `json:"as,omitempty"`
+
+	// AsGroups ImpersonateGroups is the groups to impersonate.
+	AsGroups *[]string `json:"as-groups,omitempty"`
+
+	// AsUid ImpersonateUID is the uid to impersonate.
+	AsUid *string `json:"as-uid,omitempty"`
+
+	// AsUserExtra ImpersonateUserExtra contains additional information for impersonated user.
+	AsUserExtra *map[string][]string `json:"as-user-extra,omitempty"`
+
+	// AuthProvider AuthProvider specifies a custom authentication plugin for the kubernetes cluster.
+	AuthProvider *KubeConfigAuthProviderConfig `json:"auth-provider,omitempty"`
+
+	// ClientCertificate ClientCertificate is the path to a client cert file for TLS.
+	ClientCertificate *string `json:"client-certificate,omitempty"`
+
+	// ClientCertificateData ClientCertificateData contains PEM-encoded data from a client cert file for TLS. Overrides ClientCertificate
+	ClientCertificateData *[]int8 `json:"client-certificate-data,omitempty"`
+
+	// ClientKey ClientKey is the path to a client key file for TLS.
+	ClientKey *string `json:"client-key,omitempty"`
+
+	// ClientKeyData ClientKeyData contains PEM-encoded data from a client key file for TLS. Overrides ClientKey
+	ClientKeyData *[]int8 `json:"client-key-data,omitempty"`
+
+	// Exec Exec specifies a custom exec-based authentication plugin for the kubernetes cluster.
+	Exec *KubeConfigExecConfig `json:"exec,omitempty"`
+
+	// Extensions Extensions holds additional information. This is useful for extenders so
+	// that reads and writes don't clobber unknown fields
+	Extensions *[]KubeConfigNamedExtension `json:"extensions,omitempty"`
+
+	// Password Password is the password for basic authentication to the kubernetes cluster.
+	Password *string `json:"password,omitempty"`
+
+	// Token Token is the bearer token for authentication to the kubernetes cluster.
+	Token *string `json:"token,omitempty"`
+
+	// TokenFile TokenFile is a pointer to a file that contains a bearer token (as described above).  If both Token and TokenFile are present, Token takes precedence.
+	TokenFile *string `json:"tokenFile,omitempty"`
+
+	// Username Username is the username for basic authentication to the kubernetes cluster.
+	Username *string `json:"username,omitempty"`
+}
+
+// KubeConfigAuthProviderConfig AuthProvider specifies a custom authentication plugin for the kubernetes cluster.
+type KubeConfigAuthProviderConfig struct {
+	Config *map[string]string `json:"config,omitempty"`
+	Name   *string            `json:"name,omitempty"`
+}
+
+// KubeConfigCluster Cluster holds the cluster information
+type KubeConfigCluster struct {
+	// CertificateAuthority CertificateAuthority is the path to a cert file for the certificate authority.
+	CertificateAuthority *string `json:"certificate-authority,omitempty"`
+
+	// CertificateAuthorityData CertificateAuthorityData contains PEM-encoded certificate authority certificates. Overrides CertificateAuthority
+	CertificateAuthorityData *[]int8 `json:"certificate-authority-data,omitempty"`
+
+	// DisableCompression DisableCompression allows client to opt-out of response compression for all requests to the server. This is useful
+	// to speed up requests (specifically lists) when client-server network bandwidth is ample, by saving time on
+	// compression (server-side) and decompression (client-side): https://github.com/kubernetes/kubernetes/issues/112296.
+	DisableCompression *bool `json:"disable-compression,omitempty"`
+
+	// Extensions Extensions holds additional information. This is useful for extenders so that reads and writes don't clobber unknown fields
+	Extensions *[]KubeConfigNamedExtension `json:"extensions,omitempty"`
+
+	// InsecureSkipTlsVerify InsecureSkipTLSVerify skips the validity check for the server's certificate. This will make your HTTPS connections insecure.
+	InsecureSkipTlsVerify *bool `json:"insecure-skip-tls-verify,omitempty"`
+
+	// ProxyUrl ProxyURL is the URL to the proxy to be used for all requests made by this
+	// client. URLs with "http", "https", and "socks5" schemes are supported.  If
+	// this configuration is not provided or the empty string, the client
+	// attempts to construct a proxy configuration from http_proxy and
+	// https_proxy environment variables. If these environment variables are not
+	// set, the client does not attempt to proxy requests.
+	//
+	// socks5 proxying does not currently support spdy streaming endpoints (exec,
+	// attach, port forward).
+	ProxyUrl *string `json:"proxy-url,omitempty"`
+
+	// Server Server is the address of the kubernetes cluster (https://hostname:port).
+	Server *string `json:"server,omitempty"`
+
+	// TlsServerName TLSServerName is used to check server certificate. If TLSServerName is empty, the hostname used to contact the server is used.
+	TlsServerName *string `json:"tls-server-name,omitempty"`
+}
+
+// KubeConfigContext Context holds the context information
+type KubeConfigContext struct {
+	// Cluster Cluster is the name of the cluster for this context
+	Cluster *string `json:"cluster,omitempty"`
+
+	// Extensions Extensions holds additional information. This is useful for extenders so that reads and writes don't clobber unknown fields
+	Extensions *[]KubeConfigNamedExtension `json:"extensions,omitempty"`
+
+	// Namespace Namespace is the default namespace to use on unspecified requests
+	Namespace *string `json:"namespace,omitempty"`
+
+	// User AuthInfo is the name of the authInfo for this context
+	User *string `json:"user,omitempty"`
+}
+
+// KubeConfigExecConfig Exec specifies a custom exec-based authentication plugin for the kubernetes cluster.
+type KubeConfigExecConfig struct {
+	// ApiVersion Preferred input version of the ExecInfo. The returned ExecCredentials MUST use
+	// the same encoding version as the input.
+	ApiVersion *string `json:"apiVersion,omitempty"`
+
+	// Args Arguments to pass to the command when executing it.
+	Args *[]string `json:"args,omitempty"`
+
+	// Command Command to execute.
+	Command *string `json:"command,omitempty"`
+
+	// Env Env defines additional environment variables to expose to the process. These
+	// are unioned with the host's environment, as well as variables client-go uses
+	// to pass argument to the plugin.
+	Env *[]KubeConfigExecEnvVar `json:"env,omitempty"`
+
+	// InstallHint This text is shown to the user when the executable doesn't seem to be
+	// present. For example, `brew install foo-cli` might be a good InstallHint for
+	// foo-cli on Mac OS systems.
+	InstallHint *string `json:"installHint,omitempty"`
+
+	// InteractiveMode InteractiveMode determines this plugin's relationship with standard input. Valid
+	// values are "Never" (this exec plugin never uses standard input), "IfAvailable" (this
+	// exec plugin wants to use standard input if it is available), or "Always" (this exec
+	// plugin requires standard input to function). See ExecInteractiveMode values for more
+	// details.
+	//
+	// If APIVersion is client.authentication.k8s.io/v1alpha1 or
+	// client.authentication.k8s.io/v1beta1, then this field is optional and defaults
+	// to "IfAvailable" when unset. Otherwise, this field is required.
+	InteractiveMode *KubeConfigExecInteractiveMode `json:"interactiveMode,omitempty"`
+
+	// ProvideClusterInfo ProvideClusterInfo determines whether or not to provide cluster information,
+	// which could potentially contain very large CA data, to this exec plugin as a
+	// part of the KUBERNETES_EXEC_INFO environment variable. By default, it is set
+	// to false. Package k8s.io/client-go/tools/auth/exec provides helper methods for
+	// reading this environment variable.
+	ProvideClusterInfo *bool `json:"provideClusterInfo,omitempty"`
+}
+
+// KubeConfigExecEnvVar defines model for KubeConfigExecEnvVar.
+type KubeConfigExecEnvVar struct {
+	Name  *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+// KubeConfigExecInteractiveMode InteractiveMode determines this plugin's relationship with standard input. Valid
+// values are "Never" (this exec plugin never uses standard input), "IfAvailable" (this
+// exec plugin wants to use standard input if it is available), or "Always" (this exec
+// plugin requires standard input to function). See ExecInteractiveMode values for more
+// details.
+//
+// If APIVersion is client.authentication.k8s.io/v1alpha1 or
+// client.authentication.k8s.io/v1beta1, then this field is optional and defaults
+// to "IfAvailable" when unset. Otherwise, this field is required.
+type KubeConfigExecInteractiveMode = string
+
+// KubeConfigNamedAuthInfo defines model for KubeConfigNamedAuthInfo.
+type KubeConfigNamedAuthInfo struct {
+	// Name Name is the nickname for this AuthInfo
+	Name *string `json:"name,omitempty"`
+
+	// User AuthInfo holds the auth information
+	User *KubeConfigAuthInfo `json:"user,omitempty"`
+}
+
+// KubeConfigNamedCluster defines model for KubeConfigNamedCluster.
+type KubeConfigNamedCluster struct {
+	// Cluster Cluster holds the cluster information
+	Cluster *KubeConfigCluster `json:"cluster,omitempty"`
+
+	// Name Name is the nickname for this Cluster
+	Name *string `json:"name,omitempty"`
+}
+
+// KubeConfigNamedContext defines model for KubeConfigNamedContext.
+type KubeConfigNamedContext struct {
+	// Context Context holds the context information
+	Context *KubeConfigContext `json:"context,omitempty"`
+
+	// Name Name is the nickname for this Context
+	Name *string `json:"name,omitempty"`
+}
+
+// KubeConfigNamedExtension defines model for KubeConfigNamedExtension.
+type KubeConfigNamedExtension struct {
+	// Extension Extension holds the extension information
+	Extension *RawExtension `json:"extension,omitempty"`
+
+	// Name Name is the nickname for this Extension
+	Name *string `json:"name,omitempty"`
+}
+
+// KubeConfigPreferences Preferences holds general information to be use for cli interactions
+type KubeConfigPreferences struct {
+	Colors *bool `json:"colors,omitempty"`
+
+	// Extensions Extensions holds additional information. This is useful for extenders so
+	// that reads and writes don't clobber unknown fields
+	Extensions *[]KubeConfigNamedExtension `json:"extensions,omitempty"`
+}
+
 // Node Node represents properties of a node running in a cluster
 type Node struct {
 	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
@@ -361,6 +602,9 @@ type Problem struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// RawExtension Extension holds the extension information
+type RawExtension = map[string]interface{}
+
 // Resources Resources represents a partial collection of resources which may be of different type
 type Resources struct {
 	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
@@ -453,6 +697,9 @@ type CreateClusterJSONRequestBody = CreateCluster
 
 // UpdateClusterJSONRequestBody defines body for UpdateCluster for application/json ContentType.
 type UpdateClusterJSONRequestBody = UpdateCluster
+
+// UpdateClusterKubeConfigJSONRequestBody defines body for UpdateClusterKubeConfig for application/json ContentType.
+type UpdateClusterKubeConfigJSONRequestBody = KubeConfig
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -549,8 +796,10 @@ type ClientInterface interface {
 	// GetClusterKubeConfig request
 	GetClusterKubeConfig(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UpdateClusterKubeConfig request
-	UpdateClusterKubeConfig(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateClusterKubeConfigWithBody request with any body
+	UpdateClusterKubeConfigWithBody(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateClusterKubeConfig(ctx context.Context, clusterId string, body UpdateClusterKubeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListNodes request
 	ListNodes(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -664,8 +913,20 @@ func (c *Client) GetClusterKubeConfig(ctx context.Context, clusterId string, req
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateClusterKubeConfig(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateClusterKubeConfigRequest(c.Server, clusterId)
+func (c *Client) UpdateClusterKubeConfigWithBody(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateClusterKubeConfigRequestWithBody(c.Server, clusterId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateClusterKubeConfig(ctx context.Context, clusterId string, body UpdateClusterKubeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateClusterKubeConfigRequest(c.Server, clusterId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -952,8 +1213,19 @@ func NewGetClusterKubeConfigRequest(server string, clusterId string) (*http.Requ
 	return req, nil
 }
 
-// NewUpdateClusterKubeConfigRequest generates requests for UpdateClusterKubeConfig
-func NewUpdateClusterKubeConfigRequest(server string, clusterId string) (*http.Request, error) {
+// NewUpdateClusterKubeConfigRequest calls the generic UpdateClusterKubeConfig builder with application/json body
+func NewUpdateClusterKubeConfigRequest(server string, clusterId string, body UpdateClusterKubeConfigJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateClusterKubeConfigRequestWithBody(server, clusterId, "application/json", bodyReader)
+}
+
+// NewUpdateClusterKubeConfigRequestWithBody generates requests for UpdateClusterKubeConfig with any type of body
+func NewUpdateClusterKubeConfigRequestWithBody(server string, clusterId string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -978,10 +1250,12 @@ func NewUpdateClusterKubeConfigRequest(server string, clusterId string) (*http.R
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -1284,8 +1558,10 @@ type ClientWithResponsesInterface interface {
 	// GetClusterKubeConfigWithResponse request
 	GetClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*GetClusterKubeConfigResponse, error)
 
-	// UpdateClusterKubeConfigWithResponse request
-	UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)
+	// UpdateClusterKubeConfigWithBodyWithResponse request with any body
+	UpdateClusterKubeConfigWithBodyWithResponse(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)
+
+	UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, body UpdateClusterKubeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error)
 
 	// ListNodesWithResponse request
 	ListNodesWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*ListNodesResponse, error)
@@ -1455,11 +1731,16 @@ func (r UpdateClusterResponse) StatusCode() int {
 }
 
 type GetClusterKubeConfigResponse struct {
-	Body                      []byte
-	HTTPResponse              *http.Response
-	ApplicationproblemJSON401 *Problem
-	ApplicationproblemJSON404 *Problem
-	ApplicationproblemJSON500 *Problem
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationproblemJSON401     *Problem
+	YAML401                       *Problem
+	ApplicationproblemJSON404     *Problem
+	YAML404                       *Problem
+	ApplicationproblemJSON500     *Problem
+	YAML500                       *Problem
+	ApplicationproblemJSONDefault *KubeConfig
+	YAMLDefault                   *KubeConfig
 }
 
 // Status returns HTTPResponse.Status
@@ -1717,9 +1998,17 @@ func (c *ClientWithResponses) GetClusterKubeConfigWithResponse(ctx context.Conte
 	return ParseGetClusterKubeConfigResponse(rsp)
 }
 
-// UpdateClusterKubeConfigWithResponse request returning *UpdateClusterKubeConfigResponse
-func (c *ClientWithResponses) UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error) {
-	rsp, err := c.UpdateClusterKubeConfig(ctx, clusterId, reqEditors...)
+// UpdateClusterKubeConfigWithBodyWithResponse request with arbitrary body returning *UpdateClusterKubeConfigResponse
+func (c *ClientWithResponses) UpdateClusterKubeConfigWithBodyWithResponse(ctx context.Context, clusterId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error) {
+	rsp, err := c.UpdateClusterKubeConfigWithBody(ctx, clusterId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateClusterKubeConfigResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateClusterKubeConfigWithResponse(ctx context.Context, clusterId string, body UpdateClusterKubeConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterKubeConfigResponse, error) {
+	rsp, err := c.UpdateClusterKubeConfig(ctx, clusterId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -2222,6 +2511,41 @@ func ParseGetClusterKubeConfigResponse(rsp *http.Response) (*GetClusterKubeConfi
 			return nil, err
 		}
 		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest KubeConfig
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "yaml") && rsp.StatusCode == 401:
+		var dest Problem
+		if err := yaml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.YAML401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "yaml") && rsp.StatusCode == 404:
+		var dest Problem
+		if err := yaml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.YAML404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "yaml") && rsp.StatusCode == 500:
+		var dest Problem
+		if err := yaml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.YAML500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "yaml") && true:
+		var dest KubeConfig
+		if err := yaml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.YAMLDefault = &dest
 
 	}
 

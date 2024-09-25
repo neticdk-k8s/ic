@@ -43,7 +43,8 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
+        if: ${{ !env.ACT }}
         with:
           context: .
           push: true

@@ -12,8 +12,6 @@ ARG GITHUB_TOKEN
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* .
-RUN go env -w GOPRIVATE="github.com/neticdk-k8s/scs-domain-model,github.com/neticdk/go-common"
-RUN git config --global url."https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
 RUN --mount=type=cache,target=/go/pkg/modx \
     go mod download
 

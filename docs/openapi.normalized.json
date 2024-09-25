@@ -3091,6 +3091,10 @@
                         "description": "Description is the humanreadable cluster description of the cluster",
                         "type": "string"
                     },
+                    "docsSpace": {
+                        "description": "DocsSpace is where to find Docs Pages and Device Monitoring",
+                        "type": "string"
+                    },
                     "environmentName": {
                         "description": "EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., \"production\"",
                         "type": "string"
@@ -3106,6 +3110,10 @@
                     },
                     "infrastructureProvider": {
                         "description": "InfrastructureProvider indicates the provider of the underlying infrastructure, e.g., azure, aws, netic etc. it may not be possible to determine the infrastructure provider",
+                        "type": "string"
+                    },
+                    "jiraProject": {
+                        "description": "JiraProject is to help identify where related issues should be created",
                         "type": "string"
                     },
                     "kubernetesProvider": {
@@ -3239,6 +3247,10 @@
                         "description": "Description is the humanreadable cluster description of the cluster",
                         "type": "string"
                     },
+                    "docsSpace": {
+                        "description": "DocsSpace is where to find Docs Pages and Device Monitoring",
+                        "type": "string"
+                    },
                     "environmentName": {
                         "description": "EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., \"production\"",
                         "type": "string"
@@ -3267,6 +3279,10 @@
                         "description": "InfrastructureProvider is the name of the entity that provides the infrastructure for the cluster. One of: \"netic\", \"azure\", \"aws\"",
                         "type": "string"
                     },
+                    "jiraProject": {
+                        "description": "JiraProject is to help identify where related issues should be created",
+                        "type": "string"
+                    },
                     "name": {
                         "description": "Name uniquely identifying the cluster within the provider of the cluster",
                         "type": "string"
@@ -3289,6 +3305,40 @@
                     },
                     "subscriptionID": {
                         "description": "SubscriptionID is the subscription ID associated with the cluster",
+                        "type": "string"
+                    }
+                }
+            },
+            "Customer": {
+                "description": "Customer models a customer accounting wise",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name is a humanreable name of the customer",
+                        "type": "string"
+                    },
+                    "number": {
+                        "description": "Number is the identifying property of a customer",
                         "type": "string"
                     }
                 }
@@ -3930,6 +3980,40 @@
                     }
                 }
             },
+            "Project": {
+                "description": "Project models a project accounting wise",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name is a humanreable name of the project",
+                        "type": "string"
+                    },
+                    "number": {
+                        "description": "Number is the identifying property of a project",
+                        "type": "string"
+                    }
+                }
+            },
             "Provider": {
                 "description": "Provider models a cluster provider organization",
                 "type": "object",
@@ -4085,6 +4169,10 @@
                         "description": "Description is the humanreadable cluster description of the cluster",
                         "type": "string"
                     },
+                    "docsSpace": {
+                        "description": "DocsSpace is where to find Docs Pages and Device Monitoring",
+                        "type": "string"
+                    },
                     "environmentName": {
                         "description": "EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., \"production\"",
                         "type": "string"
@@ -4111,6 +4199,10 @@
                     },
                     "infrastructureProvider": {
                         "description": "InfrastructureProvider is the name of the entity that provides the infrastructure for the cluster. One of: \"netic\", \"azure\", \"aws\"",
+                        "type": "string"
+                    },
+                    "jiraProject": {
+                        "description": "JiraProject is to help identify where related issues should be created",
                         "type": "string"
                     },
                     "resilienceZone": {

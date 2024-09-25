@@ -22,7 +22,7 @@ func NewCreateClusterCmd(ec *ExecutionContext) *cobra.Command {
 		GroupID: groupCluster,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.complete()
-			if err := o.validate(); err != nil {
+			if err := o.validate(ec); err != nil {
 				return err
 			}
 			return o.run(ec)
@@ -67,7 +67,7 @@ func (o *createClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.Region, "region", "dk-north", "Region. Depends on the partition.")
 	f.StringVar(&o.SubscriptionID, "subscription", "", "Subscription ID")
 	f.StringVar(&o.InfrastructureProvider, "infrastructure-provider", "netic", fmt.Sprintf("Infrastructure Provider. One of (%s)", strings.Join(types.AllInfrastructureProvidersString(), "|")))
-	f.StringVar(&o.ResilienceZone, "resilience-zone", "netic", fmt.Sprintf("Resilience Zone. One of (%s)", strings.Join(types.AllResilienceZonesString(), "|")))
+	f.StringVar(&o.ResilienceZone, "resilience-zone", "netic", fmt.Sprintf("Resilience Zone. Should be one of (%s)", strings.Join(types.AllResilienceZonesString(), "|")))
 	f.BoolVar(&o.HasTechnicalOperations, "has-to", true, "Technical Operations")
 	f.BoolVar(&o.HasTechnicalManagement, "has-tm", true, "Technical Management")
 	f.BoolVar(&o.HasApplicationOperations, "has-ao", false, "Application Operations")
@@ -76,7 +76,7 @@ func (o *createClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.CustomOperationsURL, "co-url", "", "Custom Operations URL")
 }
 
-func (o *createClusterOptions) validate() error {
+func (o *createClusterOptions) validate(ec *ExecutionContext) error {
 	p, ok := types.ParsePartition(o.Partition)
 	if !ok {
 		return &InvalidArgumentError{
@@ -145,11 +145,7 @@ func (o *createClusterOptions) validate() error {
 		}
 	}
 	if !slices.Contains(types.AllResilienceZonesString(), o.ResilienceZone) {
-		return &InvalidArgumentError{
-			Flag:  "resilience-zone",
-			Val:   o.ResilienceZone,
-			OneOf: types.AllResilienceZonesString(),
-		}
+		ec.Logger.Warn(fmt.Sprintf("Non-standard resilience zone used: %s", o.ResilienceZone))
 	}
 	if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
 		return &InvalidArgumentError{

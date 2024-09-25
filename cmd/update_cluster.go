@@ -23,7 +23,7 @@ func NewUpdateClusterCmd(ec *ExecutionContext) *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.complete()
-			if err := o.validate(cmd); err != nil {
+			if err := o.validate(cmd, ec); err != nil {
 				return err
 			}
 			return o.run(ec, args)
@@ -56,7 +56,7 @@ func (o *updateClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.EnvironmentName, "environment", "", "Environment Name")
 	f.StringVar(&o.SubscriptionID, "subscription", "", "Subscription ID")
 	f.StringVar(&o.InfrastructureProvider, "infrastructure-provider", "netic", fmt.Sprintf("Infrastructure Provider. One of (%s)", strings.Join(types.AllInfrastructureProvidersString(), "|")))
-	f.StringVar(&o.ResilienceZone, "resilience-zone", "netic", fmt.Sprintf("Resilience Zone. One of (%s)", strings.Join(types.AllResilienceZonesString(), "|")))
+	f.StringVar(&o.ResilienceZone, "resilience-zone", "netic", fmt.Sprintf("Resilience Zone. Should be one of (%s)", strings.Join(types.AllResilienceZonesString(), "|")))
 	f.BoolVar(&o.HasTechnicalOperations, "has-to", true, "Technical Operations")
 	f.BoolVar(&o.HasTechnicalManagement, "has-tm", true, "Technical Management")
 	f.BoolVar(&o.HasApplicationOperations, "has-ao", false, "Application Operations")
@@ -65,7 +65,7 @@ func (o *updateClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.CustomOperationsURL, "co-url", "", "Custom Operations URL")
 }
 
-func (o *updateClusterOptions) validate(cmd *cobra.Command) error {
+func (o *updateClusterOptions) validate(cmd *cobra.Command, ec *ExecutionContext) error {
 	if o.HasCustomOperations && !validation.IsWebURL(o.CustomOperationsURL) {
 		return &InvalidArgumentError{
 			Flag:    "co-url",
@@ -108,11 +108,7 @@ func (o *updateClusterOptions) validate(cmd *cobra.Command) error {
 	}
 	if cmd.Flags().Changed("resilience-zone") {
 		if !slices.Contains(types.AllResilienceZonesString(), o.ResilienceZone) {
-			return &InvalidArgumentError{
-				Flag:  "resilience-zone",
-				Val:   o.ResilienceZone,
-				OneOf: types.AllResilienceZonesString(),
-			}
+			ec.Logger.Warn(fmt.Sprintf("Non-standard resilience zone used: %s", o.ResilienceZone))
 		}
 	}
 	if cmd.Flags().Changed("subscription") {

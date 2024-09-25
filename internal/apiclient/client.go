@@ -46,6 +46,9 @@ type Cluster struct {
 	// Description Description is the humanreadable cluster description of the cluster
 	Description *string `json:"description,omitempty"`
 
+	// DocsSpace DocsSpace is where to find Docs Pages and Device Monitoring
+	DocsSpace *string `json:"docsSpace,omitempty"`
+
 	// EnvironmentName EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., "production"
 	EnvironmentName *string `json:"environmentName,omitempty"`
 
@@ -57,6 +60,9 @@ type Cluster struct {
 
 	// InfrastructureProvider InfrastructureProvider indicates the provider of the underlying infrastructure, e.g., azure, aws, netic etc. it may not be possible to determine the infrastructure provider
 	InfrastructureProvider *string `json:"infrastructureProvider,omitempty"`
+
+	// JiraProject JiraProject is to help identify where related issues should be created
+	JiraProject *string `json:"jiraProject,omitempty"`
 
 	// KubernetesProvider KubernetesProvider indicates the Kubernetes distribution, e.g., rke2, aks, eks, kubeadm, etc.
 	KubernetesProvider *string  `json:"kubernetesProvider,omitempty"`
@@ -137,6 +143,9 @@ type CreateCluster struct {
 	// Description Description is the humanreadable cluster description of the cluster
 	Description *string `json:"description,omitempty"`
 
+	// DocsSpace DocsSpace is where to find Docs Pages and Device Monitoring
+	DocsSpace *string `json:"docsSpace,omitempty"`
+
 	// EnvironmentName EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., "production"
 	EnvironmentName *string `json:"environmentName,omitempty"`
 
@@ -157,6 +166,9 @@ type CreateCluster struct {
 
 	// InfrastructureProvider InfrastructureProvider is the name of the entity that provides the infrastructure for the cluster. One of: "netic", "azure", "aws"
 	InfrastructureProvider *string `json:"infrastructureProvider,omitempty"`
+
+	// JiraProject JiraProject is to help identify where related issues should be created
+	JiraProject *string `json:"jiraProject,omitempty"`
 
 	// Name Name uniquely identifying the cluster within the provider of the cluster
 	Name *string `json:"name,omitempty"`
@@ -640,6 +652,9 @@ type UpdateCluster struct {
 	// Description Description is the humanreadable cluster description of the cluster
 	Description *string `json:"description,omitempty"`
 
+	// DocsSpace DocsSpace is where to find Docs Pages and Device Monitoring
+	DocsSpace *string `json:"docsSpace,omitempty"`
+
 	// EnvironmentName EnvironmentName specifies the name of the environment to which the cluster is associated - this is generic determined by the cluster provider and tenants but suggested to be, e.g., "production"
 	EnvironmentName *string `json:"environmentName,omitempty"`
 
@@ -660,6 +675,9 @@ type UpdateCluster struct {
 
 	// InfrastructureProvider InfrastructureProvider is the name of the entity that provides the infrastructure for the cluster. One of: "netic", "azure", "aws"
 	InfrastructureProvider *string `json:"infrastructureProvider,omitempty"`
+
+	// JiraProject JiraProject is to help identify where related issues should be created
+	JiraProject *string `json:"jiraProject,omitempty"`
 
 	// ResilienceZone ResilienceZone is the name of the resilience zone the cluster is running in
 	ResilienceZone *string `json:"resilienceZone,omitempty"`

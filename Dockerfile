@@ -6,9 +6,6 @@ RUN apk add git
 
 RUN adduser -S -u 20000 -H inventory
 
-ARG GITHUB_USERNAME
-ARG GITHUB_TOKEN
-
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* .

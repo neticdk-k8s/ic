@@ -53,8 +53,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ github.ref_name }}
-            GITHUB_USERNAME=${{ secrets.GIT_USERNAME }}
-            GITHUB_TOKEN=${{ secrets.GIT_TOKEN }}
 
       - name: Create release
         uses: softprops/action-gh-release@v1

@@ -49,11 +49,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Release
         uses: wangyoucao577/go-release-action@v1
+        env:
+          TMPDIR: /tmp
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          binary_name: "ic"
+          binary_name: ic
           ldflags: -s -w -X main.version=${{ github.ref_name }}
           extra_files: README.md
           release_tag: ${{ github.ref_name }}

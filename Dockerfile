@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} golang:alpine as base
+FROM --platform=${BUILDPLATFORM} golang:alpine AS base
 
 RUN apk update
 RUN apk add -U --no-cache ca-certificates && update-ca-certificates
@@ -40,7 +40,7 @@ COPY --from=builder --chown=20000 /cache/. /cache/
 FROM bin-unix AS bin-linux
 FROM bin-unix AS bin-darwin
 
-FROM bin-${TARGETOS} as bin
+FROM bin-${TARGETOS} AS bin
 
 ENV IC_OIDC_TOKEN_CACHE_DIR=/cache
 EXPOSE 18000

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"regexp"
+	"slices"
 
 	"github.com/neticdk-k8s/ic/internal/errors"
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
@@ -10,6 +11,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
+
+var getClustersFilterNames []string = []string{
+	"name", "description", "clusterID", "clusterType", "region", "environmentName",
+	"providerName", "navisionSubscriptionNumber", "navisionCustomerNumber",
+	"navisionCustomerName", "resilienceZone", "clientVersion", "kubernetesVersion",
+}
 
 // New creates a new "get clusters" command
 func NewGetClustersCmd(ec *ExecutionContext) *cobra.Command {
@@ -121,6 +128,9 @@ func parseFilter(filterArg string) (*parseFilterOut, error) {
 		return nil, fmt.Errorf("syntax error in filter: %v", filterArg)
 	}
 	fieldName := m[1]
+	if !slices.Contains(getClustersFilterNames, fieldName) {
+		return nil, fmt.Errorf("unknown field name: %s in %s", fieldName, filterArg)
+	}
 	searchOp := m[2]
 	searchVal := m[3]
 	ops := map[string]string{

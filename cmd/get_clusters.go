@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/neticdk-k8s/ic/internal/errors"
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
@@ -122,7 +123,7 @@ type parseFilterOut struct {
 }
 
 func parseFilter(filterArg string) (*parseFilterOut, error) {
-	r := regexp.MustCompile(`^([a-zA-Z0-9]+)(==|!=|>=|<=|=~|!~|=|!|<|>|~)(.*)$`)
+	r := regexp.MustCompile(`^([a-zA-Z0-9]+)(==|!=|>=|<=|=~|!~|=|!|<|>|~| (?i)in | (?i)notin )(.*)$`)
 	m := r.FindStringSubmatch(filterArg)
 	if m == nil {
 		return nil, fmt.Errorf("syntax error in filter: %v", filterArg)
@@ -134,22 +135,24 @@ func parseFilter(filterArg string) (*parseFilterOut, error) {
 	searchOp := m[2]
 	searchVal := m[3]
 	ops := map[string]string{
-		"=":  "eq",
-		"==": "eq",
-		"!=": "ne",
-		"!":  "ne",
-		">":  "gt",
-		"<":  "lt",
-		">=": "ge",
-		"<=": "le",
-		"=~": "ire",
-		"~":  "ire",
-		"!~": "nire",
+		"=":       "eq",
+		"==":      "eq",
+		"!=":      "ne",
+		"!":       "ne",
+		">":       "gt",
+		"<":       "lt",
+		">=":      "ge",
+		"<=":      "le",
+		"=~":      "ire",
+		"~":       "ire",
+		"!~":      "nire",
+		" in ":    "in",
+		" notin ": "notin",
 	}
 	field := &qsparser.SearchField{
 		SearchVal: &searchVal,
 	}
-	if op, ok := ops[searchOp]; ok {
+	if op, ok := ops[strings.ToLower(searchOp)]; ok {
 		field.SearchOp = &op
 	} else {
 		return nil, fmt.Errorf("unknown search operator: %s in %s", searchOp, filterArg)

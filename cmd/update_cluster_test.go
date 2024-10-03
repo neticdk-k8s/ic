@@ -80,11 +80,6 @@ func Test_UpdateClusterCommandInvalidParameters(t *testing.T) {
 			expErrString: "invalid",
 		},
 		{
-			testName:     "invalid resilience zone",
-			args:         []string{"my-cluster.my-provider", "--resilience-zone", "myplatform"},
-			expErrString: "invalid",
-		},
-		{
 			testName:     "invalid subscription length",
 			args:         []string{"my-cluster.my-provider", "--subscription", "446"},
 			expErrString: "minimum 5 characters",

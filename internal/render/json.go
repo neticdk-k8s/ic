@@ -7,6 +7,7 @@ import (
 	"io"
 )
 
+// PrettyPrintJSON pretty prints JSON
 func PrettyPrintJSON(body []byte, writer io.Writer) error {
 	var prettyJSON bytes.Buffer
 	err := json.Indent(&prettyJSON, body, "", "  ")
@@ -17,6 +18,7 @@ func PrettyPrintJSON(body []byte, writer io.Writer) error {
 	return nil
 }
 
+// BytesToBinarySI converts bytes to human readable string using binary SI units
 func BytesToBinarySI(bytes int64) (float64, string) {
 	const (
 		kibi float64 = 1024

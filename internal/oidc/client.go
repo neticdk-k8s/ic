@@ -41,7 +41,7 @@ func (c *client) Refresh(ctx context.Context, refreshToken string) (*TokenSet, e
 	source := c.oauth2config.TokenSource(ctx, currentToken)
 	token, err := source.Token()
 	if err != nil {
-		return nil, errors.Wrap(err, "refreshing token")
+		return nil, fmt.Errorf("refreshing token: %w", err)
 	}
 	return c.verifyToken(token, "")
 }

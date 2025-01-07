@@ -124,6 +124,14 @@ oidc-issuer-url="http://localhost:8080/realms/test"
 api-server="http://localhost:8087"
 ```
 
+### Using api-token and curl with the API server
+
+Use it like this:
+
+```bash
+curl -H "Authorization: Bearer $(bin/ic api-token 2>/dev/null)" http://localhost:8087/clusters | jq .
+```
+
 ### Code Generation
 
 #### Mocks

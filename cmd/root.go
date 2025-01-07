@@ -16,10 +16,11 @@ const (
 	envPrefix             = "IC"
 	oobRedirectURI        = "urn:ietf:wg:oauth:2.0:oob"
 
-	groupBase    = "group-base"
-	groupAuth    = "group-auth"
-	groupCluster = "group-cluster"
-	groupOther   = "group-other"
+	groupBase      = "group-base"
+	groupAuth      = "group-auth"
+	groupCluster   = "group-cluster"
+	groupComponent = "group-component"
+	groupOther     = "group-other"
 )
 
 func NewRootCmd(ec *ExecutionContext) *cobra.Command {

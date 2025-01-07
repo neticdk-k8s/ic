@@ -31,12 +31,18 @@ func NewGetCmd(ec *ExecutionContext) *cobra.Command {
 		NewGetPartitionsCmd(ec),
 		NewGetRegionsCmd(ec),
 		NewGetResilienceZonesCmd(ec),
+		NewGetComponentsCmd(ec),
+		NewGetComponentCmd(ec),
 	)
 
 	c.AddGroup(
 		&cobra.Group{
 			ID:    groupCluster,
 			Title: "Cluster Commands:",
+		},
+		&cobra.Group{
+			ID:    groupComponent,
+			Title: "Component Commands:",
 		},
 		&cobra.Group{
 			ID:    groupOther,

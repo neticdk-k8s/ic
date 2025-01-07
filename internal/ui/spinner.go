@@ -28,10 +28,12 @@ func newSpinner() *model {
 	}
 }
 
+// Init initializes the spinner
 func (m *model) Init() tea.Cmd {
 	return m.spinner.Tick
 }
 
+// Update updates the spinner
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.quitting || m.finished {
 		return m, tea.Quit
@@ -55,6 +57,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
+// View returns the spinner view
 func (m *model) View() string {
 	if m.quitting || m.finished {
 		return ""
@@ -62,6 +65,7 @@ func (m *model) View() string {
 	return fmt.Sprintf("%s %s", m.spinner.View(), m.message)
 }
 
+// Spinner is a spinner
 type Spinner struct {
 	model   *model
 	program *tea.Program

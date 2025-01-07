@@ -3041,6 +3041,224 @@
                     }
                 }
             }
+        },
+        "/components": {
+            "get": {
+                "description": "listComponents returns a list of components depending on the authorizations of the user.\n\nThe returned list will contain all components that the user has access to\nsee. Filtering is done based on the resources listed in the given OAuth 2.0\ntoken. The result is a partial collection supporting pagination.\n",
+                "operationId": "listComponents",
+                "responses": {
+                    "400": {
+                        "description": "Invalid query parameters, e.g., pagination parameters",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal errors communication with backends or other",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "collection of components",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Components"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "@id": "https://api.k8s.netic.dk/components",
+                                            "@included": [
+                                                {
+                                                    "@id": "netic-observability-system/observability",
+                                                    "@type": "Component",
+                                                    "clusters": [
+                                                        {
+                                                            "@id": "prod1.provider5",
+                                                            "@type": "Cluster",
+                                                            "cluster_id": "prod1.provider5"
+                                                        }
+                                                    ],
+                                                    "description": "Deployes Netic observability stack",
+                                                    "name": "observability",
+                                                    "namespace": "netic-observability-system",
+                                                    "resilience_zones": [
+                                                        {
+                                                            "@id": "internal-1",
+                                                            "@type": "ResilienceZone",
+                                                            "name": "internal-1",
+                                                            "version": "2.1.17"
+                                                        }
+                                                    ],
+                                                    "source": "https://git.netic.dk/scm/pd/gotk-bootstrap-k8s.git/observability",
+                                                    "type": "core"
+                                                }
+                                            ],
+                                            "@type": "ComponentCollection"
+                                        }
+                                    }
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Components"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/components/{namespace}/{name}": {
+            "get": {
+                "description": "getComponent returns information on a specific component.\n\nA component represents a component in the Netic cloud stack.\n",
+                "operationId": "getComponent",
+                "parameters": [
+                    {
+                        "description": "the namespace of the component",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "the name of the component",
+                        "name": "name",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Missing or invalid credentials (OAuth 2.0 token)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The request instance was not found (or user does not have access)",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal errors communication with backends or other",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Problem"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "component",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Component"
+                                },
+                                "examples": {
+                                    "response": {
+                                        "value": {
+                                            "@id": "netic-observability-system/observability",
+                                            "@type": "Component",
+                                            "clusters": [
+                                                {
+                                                    "@id": "prod1.provider5",
+                                                    "@type": "Cluster",
+                                                    "cluster_id": "prod1.provider5"
+                                                }
+                                            ],
+                                            "description": "Deployes Netic observability stack.",
+                                            "name": "observability",
+                                            "namespace": "netic-observability-system",
+                                            "resilience_zones": [
+                                                {
+                                                    "@id": "internal-1",
+                                                    "@type": "ResilienceZone",
+                                                    "name": "internal-1",
+                                                    "version": "2.1.17"
+                                                }
+                                            ],
+                                            "source": "https://git.netic.dk/scm/pd/gotk-bootstrap-k8s.git/observability",
+                                            "type": "core"
+                                        }
+                                    }
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Component"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -3086,6 +3304,11 @@
                         "description": "Components is a reference to the collection of components detected to be running in the cluster",
                         "type": "string",
                         "format": "uri"
+                    },
+                    "created": {
+                        "description": "Created indicates the time the cluster was created",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "description": {
                         "description": "Description is the humanreadable cluster description of the cluster",
@@ -3168,7 +3391,7 @@
                         "example": "https://api.k8s.netic.dk/subscriptions/123456"
                     },
                     "timestamp": {
-                        "description": "Timestamp indicating when data was collected",
+                        "description": "Timestamp indicating the most recent change in cluster data - if the cluster has never sent any data this wont be present",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3229,6 +3452,173 @@
                     },
                     "total": {
                         "description": "TotalCount is the total number of clusters",
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "Component": {
+                "description": "Component represents a secure cloud stack Kubernetes component",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "clusters": {
+                        "description": "Clusters is the clusters that have the components installed",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentCluster"
+                        }
+                    },
+                    "component_type": {
+                        "description": "ComponentType is the type of the component",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Description of the component",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Name of the component",
+                        "type": "string"
+                    },
+                    "namespace": {
+                        "description": "Namespace of the component",
+                        "type": "string"
+                    },
+                    "resilience_zones": {
+                        "description": "ResilienceZones is the resilience zones the component is part of",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ComponentResilienceZone"
+                        }
+                    },
+                    "source": {
+                        "description": "Source is the source of the component",
+                        "type": "string"
+                    }
+                }
+            },
+            "ComponentCluster": {
+                "description": "Cluster models a cluster for inclusion",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "cluster_id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ComponentResilienceZone": {
+                "description": "ResilienceZone models resilience zone for inclusion",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Components": {
+                "description": "Components represents a collection of components",
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "description": "Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "object"
+                    },
+                    "@id": {
+                        "description": "ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "@included": {
+                        "description": "Included will container linked resources included here for convenience",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "@type": {
+                        "description": "Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords",
+                        "type": "string"
+                    },
+                    "components": {
+                        "description": "Components is the identification of the components in the collection",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "count": {
+                        "description": "Count is the number of components in the collection",
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/Pagination"
+                    },
+                    "total": {
+                        "description": "TotalCount is the total number of components",
                         "type": "integer",
                         "format": "int32"
                     }

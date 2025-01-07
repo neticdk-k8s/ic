@@ -43,6 +43,9 @@ type Cluster struct {
 	// Components Components is a reference to the collection of components detected to be running in the cluster
 	Components *string `json:"components,omitempty"`
 
+	// Created Created indicates the time the cluster was created
+	Created *time.Time `json:"created,omitempty"`
+
 	// Description Description is the humanreadable cluster description of the cluster
 	Description *string `json:"description,omitempty"`
 
@@ -95,7 +98,7 @@ type Cluster struct {
 	// Subscription Subscription is the Netic subscription identifier used for accounting - this will only be included when the client is authorized for this information
 	Subscription *string `json:"subscription,omitempty"`
 
-	// Timestamp Timestamp indicating when data was collected
+	// Timestamp Timestamp indicating the most recent change in cluster data - if the cluster has never sent any data this wont be present
 	Timestamp *time.Time `json:"timestamp,omitempty"`
 
 	// Vulnerabilities Vulnerabilities is a reference to the collection of vulnerabilities detected from the cluster
@@ -132,6 +135,102 @@ type Clusters struct {
 	Pagination *Pagination `json:"pagination,omitempty"`
 
 	// Total TotalCount is the total number of clusters
+	Total *int32 `json:"total,omitempty"`
+}
+
+// Component Component represents a secure cloud stack Kubernetes component
+type Component struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type *string `json:"@type,omitempty"`
+
+	// Clusters Clusters is the clusters that have the components installed
+	Clusters *[]ComponentCluster `json:"clusters,omitempty"`
+
+	// ComponentType ComponentType is the type of the component
+	ComponentType *string `json:"component_type,omitempty"`
+
+	// Description Description of the component
+	Description *string `json:"description,omitempty"`
+
+	// Name Name of the component
+	Name *string `json:"name,omitempty"`
+
+	// Namespace Namespace of the component
+	Namespace *string `json:"namespace,omitempty"`
+
+	// ResilienceZones ResilienceZones is the resilience zones the component is part of
+	ResilienceZones *[]ComponentResilienceZone `json:"resilience_zones,omitempty"`
+
+	// Source Source is the source of the component
+	Source *string `json:"source,omitempty"`
+}
+
+// ComponentCluster Cluster models a cluster for inclusion
+type ComponentCluster struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type      *string `json:"@type,omitempty"`
+	ClusterId *string `json:"cluster_id,omitempty"`
+}
+
+// ComponentResilienceZone ResilienceZone models resilience zone for inclusion
+type ComponentResilienceZone struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type    *string `json:"@type,omitempty"`
+	Name    *string `json:"name,omitempty"`
+	Version *string `json:"version,omitempty"`
+}
+
+// Components Components represents a collection of components
+type Components struct {
+	// Context Context is defining the JSON-LD context for dereferencing the data as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Context *map[string]interface{} `json:"@context,omitempty"`
+
+	// Id ID is identifying the node with an IRI as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Id *string `json:"@id,omitempty"`
+
+	// Included Included will container linked resources included here for convenience
+	Included *[]map[string]interface{} `json:"@included,omitempty"`
+
+	// Type Type is optional explicit definition of the type of node as stated in the JSON-LD specification https://www.w3.org/TR/json-ld/#keywords
+	Type *string `json:"@type,omitempty"`
+
+	// Components Components is the identification of the components in the collection
+	Components *[]string `json:"components,omitempty"`
+
+	// Count Count is the number of components in the collection
+	Count *int32 `json:"count,omitempty"`
+
+	// Pagination Pagination contains data on other collection data
+	Pagination *Pagination `json:"pagination,omitempty"`
+
+	// Total TotalCount is the total number of components
 	Total *int32 `json:"total,omitempty"`
 }
 
@@ -833,6 +932,12 @@ type ClientInterface interface {
 
 	// ListResourcesByType request
 	ListResourcesByType(ctx context.Context, clusterId string, group string, version string, resourceType string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListComponents request
+	ListComponents(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetComponent request
+	GetComponent(ctx context.Context, namespace string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListClusters(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1005,6 +1110,30 @@ func (c *Client) GetResource(ctx context.Context, clusterId string, group string
 
 func (c *Client) ListResourcesByType(ctx context.Context, clusterId string, group string, version string, resourceType string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListResourcesByTypeRequest(c.Server, clusterId, group, version, resourceType)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListComponents(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListComponentsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetComponent(ctx context.Context, namespace string, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetComponentRequest(c.Server, namespace, name)
 	if err != nil {
 		return nil, err
 	}
@@ -1511,6 +1640,74 @@ func NewListResourcesByTypeRequest(server string, clusterId string, group string
 	return req, nil
 }
 
+// NewListComponentsRequest generates requests for ListComponents
+func NewListComponentsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/components")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetComponentRequest generates requests for GetComponent
+func NewGetComponentRequest(server string, namespace string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "namespace", runtime.ParamLocationPath, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/components/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -1595,6 +1792,12 @@ type ClientWithResponsesInterface interface {
 
 	// ListResourcesByTypeWithResponse request
 	ListResourcesByTypeWithResponse(ctx context.Context, clusterId string, group string, version string, resourceType string, reqEditors ...RequestEditorFn) (*ListResourcesByTypeResponse, error)
+
+	// ListComponentsWithResponse request
+	ListComponentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListComponentsResponse, error)
+
+	// GetComponentWithResponse request
+	GetComponentWithResponse(ctx context.Context, namespace string, name string, reqEditors ...RequestEditorFn) (*GetComponentResponse, error)
 }
 
 type ListClustersResponse struct {
@@ -1946,6 +2149,64 @@ func (r ListResourcesByTypeResponse) StatusCode() int {
 	return 0
 }
 
+type ListComponentsResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON400          *Problem
+	ApplicationproblemJSON400     *Problem
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
+	ApplicationldJSONDefault      *Components
+	ApplicationproblemJSONDefault *Components
+}
+
+// Status returns HTTPResponse.Status
+func (r ListComponentsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListComponentsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetComponentResponse struct {
+	Body                          []byte
+	HTTPResponse                  *http.Response
+	ApplicationldJSON401          *Problem
+	ApplicationproblemJSON401     *Problem
+	ApplicationldJSON404          *Problem
+	ApplicationproblemJSON404     *Problem
+	ApplicationldJSON500          *Problem
+	ApplicationproblemJSON500     *Problem
+	ApplicationldJSONDefault      *Component
+	ApplicationproblemJSONDefault *Component
+}
+
+// Status returns HTTPResponse.Status
+func (r GetComponentResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetComponentResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // ListClustersWithResponse request returning *ListClustersResponse
 func (c *ClientWithResponses) ListClustersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListClustersResponse, error) {
 	rsp, err := c.ListClusters(ctx, reqEditors...)
@@ -2076,6 +2337,24 @@ func (c *ClientWithResponses) ListResourcesByTypeWithResponse(ctx context.Contex
 		return nil, err
 	}
 	return ParseListResourcesByTypeResponse(rsp)
+}
+
+// ListComponentsWithResponse request returning *ListComponentsResponse
+func (c *ClientWithResponses) ListComponentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListComponentsResponse, error) {
+	rsp, err := c.ListComponents(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListComponentsResponse(rsp)
+}
+
+// GetComponentWithResponse request returning *GetComponentResponse
+func (c *ClientWithResponses) GetComponentWithResponse(ctx context.Context, namespace string, name string, reqEditors ...RequestEditorFn) (*GetComponentResponse, error) {
+	rsp, err := c.GetComponent(ctx, namespace, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetComponentResponse(rsp)
 }
 
 // ParseListClustersResponse parses an HTTP response from a ListClustersWithResponse call
@@ -2975,6 +3254,156 @@ func ParseListResourcesByTypeResponse(rsp *http.Response) (*ListResourcesByTypeR
 
 	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
 		var dest Resources
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListComponentsResponse parses an HTTP response from a ListComponentsWithResponse call
+func ParseListComponentsResponse(rsp *http.Response) (*ListComponentsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListComponentsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Components
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 400:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Components
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetComponentResponse parses an HTTP response from a GetComponentWithResponse call
+func ParseGetComponentResponse(rsp *http.Response) (*GetComponentResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetComponentResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON404 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/ld+json" && true:
+		var dest Component
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationldJSONDefault = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 401:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON401 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 404:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && rsp.StatusCode == 500:
+		var dest Problem
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case rsp.Header.Get("Content-Type") == "application/problem+json" && true:
+		var dest Component
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

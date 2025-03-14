@@ -31,7 +31,7 @@ type componentListResponse struct {
 }
 
 type ComponentList struct {
-	Included   []map[string]interface{}
+	Included   []map[string]any
 	Components []string
 }
 
@@ -39,7 +39,7 @@ func (cl *ComponentList) ToResponse() *componentListResponse {
 	clr := &componentListResponse{
 		Components: make([]componentResponse, 0),
 	}
-	includeMap := make(map[string]interface{})
+	includeMap := make(map[string]any)
 	for _, i := range cl.Included {
 		includeMap[i["@id"].(string)] = i
 	}
@@ -55,14 +55,14 @@ func (cl *ComponentList) ToResponse() *componentListResponse {
 		cr.Description = i["description"].(string)
 		cr.Source = i["source"].(string)
 		cr.Clusters = make([]string, 0)
-		for _, c := range i["clusters"].([]interface{}) {
-			cr.Clusters = append(cr.Clusters, c.(map[string]interface{})["cluster_id"].(string))
+		for _, c := range i["clusters"].([]any) {
+			cr.Clusters = append(cr.Clusters, c.(map[string]any)["cluster_id"].(string))
 		}
 		cr.ResilienceZones = make([]resilienceZoneResponse, 0)
-		for _, rz := range i["resilience_zones"].([]interface{}) {
+		for _, rz := range i["resilience_zones"].([]any) {
 			cr.ResilienceZones = append(cr.ResilienceZones, resilienceZoneResponse{
-				Name:    rz.(map[string]interface{})["name"].(string),
-				Version: rz.(map[string]interface{})["version"].(string),
+				Name:    rz.(map[string]any)["name"].(string),
+				Version: rz.(map[string]any)["version"].(string),
 			})
 		}
 		clr.Components = append(clr.Components, cr)
@@ -175,7 +175,7 @@ func GetComponent(ctx context.Context, namespace, name string, in GetComponentIn
 }
 
 func toComponentResponse(component *apiclient.Component) *componentResponse {
-	includeMap := make(map[string]interface{})
+	includeMap := make(map[string]any)
 	if component.Included != nil {
 		for _, i := range *component.Included {
 			includeMap[i["@id"].(string)] = i

@@ -8,21 +8,21 @@ type OIDCSlogAdapter struct {
 }
 
 // Error logs messages at error level
-func (a OIDCSlogAdapter) Error(msg string, keysAndValues ...interface{}) {
+func (a OIDCSlogAdapter) Error(msg string, keysAndValues ...any) {
 	a.Logger.Error(msg, keysAndValues...)
 }
 
 // Info logs messages at info level
-func (a OIDCSlogAdapter) Info(msg string, keysAndValues ...interface{}) {
+func (a OIDCSlogAdapter) Info(msg string, keysAndValues ...any) {
 	a.Logger.Info(msg, keysAndValues...)
 }
 
 // Debug logs messages at debug level
-func (a OIDCSlogAdapter) Debug(msg string, keysAndValues ...interface{}) {
+func (a OIDCSlogAdapter) Debug(msg string, keysAndValues ...any) {
 	a.Logger.Debug(msg, keysAndValues...)
 }
 
 // Warn logs messages at warn level
-func (a OIDCSlogAdapter) Warn(msg string, keysAndValues ...interface{}) {
+func (a OIDCSlogAdapter) Warn(msg string, keysAndValues ...any) {
 	a.Logger.Warn(msg, keysAndValues...)
 }

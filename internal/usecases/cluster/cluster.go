@@ -166,7 +166,7 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 		clusterList.Included = append(clusterList.Included, *response.ApplicationldJSONDefault.Included...)
 	}
 	if response.ApplicationldJSONDefault.Pagination.Next != nil {
-		in.Page += 1
+		in.Page++
 		return listClusters(ctx, in, clusterList)
 	}
 	return nil, nil
@@ -515,7 +515,7 @@ func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *
 		nodeList.Included = append(nodeList.Included, *response.ApplicationldJSONDefault.Included...)
 	}
 	if response.ApplicationldJSONDefault.Pagination.Next != nil {
-		in.Page += 1
+		in.Page++
 		return listClusterNodes(ctx, in, nodeList)
 	}
 	return nil, nil
@@ -635,7 +635,7 @@ func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	if cluster.Provider != nil {
 		if provider, ok := includeMap[*cluster.Provider]; ok {
 			if p, ok := provider.(map[string]any); ok {
-				cr.ProviderName, _ = mapValAs[string](p, "name")
+				cr.ProviderName, _ = mapValAs[string](p, "name") //nolint
 			}
 		}
 	}

@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	goerr "errors"
+
 	"github.com/neticdk-k8s/ic/internal/errors"
 	"github.com/neticdk-k8s/ic/internal/ui"
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
@@ -42,6 +44,11 @@ func (o *deleteClusterOptions) run(ec *ExecutionContext, args []string) error {
 
 	if !o.Yes {
 		if err := ui.Confirm("delete", args[0]); err != nil {
+			if goerr.Is(err, ui.ExitConfirmError) {
+				ec.Spinner.Stop()
+				ec.Logger.Info("User aborted")
+				return nil
+			}
 			return fmt.Errorf("confirming deletion: %w", err)
 		}
 	}

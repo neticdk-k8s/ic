@@ -75,13 +75,13 @@ type Spinner struct {
 }
 
 // NewSpinner creates a new Spinner
-func NewSpinner(w io.Writer, logger logger.Logger) *Spinner {
+func NewSpinner(w io.Writer, l logger.Logger) *Spinner {
 	model := createSpinner()
 	return &Spinner{
 		model:   model,
 		program: tea.NewProgram(model, tea.WithOutput(w)),
 		writer:  w,
-		logger:  logger,
+		logger:  l,
 		running: false,
 	}
 }
@@ -113,7 +113,7 @@ func (s *Spinner) Run(text string) {
 
 		if s.model.quitting {
 			s.logger.Warn("ctrl + c -> quitting")
-			os.Exit(0)
+			os.Exit(0) //nolint
 		}
 	}()
 }

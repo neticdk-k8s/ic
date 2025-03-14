@@ -15,7 +15,7 @@ import (
 
 const PerPage = 50
 
-var getClustersFilterNames []string = []string{
+var getClustersFilterNames = []string{
 	"name", "description", "clusterID", "clusterType", "region", "environmentName",
 	"providerName", "navisionSubscriptionNumber", "navisionCustomerNumber",
 	"navisionCustomerName", "resilienceZone", "clientVersion", "kubernetesVersion",
@@ -154,10 +154,11 @@ func parseFilter(filterArg string) (*parseFilterOut, error) {
 	field := &qsparser.SearchField{
 		SearchVal: &searchVal,
 	}
-	if op, ok := ops[strings.ToLower(searchOp)]; ok {
-		field.SearchOp = &op
-	} else {
+	op, ok := ops[strings.ToLower(searchOp)]
+	if !ok {
 		return nil, fmt.Errorf("unknown search operator: %s in %s", searchOp, filterArg)
 	}
+	field.SearchOp = &op
+
 	return &parseFilterOut{FieldName: fieldName, SearchField: field}, nil
 }

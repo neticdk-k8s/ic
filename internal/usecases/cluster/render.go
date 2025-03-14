@@ -9,6 +9,12 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const (
+	FormatJson  = "json"
+	FormatTable = "table"
+	FormatText  = "text"
+)
+
 type Renderer interface {
 	// Render renders the cluster
 	Render(format string) error
@@ -39,9 +45,9 @@ func NewClusterRenderer(cluster *clusterResponse, jsonData []byte, writer io.Wri
 // Render renders the cluster
 func (r *clusterRenderer) Render(format string) error {
 	switch format {
-	case "json":
+	case FormatJson:
 		return r.renderJSON()
-	case "text", "table":
+	case FormatText, FormatTable:
 		return r.renderText()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -116,9 +122,9 @@ func NewClustersRenderer(clusters *clusterListResponse, jsonData []byte, writer 
 // Render renders the cluster list
 func (r *clustersRenderer) Render(format string) error {
 	switch format {
-	case "json":
+	case FormatJson:
 		return r.renderJSON()
-	case "text", "table":
+	case FormatText, FormatTable:
 		return r.renderTable()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -171,9 +177,9 @@ func NewClusterNodesRenderer(nodes *clusterNodesListResponse, jsonData []byte, w
 // Render renders the cluster node list
 func (r *clusterNodesRenderer) Render(format string) error {
 	switch format {
-	case "json":
+	case FormatJson:
 		return r.renderJSON()
-	case "text", "table":
+	case FormatText, FormatTable:
 		return r.renderTable()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -229,9 +235,9 @@ func NewClusterNodeRenderer(node *clusterNodeResponse, jsonData []byte, writer i
 // Render renders the cluster node
 func (r *clusterNodeRenderer) Render(format string) error {
 	switch format {
-	case "json":
+	case FormatJson:
 		return r.renderJSON()
-	case "text", "table":
+	case FormatText, FormatTable:
 		return r.renderText()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -286,7 +292,7 @@ func NewClusterKubeConfigRenderer(data []byte, writer io.Writer) *clusterKubeCon
 // Render renders the cluster node
 func (r *clusterKubeConfigRenderer) Render(format string) error {
 	switch format {
-	case "json":
+	case FormatJson:
 		return r.renderJSON()
 	default:
 		render.String(r.data, r.writer)

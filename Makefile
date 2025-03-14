@@ -1,5 +1,13 @@
 .DEFAULT_GOAL := build
 
+.PHONY: build
+build: lint test
+	@hack/do.sh build
+
+.PHONY: build-all
+build-all:
+	@hack/do.sh build -a
+
 .PHONY: clean
 clean:
 	@hack/do.sh clean
@@ -16,21 +24,38 @@ lint:
 gen:
 	@hack/do.sh gen
 
+.PHONY: lint-more
+lint-more:
+	@hack/do.sh lint_more
+
 .PHONY: test
 test:
 	@hack/do.sh test
+
+.PHONY: act
+act:
+	hack/do.sh act
 
 .PHONY: docs
 docs:
 	@hack/do.sh docs
 
-.PHONY: build-all
-build-all:
-	@hack/do.sh build -a
+.PHONY: completions
+completions:
+	@hack/do.sh completions
 
-.PHONY: build
-build:
-	@hack/do.sh build
+.PHONY: vet
+vet:
+	@hack/do.sh vet
+
+.PHONY: race
+race:
+	@hack/do.sh race
+
+
+.PHONY: bench
+bench:
+	@hack/do.sh bench
 
 .PHONY: build-nolint
 build-nolint:
@@ -55,3 +80,7 @@ docker-build:
 .PHONY: docker-build-push
 docker-push:
 	@hack/do.sh docker_push
+
+.PHONY: dev-deps
+dev-deps:
+	@hack/do.sh dev_deps

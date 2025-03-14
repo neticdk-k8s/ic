@@ -26,9 +26,18 @@ fmt() {
 	go fmt
 }
 
+dev_deps() {
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+}
+
 lint() {
-	which -s golangci-lint || (echo "golangci-lint not found - install it with 'brew install golangci-lint' or similar" && exit 1)
-	golangci-lint run
+	which golangci-lint >/dev/null || dev_deps
+	golangci-lint run ./...
+}
+
+lint_more() {
+	which golangci-lint >/dev/null || dev_deps
+	golangci-lint run --enable gocognit,cyclop,funlen,gocyclo
 }
 
 gen() {
@@ -36,11 +45,35 @@ gen() {
 }
 
 test() {
-	go test ./... "$*"
+	go test -cover ./... "$*"
+}
+
+act() {
+	command act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+}
+
+race() {
+	go test -cover -race ./... "$*"
+}
+
+bench() {
+	go test -bench=./...
+}
+
+vet() {
+	go vet ./...
 }
 
 docs() {
-	go run docs/gen.go
+	go run . gendocs docs
+}
+
+completions() {
+	rm -rf completions
+	mkdir completions
+	for sh in bash zsh fish; do
+		go run . completion "$sh" >"completions/ic.$sh"
+	done
 }
 
 build() {

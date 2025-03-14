@@ -1,46 +1,49 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/tokencache"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
 	"github.com/spf13/cobra"
 )
 
 // New creates a new logout command
-func NewLogoutCmd(ec *ExecutionContext) *cobra.Command {
-	o := logoutOptions{}
-	c := &cobra.Command{
-		Use:     "logout",
-		Short:   "Log out",
-		GroupID: groupAuth,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return o.run(ec)
-		},
-	}
+func logoutCmd(ac *ic.Context) *cobra.Command {
+	o := &logoutOptions{}
+	c := cmd.NewSubCommand("logout", o, ac).
+		WithShortDesc("Log out of Inventory Server").
+		WithGroupID(groupAuth).
+		Build()
+
+	c.Flags().SortFlags = false
 	return c
 }
 
 type logoutOptions struct{}
 
-func (o *logoutOptions) run(ec *ExecutionContext) error {
-	logger := ec.Logger.WithPrefix("Logout")
-	ec.Authenticator.SetLogger(logger)
+func (o *logoutOptions) Complete(_ context.Context, _ *ic.Context) error { return nil }
+func (o *logoutOptions) Validate(_ context.Context, _ *ic.Context) error { return nil }
+func (o *logoutOptions) Run(ctx context.Context, ac *ic.Context) error {
+	logger := ac.EC.Logger.WithGroup("Logout")
+	ac.Authenticator.SetLogger(logger)
 
 	logoutInput := authentication.LogoutInput{
-		Provider:   *ec.OIDCProvider,
-		TokenCache: ec.TokenCache,
+		Provider:   *ac.OIDCProvider,
+		TokenCache: ac.TokenCache,
 	}
 
-	ec.Spin("Logging out")
-	err := ec.Authenticator.Logout(ec.Command.Context(), logoutInput)
+	ac.EC.Spin("Logging out")
+	err := ac.Authenticator.Logout(ctx, logoutInput)
 	if err != nil && !errors.Is(err, &tokencache.CacheMissError{}) {
 		return fmt.Errorf("logging out: %w", err)
 	}
 
-	ec.Logger.Info("Logout succeeded ✅")
+	ac.EC.Logger.Info("Logout succeeded ✅")
 
 	return nil
 }

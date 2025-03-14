@@ -3,16 +3,23 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/neticdk-k8s/ic/internal/ic"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
 	"github.com/spf13/cobra"
 )
 
 // New creates a new filters command
-func NewFiltersHelpCmd(_ *ExecutionContext) *cobra.Command {
-	c := &cobra.Command{
-		Use:   "filters",
-		Short: "About filters",
-		Args:  cobra.NoArgs,
+func filtersHelpCmd(ac *ic.Context) *cobra.Command {
+	o := &cmd.NoopRunner[*ic.Context]{}
+	c := cmd.NewSubCommand("filters", o, ac).
+		WithShortDesc("About filters").
+		WithGroupID(cmd.GroupBase).
+		WithNoArgs().
+		Build()
+	c.RunE = func(cmd *cobra.Command, _ []string) error {
+		return cmd.Help()
 	}
+
 	c.SetHelpFunc(func(cmd *cobra.Command, _ []string) {
 		fmt.Fprintln(cmd.OutOrStdout(), "About filters")
 		fmt.Fprintln(cmd.OutOrStdout())

@@ -3,6 +3,7 @@ package oidc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/int128/oauth2cli"
 	"github.com/int128/oauth2cli/oauth2params"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
@@ -39,7 +39,7 @@ type client struct {
 	provider          *gooidc.Provider
 	oauth2config      oauth2.Config
 	providerLogoutURL string
-	logger            logger.Logger
+	logger            *slog.Logger
 }
 
 // Refresh creates an updated TokenSet by means of refreshing an oauth2 token

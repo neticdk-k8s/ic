@@ -3,9 +3,9 @@ package oidc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	gooidc "github.com/coreos/go-oidc/v3/oidc"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"golang.org/x/oauth2"
 )
 
@@ -14,11 +14,11 @@ type FactoryClient interface {
 	/// New creates a new OIDC Client
 	New(ctx context.Context, p Provider) (Client, error)
 	// SetLogger sets the logger used for authentication
-	SetLogger(logger.Logger)
+	SetLogger(*slog.Logger)
 }
 
 type Factory struct {
-	Logger logger.Logger
+	Logger *slog.Logger
 }
 
 // New creates a new OIDC Client
@@ -55,6 +55,6 @@ func (f *Factory) New(ctx context.Context, p Provider) (Client, error) {
 }
 
 // SetLogger sets the logger used for the factory
-func (f *Factory) SetLogger(l logger.Logger) {
+func (f *Factory) SetLogger(l *slog.Logger) {
 	f.Logger = l
 }

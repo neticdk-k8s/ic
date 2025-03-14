@@ -3,9 +3,9 @@ package authcode
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/int128/oauth2cli/oauth2params"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/reader"
 )
@@ -23,7 +23,7 @@ type Keyboard struct {
 	// Reader is used to read input from stdin
 	Reader reader.Reader
 	// Logger holds a logging instance
-	Logger logger.Logger
+	Logger *slog.Logger
 }
 
 // Login performs keyboard based autocode flow, i.e.:

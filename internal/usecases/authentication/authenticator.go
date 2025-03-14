@@ -3,8 +3,8 @@ package authentication
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/tokencache"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication/authcode"
@@ -78,16 +78,16 @@ type Authenticator interface {
 	Logout(ctx context.Context, in LogoutInput) error
 
 	// SetLogger sets the logger used for authentication
-	SetLogger(logger.Logger)
+	SetLogger(*slog.Logger)
 }
 
 type authenticator struct {
-	logger         logger.Logger
+	logger         *slog.Logger
 	authentication Authentication
 }
 
 // NewAuthenticator creates a new Authenticator
-func NewAuthenticator(l logger.Logger, a Authentication) *authenticator {
+func NewAuthenticator(l *slog.Logger, a Authentication) *authenticator {
 	return &authenticator{
 		logger:         l,
 		authentication: a,
@@ -189,7 +189,7 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 }
 
 // SetLogger sets the logger used for authentication
-func (a *authenticator) SetLogger(l logger.Logger) {
+func (a *authenticator) SetLogger(l *slog.Logger) {
 	a.logger = l
 	a.authentication.SetLogger(l)
 }
@@ -202,12 +202,12 @@ type Authentication interface {
 	Logout(ctx context.Context, in AuthenticateLogoutInput) error
 
 	// SetLogger sets the logger used for authentication
-	SetLogger(logger.Logger)
+	SetLogger(*slog.Logger)
 }
 
 type authentication struct {
 	oidcClientFactory oidc.FactoryClient
-	logger            logger.Logger
+	logger            *slog.Logger
 	// AuthCodeBrowser is the configuration used when authenticating using authcode-browser
 	authCodeBrowser *authcode.Browser
 	// AuthCodeKeyboard is the configuration used when authenticating using authcode-keyboard
@@ -215,7 +215,7 @@ type authentication struct {
 }
 
 // NewAuthentication creates a new authentication
-func NewAuthentication(l logger.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
+func NewAuthentication(l *slog.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
 	authn := &authentication{
 		oidcClientFactory: &oidc.Factory{
 			Logger: l,
@@ -300,7 +300,7 @@ func (a *authentication) Logout(ctx context.Context, in AuthenticateLogoutInput)
 }
 
 // SetLogger sets the logger used for authentication
-func (a *authentication) SetLogger(l logger.Logger) {
+func (a *authentication) SetLogger(l *slog.Logger) {
 	a.logger = l
 	a.oidcClientFactory.SetLogger(l)
 	a.authCodeBrowser.Logger = l

@@ -213,11 +213,13 @@ func toComponentResponse(component *apiclient.Component) *componentResponse {
 		}
 	}
 	cr.ResilienceZones = make([]resilienceZoneResponse, 0)
-	for _, rz := range *component.ResilienceZones {
-		cr.ResilienceZones = append(cr.ResilienceZones, resilienceZoneResponse{
-			Name:    nilStr(rz.Name),
-			Version: nilStr(rz.Version),
-		})
+	if component.ResilienceZones != nil {
+		for _, rz := range *component.ResilienceZones {
+			cr.ResilienceZones = append(cr.ResilienceZones, resilienceZoneResponse{
+				Name:    nilStr(rz.Name),
+				Version: nilStr(rz.Version),
+			})
+		}
 	}
 	return cr
 }

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk/go-common/pkg/qsparser"
 )
 
@@ -100,7 +100,7 @@ func (cl *ClusterList) MarshalJSON() ([]byte, error) {
 // ListClustersInput is the input given to ListClusters()
 type ListClustersInput struct {
 	// Logger is a logger
-	Logger logger.Logger
+	Logger *slog.Logger
 	// APIClient is the inventory server API client used to make requests
 	APIClient apiclient.ClientWithResponsesInterface
 	// Page is the initial page (0-based index)
@@ -174,7 +174,7 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 
 // GetClusterInput is the input used by GetCluster()
 type GetClusterInput struct {
-	Logger    logger.Logger
+	Logger    *slog.Logger
 	APIClient apiclient.ClientWithResponsesInterface
 }
 
@@ -214,7 +214,7 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*Get
 
 // CreateClusterInput is the input used by CreateCluster()
 type CreateClusterInput struct {
-	Logger                   logger.Logger
+	Logger                   *slog.Logger
 	APIClient                apiclient.ClientWithResponsesInterface
 	Name                     string
 	Description              string
@@ -288,7 +288,7 @@ func CreateCluster(ctx context.Context, in CreateClusterInput) (*CreateClusterRe
 
 // UpdateClusterInput is the input used by UpdateCluster()
 type UpdateClusterInput struct {
-	Logger                   logger.Logger
+	Logger                   *slog.Logger
 	APIClient                apiclient.ClientWithResponsesInterface
 	Description              *string
 	EnvironmentName          *string
@@ -354,7 +354,7 @@ func UpdateCluster(ctx context.Context, clusterID string, in UpdateClusterInput)
 
 // DeleteClusterInput is the input used by DeleteCluster()
 type DeleteClusterInput struct {
-	Logger    logger.Logger
+	Logger    *slog.Logger
 	APIClient apiclient.ClientWithResponsesInterface
 }
 
@@ -447,7 +447,7 @@ func (cl *ClusterNodesList) MarshalJSON() ([]byte, error) {
 // ListClusterNodesInput is the input given to ListClusterNodes()
 type ListClusterNodesInput struct {
 	// Logger is a logger
-	Logger logger.Logger
+	Logger *slog.Logger
 	// APIClient is the inventory server API client used to make requests
 	APIClient apiclient.ClientWithResponsesInterface
 	// Page is the initial page (0-based index)
@@ -523,7 +523,7 @@ func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *
 
 // GetClusterNodeInput is the input used by GetClusterNode()
 type GetClusterNodeInput struct {
-	Logger      logger.Logger
+	Logger      *slog.Logger
 	APIClient   apiclient.ClientWithResponsesInterface
 	ClusterName string
 	NodeName    string
@@ -565,7 +565,7 @@ func GetClusterNode(ctx context.Context, in GetClusterNodeInput) (*GetClusterNod
 
 // GetClusterKubeConfigInput is the input used by GetClusterKubeConfig()
 type GetClusterKubeConfigInput struct {
-	Logger      logger.Logger
+	Logger      *slog.Logger
 	APIClient   apiclient.ClientWithResponsesInterface
 	ClusterName string
 }

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
-	"github.com/neticdk-k8s/ic/internal/logger"
 )
 
 type componentResponse struct {
@@ -98,7 +98,7 @@ func (cl *ComponentList) MarshalJSON() ([]byte, error) {
 // ListComponentsInput is the input given to ListComponents()
 type ListComponentsInput struct {
 	// Logger is a logger
-	Logger logger.Logger
+	Logger *slog.Logger
 	// APIClient is the inventory server API client used to make requests
 	APIClient apiclient.ClientWithResponsesInterface
 }
@@ -153,7 +153,7 @@ func listComponents(ctx context.Context, in *ListComponentsInput, componentList 
 
 // GetComponentInput is the input used by GetComponent()
 type GetComponentInput struct {
-	Logger    logger.Logger
+	Logger    *slog.Logger
 	APIClient apiclient.ClientWithResponsesInterface
 }
 

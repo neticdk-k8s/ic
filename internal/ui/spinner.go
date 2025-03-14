@@ -3,13 +3,13 @@ package ui
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/neticdk-k8s/ic/internal/logger"
 )
 
 type model struct {
@@ -70,12 +70,12 @@ type Spinner struct {
 	model   *model
 	program *tea.Program
 	writer  io.Writer
-	logger  logger.Logger
+	logger  *slog.Logger
 	running bool
 }
 
 // NewSpinner creates a new Spinner
-func NewSpinner(w io.Writer, l logger.Logger) *Spinner {
+func NewSpinner(w io.Writer, l *slog.Logger) *Spinner {
 	model := createSpinner()
 	return &Spinner{
 		model:   model,

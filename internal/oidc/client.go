@@ -89,7 +89,7 @@ func (c *client) Logout(idToken string) error {
 func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	client := retryablehttp.NewClient()
 	client.HTTPClient.Timeout = time.Duration(2) * time.Second
-	client.Logger = SlogAdapter{Logger: c.logger}
+	client.Logger = c.logger
 	client.RetryWaitMin = logoutRetryMinWait
 	client.RetryWaitMax = logoutRetryMaxWait
 	client.RetryMax = 5
@@ -132,7 +132,9 @@ func (c *client) GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeIn
 		LocalServerReadyChan:   localServerReadyChan,
 		RedirectURLHostname:    in.RedirectURLHostname,
 		LocalServerBindAddress: []string{in.BindAddress},
-		Logf:                   c.logger.Debugf,
+		Logf: func(format string, args ...any) {
+			c.logger.Debug(fmt.Sprintf(format, args...))
+		},
 	}
 
 	token, err := oauth2cli.GetToken(ctx, cfg)

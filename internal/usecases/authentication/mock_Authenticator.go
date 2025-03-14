@@ -3,9 +3,9 @@
 package authentication
 
 import (
+    "log/slog"
 	context "context"
 
-	logger "github.com/neticdk-k8s/ic/internal/logger"
 	mock "github.com/stretchr/testify/mock"
 
 	oidc "github.com/neticdk-k8s/ic/internal/oidc"
@@ -131,7 +131,7 @@ func (_c *MockAuthenticator_Logout_Call) RunAndReturn(run func(context.Context, 
 }
 
 // SetLogger provides a mock function with given fields: _a0
-func (_m *MockAuthenticator) SetLogger(_a0 logger.Logger) {
+func (_m *MockAuthenticator) SetLogger(_a0 *slog.Logger) {
 	_m.Called(_a0)
 }
 
@@ -141,14 +141,14 @@ type MockAuthenticator_SetLogger_Call struct {
 }
 
 // SetLogger is a helper method to define mock.On call
-//   - _a0 logger.Logger
+//   - _a0 *slog.Logger
 func (_e *MockAuthenticator_Expecter) SetLogger(_a0 interface{}) *MockAuthenticator_SetLogger_Call {
 	return &MockAuthenticator_SetLogger_Call{Call: _e.mock.On("SetLogger", _a0)}
 }
 
-func (_c *MockAuthenticator_SetLogger_Call) Run(run func(_a0 logger.Logger)) *MockAuthenticator_SetLogger_Call {
+func (_c *MockAuthenticator_SetLogger_Call) Run(run func(_a0 *slog.Logger)) *MockAuthenticator_SetLogger_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(logger.Logger))
+		run(args[0].(*slog.Logger))
 	})
 	return _c
 }
@@ -158,7 +158,7 @@ func (_c *MockAuthenticator_SetLogger_Call) Return() *MockAuthenticator_SetLogge
 	return _c
 }
 
-func (_c *MockAuthenticator_SetLogger_Call) RunAndReturn(run func(logger.Logger)) *MockAuthenticator_SetLogger_Call {
+func (_c *MockAuthenticator_SetLogger_Call) RunAndReturn(run func(*slog.Logger)) *MockAuthenticator_SetLogger_Call {
 	_c.Call.Return(run)
 	return _c
 }

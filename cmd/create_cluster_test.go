@@ -3,11 +3,11 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
 	"github.com/stretchr/testify/assert"
@@ -269,7 +269,7 @@ func newMockedCreateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
 	mockAuthenticator := authentication.NewMockAuthenticator(t)
 	mockAuthenticator.EXPECT().
 		SetLogger(mock.Anything).
-		Run(func(_ logger.Logger) {}).
+		Run(func(_ *slog.Logger) {}).
 		Return()
 	mockAuthenticator.EXPECT().
 		Login(mock.Anything, mock.Anything).

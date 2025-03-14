@@ -30,8 +30,11 @@ type componentListResponse struct {
 	Components []componentResponse `json:"components,omitempty"`
 }
 
-type ComponentList struct {
-	Included   []map[string]any
+// ComponentList is a list of components
+type ComponentList struct { //nolint
+	// Included is a list of included items
+	Included []map[string]any
+	// Components is a list of components
 	Components []string
 }
 

@@ -23,10 +23,15 @@ const (
 
 // Client represents an OIDC Client
 type Client interface {
+	// Refresh creates an updated TokenSet by means of refreshing an oauth2 token
 	Refresh(ctx context.Context, refreshToken string) (*TokenSet, error)
+	// Logout deletes the session from the OIDC provider
 	Logout(idToken string) error
+	// GetTokenByAuthCode performs the Authorization Code Grant Flow and returns
 	GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeInput, localServerReadyChan chan<- string) (*TokenSet, error)
+	// GetAuthCodeURL returns a URL to OAuth 2.0 provider's consent page
 	GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (string, error)
+	// ExchangeAuthCode converts an authorization code into a TokenSet
 	ExchangeAuthCode(ctx context.Context, in ExchangeAuthCodeInput) (*TokenSet, error)
 }
 
@@ -84,7 +89,7 @@ func (c *client) Logout(idToken string) error {
 func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	client := retryablehttp.NewClient()
 	client.HTTPClient.Timeout = time.Duration(2) * time.Second
-	client.Logger = OIDCSlogAdapter{Logger: c.logger}
+	client.Logger = SlogAdapter{Logger: c.logger}
 	client.RetryWaitMin = logoutRetryWaitMinSeconds
 	client.RetryWaitMax = logoutRetryWaitMaxSeconds
 	client.RetryMax = 5

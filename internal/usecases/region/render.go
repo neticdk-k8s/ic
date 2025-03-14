@@ -10,6 +10,7 @@ import (
 )
 
 type Renderer interface {
+	// Render renders the regions
 	Render(format string) error
 }
 

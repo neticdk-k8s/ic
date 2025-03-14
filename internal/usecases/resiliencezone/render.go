@@ -10,6 +10,7 @@ import (
 )
 
 type Renderer interface {
+	// Render renders the resilience zones
 	Render(format string) error
 }
 

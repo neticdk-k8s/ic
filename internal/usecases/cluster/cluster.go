@@ -42,8 +42,11 @@ type clusterListResponse struct {
 	Clusters []clusterResponse `json:"clusters,omitempty"`
 }
 
-type ClusterList struct {
+// ClusterList is a list of clusters
+type ClusterList struct { //nolint
+	// Included is a list of included items
 	Included []map[string]any
+	// Clusters is a list of clusters
 	Clusters []string
 }
 
@@ -394,7 +397,7 @@ type clusterNodesListResponse struct {
 	Nodes []clusterNodeResponse `json:"nodes,omitempty"`
 }
 
-type ClusterNodesList struct {
+type ClusterNodesList struct { //nolint
 	Included []map[string]any
 	Nodes    []string
 }

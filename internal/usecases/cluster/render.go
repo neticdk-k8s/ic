@@ -10,6 +10,7 @@ import (
 )
 
 type Renderer interface {
+	// Render renders the cluster
 	Render(format string) error
 }
 

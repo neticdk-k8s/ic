@@ -44,29 +44,47 @@ func (cl *ComponentList) ToResponse() *componentListResponse {
 	}
 	includeMap := make(map[string]any)
 	for _, i := range cl.Included {
-		includeMap[i["@id"].(string)] = i
+		if v, ok := mapValAs[string](i, "@id"); ok {
+			includeMap[v] = i
+		}
 	}
 	for _, i := range cl.Included {
-		if i["@type"].(string) != "Component" {
-			continue
+		if v, ok := mapValAs[string](i, "@type"); ok {
+			if v != "Component" {
+				continue
+			}
 		}
 		cr := componentResponse{}
-		cr.Name = i["name"].(string)
-		cr.Namespace = i["namespace"].(string)
-		cr.ComponentType = i["component_type"].(string)
+		cr.Name, _ = mapValAs[string](i, "name")
+		cr.Namespace, _ = mapValAs[string](i, "namespace")
+		cr.ComponentType, _ = mapValAs[string](i, "component_type")
 		cr.ID = fmt.Sprintf("%s.%s", cr.Name, cr.Namespace)
-		cr.Description = i["description"].(string)
-		cr.Source = i["source"].(string)
+		cr.Description, _ = mapValAs[string](i, "description")
+		cr.Source, _ = mapValAs[string](i, "source")
 		cr.Clusters = make([]string, 0)
-		for _, c := range i["clusters"].([]any) {
-			cr.Clusters = append(cr.Clusters, c.(map[string]any)["cluster_id"].(string))
+		if clusters, ok := mapValAs[[]any](i, "clusters"); ok {
+			for _, c := range clusters {
+				if cluster, ok := c.(map[string]any); ok {
+					if clusterID, ok := mapValAs[string](cluster, "cluster_id"); ok {
+						cr.Clusters = append(cr.Clusters, clusterID)
+					}
+				}
+			}
 		}
 		cr.ResilienceZones = make([]resilienceZoneResponse, 0)
-		for _, rz := range i["resilience_zones"].([]any) {
-			cr.ResilienceZones = append(cr.ResilienceZones, resilienceZoneResponse{
-				Name:    rz.(map[string]any)["name"].(string),
-				Version: rz.(map[string]any)["version"].(string),
-			})
+		if resilienceZones, ok := mapValAs[[]any](i, "resilience_zones"); ok {
+			for _, rz := range resilienceZones {
+				res := resilienceZoneResponse{}
+				if rezilienceZone, ok := rz.(map[string]any); ok {
+					if rzName, ok := mapValAs[string](rezilienceZone, "name"); ok {
+						res.Name = rzName
+					}
+					if rzVersion, ok := mapValAs[string](rezilienceZone, "version"); ok {
+						res.Version = rzVersion
+					}
+					cr.ResilienceZones = append(cr.ResilienceZones, res)
+				}
+			}
 		}
 		clr.Components = append(clr.Components, cr)
 	}
@@ -97,7 +115,7 @@ func ListComponents(ctx context.Context, in ListComponentsInput) (*ListComponent
 	cl := &ComponentList{}
 	problem, err := listComponents(ctx, &in, cl)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("listComponents: %w", err)
 	}
 	if problem != nil {
 		return &ListComponentResults{nil, nil, problem}, nil
@@ -114,9 +132,7 @@ func listComponents(ctx context.Context, in *ListComponentsInput, componentList 
 	if err != nil {
 		return nil, fmt.Errorf("reading components: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("listComponents", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -152,11 +168,9 @@ type GetComponentResult struct {
 func GetComponent(ctx context.Context, namespace, name string, in GetComponentInput) (*GetComponentResult, error) {
 	response, err := in.APIClient.GetComponentWithResponse(ctx, namespace, name)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("getComponent: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("apiclient", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -181,7 +195,9 @@ func toComponentResponse(component *apiclient.Component) *componentResponse {
 	includeMap := make(map[string]any)
 	if component.Included != nil {
 		for _, i := range *component.Included {
-			includeMap[i["@id"].(string)] = i
+			if v, ok := mapValAs[string](i, "@id"); ok {
+				includeMap[v] = i
+			}
 		}
 	}
 	cr := &componentResponse{}
@@ -211,4 +227,18 @@ func nilStr(s *string) string {
 		return *s
 	}
 	return ""
+}
+
+func mapValAs[T any](haystak map[string]any, needle string) (T, bool) {
+	if v, ok := haystak[needle]; ok {
+		if v2, ok := v.(T); ok {
+			return v2, true
+		}
+	}
+	var zero T
+	return zero, false
+}
+
+func logStatus(r *http.Response) []any {
+	return []any{"status", r.StatusCode, "content-type", r.Header.Get("Content-Type")}
 }

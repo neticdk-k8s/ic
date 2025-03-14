@@ -57,28 +57,37 @@ func (cl *ClusterList) ToResponse() *clusterListResponse {
 	includeMap := make(map[string]any)
 	for _, i := range cl.Included {
 		includeMap[i["@id"].(string)] = i
+		if v, ok := mapValAs[string](i, "@id"); ok {
+			includeMap[v] = i
+		}
 	}
 	for _, i := range cl.Included {
-		if i["@type"].(string) != "Cluster" {
-			continue
+		if v, ok := mapValAs[string](i, "@type"); ok {
+			if v != "Cluster" {
+				continue
+			}
 		}
 		cr := clusterResponse{}
-		cr.Name = i["name"].(string)
-		cr.ClusterType = i["clusterType"].(string)
-		cr.EnvironmentName = i["environmentName"].(string)
-		if provider, ok := includeMap[i["provider"].(string)]; ok {
-			if p, ok := provider.(map[string]any)["name"]; ok {
-				cr.ProviderName = p.(string)
+		cr.Name, _ = mapValAs[string](i, "name")
+		cr.ClusterType, _ = mapValAs[string](i, "clusterType")
+		cr.EnvironmentName, _ = mapValAs[string](i, "environmentName")
+		if providerName, ok := mapValAs[string](i, "provider"); ok {
+			if provider, ok := includeMap[providerName]; ok {
+				if p, ok := provider.(map[string]any); ok {
+					cr.ProviderName, _ = mapValAs[string](p, "name")
+				}
 			}
 		}
 		cr.ID = fmt.Sprintf("%s.%s", cr.Name, cr.ProviderName)
-		if rz, ok := includeMap[i["resilienceZone"].(string)]; ok {
-			if p, ok := rz.(map[string]any)["name"]; ok {
-				cr.ResilienceZone = p.(string)
+		if rzName, ok := mapValAs[string](i, "resilienceZone"); ok {
+			if rz, ok := includeMap[rzName]; ok {
+				if p, ok := rz.(map[string]any); ok {
+					cr.ResilienceZone, _ = mapValAs[string](p, "name")
+				}
 			}
 		}
 		if kubernetesVersion, ok := i["kubernetesVersion"].(map[string]any); ok {
-			cr.KubernetesVersion = kubernetesVersion["version"].(string)
+			cr.KubernetesVersion, _ = mapValAs[string](kubernetesVersion, "version")
 		}
 		clr.Clusters = append(clr.Clusters, cr)
 	}
@@ -408,20 +417,24 @@ func (cl *ClusterNodesList) ToResponse() *clusterNodesListResponse {
 	}
 	includeMap := make(map[string]any)
 	for _, i := range cl.Included {
-		includeMap[i["@id"].(string)] = i
+		if v, ok := mapValAs[string](i, "@id"); ok {
+			includeMap[v] = i
+		}
 	}
 	for _, i := range cl.Included {
-		if i["@type"].(string) != "Node" {
-			continue
+		if v, ok := mapValAs[string](i, "@type"); ok {
+			if v != "Node" {
+				continue
+			}
 		}
 		cr := clusterNodeResponse{}
-		cr.Name = i["name"].(string)
-		cr.IsControlPlane = i["isControlPlane"].(bool)
-		cr.KubeletVersion = i["kubeletVersion"].(string)
-		cr.AllocatableCPUMillis = i["allocatableCoresMillis"].(float64)
-		cr.AllocatableMemoryBytes = i["allocatableMemoryBytes"].(float64)
-		cr.CapacityCPUMillis = i["capacityCoresMillis"].(float64)
-		cr.CapacityMemoryBytes = i["capacityMemoryBytes"].(float64)
+		cr.Name, _ = mapValAs[string](i, "name")
+		cr.IsControlPlane, _ = mapValAs[bool](i, "isControlPlane")
+		cr.KubeletVersion, _ = mapValAs[string](i, "kubeletVersion")
+		cr.AllocatableCPUMillis, _ = mapValAs[float64](i, "allocatableCoresMillis")
+		cr.AllocatableMemoryBytes, _ = mapValAs[float64](i, "allocatableMemoryBytes")
+		cr.CapacityCPUMillis, _ = mapValAs[float64](i, "capacityCoresMillis")
+		cr.CapacityMemoryBytes, _ = mapValAs[float64](i, "capacityMemoryBytes")
 
 		cnlr.Nodes = append(cnlr.Nodes, cr)
 	}
@@ -587,7 +600,9 @@ func GetClusterKubeConfig(ctx context.Context, in GetClusterKubeConfigInput) (*G
 func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	includeMap := make(map[string]any)
 	for _, i := range *cluster.Included {
-		includeMap[i["@id"].(string)] = i
+		if v, ok := mapValAs[string](i, "@id"); ok {
+			includeMap[v] = i
+		}
 	}
 	cr := &clusterResponse{}
 	cr.Name = nilStr(cluster.Name)
@@ -620,15 +635,15 @@ func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	}
 	if cluster.Provider != nil {
 		if provider, ok := includeMap[*cluster.Provider]; ok {
-			if p, ok := provider.(map[string]any)["name"]; ok {
-				cr.ProviderName = p.(string)
+			if p, ok := provider.(map[string]any); ok {
+				cr.ProviderName, _ = mapValAs[string](p, "name")
 			}
 		}
 	}
 	if cluster.ResilienceZone != nil {
 		if provider, ok := includeMap[*cluster.ResilienceZone]; ok {
-			if p, ok := provider.(map[string]any)["name"]; ok {
-				cr.ResilienceZone = p.(string)
+			if p, ok := provider.(map[string]any); ok {
+				cr.ResilienceZone, _ = mapValAs[string](p, "name")
 			}
 		}
 	}
@@ -680,4 +695,14 @@ func nilInt64(i *int64) int64 {
 
 func logStatus(r *http.Response) []any {
 	return []any{"status", r.StatusCode, "content-type", r.Header.Get("Content-Type")}
+}
+
+func mapValAs[T any](haystak map[string]any, needle string) (T, bool) {
+	if v, ok := haystak[needle]; ok {
+		if v2, ok := v.(T); ok {
+			return v2, true
+		}
+	}
+	var zero T
+	return zero, false
 }

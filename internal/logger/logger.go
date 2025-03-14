@@ -207,7 +207,7 @@ func (l *CharmLogger) Debugf(format string, keyvals ...any) {
 	l.internal.Debug(fmt.Sprintf(format, keyvals...))
 }
 
-func (l *CharmLogger) SetInteractive(interactive string, isTerminal bool) {
+func (l *CharmLogger) SetInteractive(interactive string, isTerminal bool) { //nolint
 	switch interactive {
 	case "auto":
 		if isTerminal {

@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	logoutRetryWaitMin = time.Duration(2) * time.Second
-	logoutRetryWaitMax = time.Duration(30) * time.Second
+	logoutRetryMinWait = time.Duration(2) * time.Second
+	logoutRetryMaxWait = time.Duration(30) * time.Second
 )
 
 // Client represents an OIDC Client
@@ -90,8 +90,8 @@ func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	client := retryablehttp.NewClient()
 	client.HTTPClient.Timeout = time.Duration(2) * time.Second
 	client.Logger = SlogAdapter{Logger: c.logger}
-	client.RetryWaitMin = logoutRetryWaitMin
-	client.RetryWaitMax = logoutRetryWaitMax
+	client.RetryWaitMin = logoutRetryMinWait
+	client.RetryWaitMax = logoutRetryMaxWait
 	client.RetryMax = 5
 
 	defer client.HTTPClient.CloseIdleConnections()

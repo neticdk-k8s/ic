@@ -20,7 +20,7 @@ func NewGetClusterKubeConfigCmd(ec *ExecutionContext) *cobra.Command {
 		Example: `
 # get the kubeconfig for a cluster
 ic get cluster-kubeconfig --cluster-name my-cluster.my-provider`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			return o.run(ec, args)
 		},
 	}
@@ -37,7 +37,7 @@ func (o *getClusterKubeConfigOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.ClusterName, "cluster-name", "", "The name of the cluster")
 }
 
-func (o *getClusterKubeConfigOptions) run(ec *ExecutionContext, args []string) error {
+func (o *getClusterKubeConfigOptions) run(ec *ExecutionContext, _ []string) error {
 	logger := ec.Logger.WithPrefix("ClusterKubeConfig")
 	ec.Authenticator.SetLogger(logger)
 

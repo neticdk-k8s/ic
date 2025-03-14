@@ -20,7 +20,7 @@ The component-id has the format namespace/name
 `,
 		GroupID: groupComponent,
 		Args:    cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			return o.run(ec, args)
 		},
 	}

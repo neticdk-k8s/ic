@@ -157,7 +157,7 @@ type GetAuthCodeURLInput struct {
 }
 
 // GetAuthCodeURL returns a URL to OAuth 2.0 provider's consent page
-func (c *client) GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (string, error) {
+func (c *client) GetAuthCodeURL(_ context.Context, in GetAuthCodeURLInput) (string, error) {
 	cfg := c.oauth2config
 	cfg.RedirectURL = in.RedirectURI
 

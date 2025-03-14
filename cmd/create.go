@@ -31,7 +31,7 @@ func NewCreateCmd(ec *ExecutionContext) *cobra.Command {
 		GroupID: groupBase,
 		Args:    cobra.NoArgs,
 		Example: createCommandExample,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Usage()
 		},
 	}

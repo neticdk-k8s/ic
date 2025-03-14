@@ -16,7 +16,7 @@ func NewLoginCmd(ec *ExecutionContext) *cobra.Command {
 		Use:     "login",
 		Short:   "Login to Inventory Server",
 		GroupID: groupAuth,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}

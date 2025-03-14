@@ -7,13 +7,13 @@ import (
 )
 
 // New creates a new filters command
-func NewFiltersHelpCmd(ec *ExecutionContext) *cobra.Command {
+func NewFiltersHelpCmd(_ *ExecutionContext) *cobra.Command {
 	c := &cobra.Command{
 		Use:   "filters",
 		Short: "About filters",
 		Args:  cobra.NoArgs,
 	}
-	c.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+	c.SetHelpFunc(func(cmd *cobra.Command, _ []string) {
 		fmt.Fprintln(cmd.OutOrStdout(), "About filters")
 		fmt.Fprintln(cmd.OutOrStdout())
 		fmt.Fprintln(cmd.OutOrStdout(), "Filters can be used with various commands, typically those that return lists (e.g. get clusters). They are provided by using the --filter (-f) flag. This flag can be specified multiple times in which case the filters are joined using AND.")

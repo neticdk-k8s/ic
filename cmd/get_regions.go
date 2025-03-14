@@ -17,7 +17,7 @@ func NewGetRegionsCmd(ec *ExecutionContext) *cobra.Command {
 		Use:     "regions",
 		Short:   "List regions",
 		GroupID: groupOther,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}

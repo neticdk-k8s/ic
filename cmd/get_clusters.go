@@ -45,7 +45,7 @@ ic get clusters
 ic get clusters --filter resilienceZone=platform
 
 use: 'ic help filters' for more information on using filters`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}

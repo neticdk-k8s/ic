@@ -20,7 +20,7 @@ func NewCreateClusterCmd(ec *ExecutionContext) *cobra.Command {
 		Use:     "cluster",
 		Short:   "Create a cluster",
 		GroupID: groupCluster,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			o.complete()
 			if err := o.validate(ec); err != nil {
 				return err

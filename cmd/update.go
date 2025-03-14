@@ -18,7 +18,7 @@ func NewUpdateCmd(ec *ExecutionContext) *cobra.Command {
 		GroupID: groupBase,
 		Args:    cobra.NoArgs,
 		Example: updateCommandExample,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Usage()
 		},
 	}

@@ -35,7 +35,7 @@ func Test_GetComponentCommand(t *testing.T) {
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}, nil)
 	ec.Authenticator = mockAuthenticator
-	included := []map[string]interface{}{
+	included := []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -54,12 +54,13 @@ func Test_GetComponentCommand(t *testing.T) {
 			"environmentName": "testing",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-rz-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "v1.2.3",
 			},
 		},
 	}
 	name := "my-component"
+	namespace := "my-namespace"
 	mockClientWithResponsesInterface := apiclient.NewMockClientWithResponsesInterface(t)
 	mockClientWithResponsesInterface.EXPECT().
 		GetComponentWithResponse(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -71,8 +72,9 @@ func Test_GetComponentCommand(t *testing.T) {
 					StatusCode: 200,
 				},
 				ApplicationldJSONDefault: &apiclient.Component{
-					Name:     &name,
-					Included: &included,
+					Name:      &name,
+					Namespace: &namespace,
+					Included:  &included,
 				},
 			}, nil)
 	apiClient := mockClientWithResponsesInterface
@@ -80,21 +82,21 @@ func Test_GetComponentCommand(t *testing.T) {
 
 	cmd := NewRootCmd(ec)
 
-	t.Run("get component my-component.my-provider", func(t *testing.T) {
-		cmd.SetArgs([]string{"get", "component", "my-component.my-provider"})
+	t.Run("get component my-namespace my-component.my-provider", func(t *testing.T) {
+		cmd.SetArgs([]string{"get", "component", "my-namespace", "my-component.my-provider"})
 		err := cmd.ExecuteContext(context.Background())
 		assert.NoError(t, err)
 		assert.Contains(t, got.String(), "Logging in")
 		assert.Contains(t, got.String(), "Getting component")
 		assert.Contains(t, got.String(), "my-component")
-		assert.Contains(t, got.String(), "my-provider")
+		assert.Contains(t, got.String(), "my-namespace")
 	})
 
-	t.Run("get component my-component -o json", func(t *testing.T) {
-		cmd.SetArgs([]string{"get", "component", "my-component", "-o", "json"})
+	t.Run("get component my-namespace my-component -o json", func(t *testing.T) {
+		cmd.SetArgs([]string{"get", "component", "my-namespace", "my-component", "-o", "json"})
 		err := cmd.ExecuteContext(context.Background())
 		assert.NoError(t, err)
 		assert.Contains(t, got.String(), "\"name\": \"my-component\"")
-		assert.Contains(t, got.String(), "\"provider_name\": \"my-provider\"")
+		assert.Contains(t, got.String(), "\"namespace\": \"my-namespace\"")
 	})
 }

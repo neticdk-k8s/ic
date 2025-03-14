@@ -36,7 +36,7 @@ func Test_GetComponentsCommand(t *testing.T) {
 		}, nil)
 	ec.Authenticator = mockAuthenticator
 	components := []string{"my-component"}
-	included := []map[string]interface{}{
+	included := []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -55,7 +55,7 @@ func Test_GetComponentsCommand(t *testing.T) {
 			"environmentName": "testing",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-rz-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "v1.2.3",
 			},
 		},

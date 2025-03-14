@@ -19,7 +19,7 @@ type model struct {
 	finished bool
 }
 
-func newSpinner() *model {
+func createSpinner() *model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
@@ -76,7 +76,7 @@ type Spinner struct {
 
 // NewSpinner creates a new Spinner
 func NewSpinner(w io.Writer, logger logger.Logger) *Spinner {
-	model := newSpinner()
+	model := createSpinner()
 	return &Spinner{
 		model:   model,
 		program: tea.NewProgram(model, tea.WithOutput(w)),

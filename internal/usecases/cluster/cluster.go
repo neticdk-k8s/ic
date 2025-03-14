@@ -136,7 +136,7 @@ func ListClusters(ctx context.Context, in ListClustersInput) (*ListClusterResult
 	return &ListClusterResults{cl.ToResponse(), jsonData, nil}, nil
 }
 
-func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) (*apiclient.Problem, error) {
+func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) (*apiclient.Problem, error) { //nolint
 	nextPage := func(_ context.Context, req *http.Request) error {
 		sp := qsparser.SearchParams{
 			Page:    &in.Page,
@@ -485,7 +485,7 @@ func ListClusterNodes(ctx context.Context, in ListClusterNodesInput) (*ListClust
 	return &ListClusterNodesResults{nl.ToResponse(), jsonData, nil}, nil
 }
 
-func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *ClusterNodesList) (*apiclient.Problem, error) {
+func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *ClusterNodesList) (*apiclient.Problem, error) { //nolint
 	nextPage := func(_ context.Context, req *http.Request) error {
 		sp := qsparser.SearchParams{
 			Page:    &in.Page,

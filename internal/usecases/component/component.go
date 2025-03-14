@@ -127,7 +127,7 @@ func ListComponents(ctx context.Context, in ListComponentsInput) (*ListComponent
 	return &ListComponentResults{cl.ToResponse(), jsonData, nil}, nil
 }
 
-func listComponents(ctx context.Context, in *ListComponentsInput, componentList *ComponentList) (*apiclient.Problem, error) {
+func listComponents(ctx context.Context, in *ListComponentsInput, componentList *ComponentList) (*apiclient.Problem, error) { //nolint
 	response, err := in.APIClient.ListComponentsWithResponse(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("reading components: %w", err)

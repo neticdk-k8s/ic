@@ -56,7 +56,6 @@ func (cl *ClusterList) ToResponse() *clusterListResponse {
 	}
 	includeMap := make(map[string]any)
 	for _, i := range cl.Included {
-		includeMap[i["@id"].(string)] = i
 		if v, ok := mapValAs[string](i, "@id"); ok {
 			includeMap[v] = i
 		}

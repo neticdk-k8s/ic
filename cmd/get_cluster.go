@@ -16,7 +16,7 @@ func NewGetClusterCmd(ec *ExecutionContext) *cobra.Command {
 		Short:   "Get a cluster",
 		GroupID: groupCluster,
 		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			return o.run(ec, args)
 		},
 	}

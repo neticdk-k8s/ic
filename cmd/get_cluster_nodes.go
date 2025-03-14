@@ -32,7 +32,7 @@ memoryCapacityBytes, cpuCapacityMillis
 ic get cluster-nodes --cluster-name my-cluster.my-provider
 
 use: 'ic help filters' for more information on using filters`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}
@@ -85,7 +85,7 @@ func (o *getClusterNodesOptions) run(ec *ExecutionContext) error {
 	in := cluster.ListClusterNodesInput{
 		Logger:      logger,
 		APIClient:   ec.APIClient,
-		PerPage:     50,
+		PerPage:     PerPage,
 		Filters:     searchFields,
 		ClusterName: o.ClusterName,
 	}

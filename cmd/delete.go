@@ -12,7 +12,7 @@ func NewDeleteCmd(ec *ExecutionContext) *cobra.Command {
 		Short:   "Delete a resources",
 		GroupID: groupBase,
 		Example: deleteCommandExample,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Usage()
 		},
 	}

@@ -16,7 +16,7 @@ func NewBearerTokenProvider(token string) *bearerToken {
 }
 
 // WithAuthHeader adds Authorization: Bearer header to the request
-func (s *bearerToken) WithAuthHeader(ctx context.Context, req *http.Request) error {
+func (s *bearerToken) WithAuthHeader(_ context.Context, req *http.Request) error {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.token))
 	return nil
 }

@@ -20,7 +20,7 @@ func NewGetClusterNodeCmd(ec *ExecutionContext) *cobra.Command {
 		Example: `
 # get node information for my-cluster.my-provider
 ic get cluster-node --cluster-name my-cluster.my-provider --node-name my-node`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			return o.run(ec, args)
 		},
 	}
@@ -40,7 +40,7 @@ func (o *getClusterNodeOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.NodeName, "node-name", "", "The name of the node")
 }
 
-func (o *getClusterNodeOptions) run(ec *ExecutionContext, args []string) error {
+func (o *getClusterNodeOptions) run(ec *ExecutionContext, _ []string) error {
 	logger := ec.Logger.WithPrefix("ClusterNode")
 	ec.Authenticator.SetLogger(logger)
 

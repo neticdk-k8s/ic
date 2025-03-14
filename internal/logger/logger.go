@@ -54,11 +54,13 @@ type Logger interface {
 	// Set the logger level
 	SetLevel(level string) error
 
+	// Level returns the current log level
 	Level() string
 
 	// Set the logger output
 	SetOutput(w io.Writer)
 
+	// Output returns the current log output
 	Output() io.Writer
 
 	// Print prints a log message
@@ -80,16 +82,24 @@ type Logger interface {
 	// Debugf logs formatted debug level
 	Debugf(format string, keyvals ...any)
 
+	// StandardWriter returns the standard writer for the logger
 	StandardWriter() io.Writer
 
+	// IsInfo returns true if the logger is set to info level
 	IsInfo() bool
+	// IsDebug returns true if the logger is set to debug level
 	IsDebug() bool
+	// IsError returns true if the logger is set to error level
 	IsError() bool
+	// IsTrace returns true if the logger is set to trace level
 	IsTrace() bool
+	// IsWarn returns true if the logger is set to warn level
 	IsWarn() bool
 
+	// WithPrefix returns a new logger with the given prefix
 	WithPrefix(string) Logger
 
+	// SetInteractive sets the logger to use fancy styles if the terminal is interactive
 	SetInteractive(string, bool)
 }
 
@@ -197,7 +207,7 @@ func (l *CharmLogger) Debugf(format string, keyvals ...any) {
 	l.internal.Debug(fmt.Sprintf(format, keyvals...))
 }
 
-func (l *CharmLogger) SetInteractive(interactive string, isTerminal bool) {
+func (l *CharmLogger) SetInteractive(interactive string, isTerminal bool) { //nolint
 	switch interactive {
 	case "auto":
 		if isTerminal {

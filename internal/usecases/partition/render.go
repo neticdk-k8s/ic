@@ -10,6 +10,7 @@ import (
 )
 
 type Renderer interface {
+	// Render renders the partitions
 	Render(format string) error
 }
 

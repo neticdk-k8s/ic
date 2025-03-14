@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -13,8 +14,7 @@ import (
 func GenDocs() error {
 	_, filename, _, ok := runtime.Caller(1)
 	if !ok {
-		fmt.Println("could not get filename of caller")
-		os.Exit(1)
+		return errors.New("could not get filename of caller")
 	}
 	docPath := path.Dir(filename)
 	fmt.Printf("Generating documentation in: %s\n", docPath)

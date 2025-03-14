@@ -19,7 +19,7 @@ func PrettyPrintJSON(body []byte, writer io.Writer) error {
 }
 
 // BytesToBinarySI converts bytes to human readable string using binary SI units
-func BytesToBinarySI(bytes int64) (float64, string) {
+func BytesToBinarySI(bint int64) (float64, string) {
 	const (
 		kibi float64 = 1024
 		mebi float64 = 1048576
@@ -28,17 +28,20 @@ func BytesToBinarySI(bytes int64) (float64, string) {
 		pebi float64 = 1125899906842624
 	)
 
-	b := float64(bytes)
-	if b >= pebi {
+	b := float64(bint)
+
+	switch {
+	case b >= pebi:
 		return b / pebi, "PiB"
-	} else if b >= tebi {
+	case b >= tebi:
 		return b / tebi, "TiB"
-	} else if b >= gibi {
+	case b >= gibi:
 		return b / gibi, "GiB"
-	} else if b >= mebi {
+	case b >= mebi:
 		return b / mebi, "MiB"
-	} else if b >= kibi {
+	case b >= kibi:
 		return b / kibi, "KiB"
 	}
+
 	return b, "B"
 }

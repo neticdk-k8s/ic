@@ -13,7 +13,9 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var getClustersFilterNames []string = []string{
+const PerPage = 50
+
+var getClustersFilterNames = []string{
 	"name", "description", "clusterID", "clusterType", "region", "environmentName",
 	"providerName", "navisionSubscriptionNumber", "navisionCustomerNumber",
 	"navisionCustomerName", "resilienceZone", "clientVersion", "kubernetesVersion",
@@ -43,7 +45,7 @@ ic get clusters
 ic get clusters --filter resilienceZone=platform
 
 use: 'ic help filters' for more information on using filters`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}
@@ -93,7 +95,7 @@ func (o *getClustersOptions) run(ec *ExecutionContext) error {
 	in := cluster.ListClustersInput{
 		Logger:    logger,
 		APIClient: ec.APIClient,
-		PerPage:   50,
+		PerPage:   PerPage,
 		Filters:   searchFields,
 	}
 	result, err := cluster.ListClusters(ec.Command.Context(), in)
@@ -152,10 +154,11 @@ func parseFilter(filterArg string) (*parseFilterOut, error) {
 	field := &qsparser.SearchField{
 		SearchVal: &searchVal,
 	}
-	if op, ok := ops[strings.ToLower(searchOp)]; ok {
-		field.SearchOp = &op
-	} else {
+	op, ok := ops[strings.ToLower(searchOp)]
+	if !ok {
 		return nil, fmt.Errorf("unknown search operator: %s in %s", searchOp, filterArg)
 	}
+	field.SearchOp = &op
+
 	return &parseFilterOut{FieldName: fieldName, SearchField: field}, nil
 }

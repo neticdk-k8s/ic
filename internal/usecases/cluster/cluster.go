@@ -42,8 +42,11 @@ type clusterListResponse struct {
 	Clusters []clusterResponse `json:"clusters,omitempty"`
 }
 
-type ClusterList struct {
-	Included []map[string]interface{}
+// ClusterList is a list of clusters
+type ClusterList struct { //nolint
+	// Included is a list of included items
+	Included []map[string]any
+	// Clusters is a list of clusters
 	Clusters []string
 }
 
@@ -51,31 +54,39 @@ func (cl *ClusterList) ToResponse() *clusterListResponse {
 	clr := &clusterListResponse{
 		Clusters: make([]clusterResponse, 0),
 	}
-	includeMap := make(map[string]interface{})
+	includeMap := make(map[string]any)
 	for _, i := range cl.Included {
-		includeMap[i["@id"].(string)] = i
+		if v, ok := mapValAs[string](i, "@id"); ok {
+			includeMap[v] = i
+		}
 	}
 	for _, i := range cl.Included {
-		if i["@type"].(string) != "Cluster" {
-			continue
+		if v, ok := mapValAs[string](i, "@type"); ok {
+			if v != "Cluster" {
+				continue
+			}
 		}
 		cr := clusterResponse{}
-		cr.Name = i["name"].(string)
-		cr.ClusterType = i["clusterType"].(string)
-		cr.EnvironmentName = i["environmentName"].(string)
-		if provider, ok := includeMap[i["provider"].(string)]; ok {
-			if p, ok := provider.(map[string]interface{})["name"]; ok {
-				cr.ProviderName = p.(string)
+		cr.Name, _ = mapValAs[string](i, "name")
+		cr.ClusterType, _ = mapValAs[string](i, "clusterType")
+		cr.EnvironmentName, _ = mapValAs[string](i, "environmentName")
+		if providerName, ok := mapValAs[string](i, "provider"); ok {
+			if provider, ok := includeMap[providerName]; ok {
+				if p, ok := provider.(map[string]any); ok {
+					cr.ProviderName, _ = mapValAs[string](p, "name")
+				}
 			}
 		}
 		cr.ID = fmt.Sprintf("%s.%s", cr.Name, cr.ProviderName)
-		if rz, ok := includeMap[i["resilienceZone"].(string)]; ok {
-			if p, ok := rz.(map[string]interface{})["name"]; ok {
-				cr.ResilienceZone = p.(string)
+		if rzName, ok := mapValAs[string](i, "resilienceZone"); ok {
+			if rz, ok := includeMap[rzName]; ok {
+				if p, ok := rz.(map[string]any); ok {
+					cr.ResilienceZone, _ = mapValAs[string](p, "name")
+				}
 			}
 		}
-		if kubernetesVersion, ok := i["kubernetesVersion"].(map[string]interface{}); ok {
-			cr.KubernetesVersion = kubernetesVersion["version"].(string)
+		if kubernetesVersion, ok := i["kubernetesVersion"].(map[string]any); ok {
+			cr.KubernetesVersion, _ = mapValAs[string](kubernetesVersion, "version")
 		}
 		clr.Clusters = append(clr.Clusters, cr)
 	}
@@ -112,7 +123,7 @@ func ListClusters(ctx context.Context, in ListClustersInput) (*ListClusterResult
 	cl := &ClusterList{}
 	problem, err := listClusters(ctx, &in, cl)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("listing clusters: %w", err)
 	}
 	if problem != nil {
 		return &ListClusterResults{nil, nil, problem}, nil
@@ -124,8 +135,8 @@ func ListClusters(ctx context.Context, in ListClustersInput) (*ListClusterResult
 	return &ListClusterResults{cl.ToResponse(), jsonData, nil}, nil
 }
 
-func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) (*apiclient.Problem, error) {
-	nextPage := func(ctx context.Context, req *http.Request) error {
+func listClusters(ctx context.Context, in *ListClustersInput, clusterList *ClusterList) (*apiclient.Problem, error) { //nolint
+	nextPage := func(_ context.Context, req *http.Request) error {
 		sp := qsparser.SearchParams{
 			Page:    &in.Page,
 			PerPage: &in.PerPage,
@@ -138,9 +149,7 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 	if err != nil {
 		return nil, fmt.Errorf("reading clusters: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("listClusters", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -157,7 +166,7 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 		clusterList.Included = append(clusterList.Included, *response.ApplicationldJSONDefault.Included...)
 	}
 	if response.ApplicationldJSONDefault.Pagination.Next != nil {
-		in.Page += 1
+		in.Page++
 		return listClusters(ctx, in, clusterList)
 	}
 	return nil, nil
@@ -180,11 +189,9 @@ type GetClusterResult struct {
 func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*GetClusterResult, error) {
 	response, err := in.APIClient.GetClusterWithResponse(ctx, clusterID)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("getting cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("getCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -254,11 +261,9 @@ func CreateCluster(ctx context.Context, in CreateClusterInput) (*CreateClusterRe
 	}
 	response, err := in.APIClient.CreateClusterWithResponse(ctx, createCluster)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("creating cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("createCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusCreated:
 	case http.StatusBadRequest:
@@ -322,11 +327,9 @@ func UpdateCluster(ctx context.Context, clusterID string, in UpdateClusterInput)
 	}
 	response, err := in.APIClient.UpdateClusterWithResponse(ctx, clusterID, updateCluster)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("updating cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("updateCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -364,11 +367,9 @@ type DeleteClusterResult struct {
 func DeleteCluster(ctx context.Context, clusterID string, in DeleteClusterInput) (*DeleteClusterResult, error) {
 	response, err := in.APIClient.DeleteClusterWithResponse(ctx, clusterID)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("deleting cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("deleteCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusNoContent:
 	case http.StatusNotFound:
@@ -404,8 +405,8 @@ type clusterNodesListResponse struct {
 	Nodes []clusterNodeResponse `json:"nodes,omitempty"`
 }
 
-type ClusterNodesList struct {
-	Included []map[string]interface{}
+type ClusterNodesList struct { //nolint
+	Included []map[string]any
 	Nodes    []string
 }
 
@@ -413,22 +414,26 @@ func (cl *ClusterNodesList) ToResponse() *clusterNodesListResponse {
 	cnlr := &clusterNodesListResponse{
 		Nodes: make([]clusterNodeResponse, 0),
 	}
-	includeMap := make(map[string]interface{})
+	includeMap := make(map[string]any)
 	for _, i := range cl.Included {
-		includeMap[i["@id"].(string)] = i
+		if v, ok := mapValAs[string](i, "@id"); ok {
+			includeMap[v] = i
+		}
 	}
 	for _, i := range cl.Included {
-		if i["@type"].(string) != "Node" {
-			continue
+		if v, ok := mapValAs[string](i, "@type"); ok {
+			if v != "Node" {
+				continue
+			}
 		}
 		cr := clusterNodeResponse{}
-		cr.Name = i["name"].(string)
-		cr.IsControlPlane = i["isControlPlane"].(bool)
-		cr.KubeletVersion = i["kubeletVersion"].(string)
-		cr.AllocatableCPUMillis = i["allocatableCoresMillis"].(float64)
-		cr.AllocatableMemoryBytes = i["allocatableMemoryBytes"].(float64)
-		cr.CapacityCPUMillis = i["capacityCoresMillis"].(float64)
-		cr.CapacityMemoryBytes = i["capacityMemoryBytes"].(float64)
+		cr.Name, _ = mapValAs[string](i, "name")
+		cr.IsControlPlane, _ = mapValAs[bool](i, "isControlPlane")
+		cr.KubeletVersion, _ = mapValAs[string](i, "kubeletVersion")
+		cr.AllocatableCPUMillis, _ = mapValAs[float64](i, "allocatableCoresMillis")
+		cr.AllocatableMemoryBytes, _ = mapValAs[float64](i, "allocatableMemoryBytes")
+		cr.CapacityCPUMillis, _ = mapValAs[float64](i, "capacityCoresMillis")
+		cr.CapacityMemoryBytes, _ = mapValAs[float64](i, "capacityMemoryBytes")
 
 		cnlr.Nodes = append(cnlr.Nodes, cr)
 	}
@@ -467,7 +472,7 @@ func ListClusterNodes(ctx context.Context, in ListClusterNodesInput) (*ListClust
 	nl := &ClusterNodesList{}
 	problem, err := listClusterNodes(ctx, &in, nl)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("listing cluster nodes: %w", err)
 	}
 	if problem != nil {
 		return &ListClusterNodesResults{nil, nil, problem}, nil
@@ -479,8 +484,8 @@ func ListClusterNodes(ctx context.Context, in ListClusterNodesInput) (*ListClust
 	return &ListClusterNodesResults{nl.ToResponse(), jsonData, nil}, nil
 }
 
-func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *ClusterNodesList) (*apiclient.Problem, error) {
-	nextPage := func(ctx context.Context, req *http.Request) error {
+func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *ClusterNodesList) (*apiclient.Problem, error) { //nolint
+	nextPage := func(_ context.Context, req *http.Request) error {
 		sp := qsparser.SearchParams{
 			Page:    &in.Page,
 			PerPage: &in.PerPage,
@@ -493,9 +498,7 @@ func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *
 	if err != nil {
 		return nil, fmt.Errorf("reading cluster node list: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("listNodes", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -512,7 +515,7 @@ func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *
 		nodeList.Included = append(nodeList.Included, *response.ApplicationldJSONDefault.Included...)
 	}
 	if response.ApplicationldJSONDefault.Pagination.Next != nil {
-		in.Page += 1
+		in.Page++
 		return listClusterNodes(ctx, in, nodeList)
 	}
 	return nil, nil
@@ -537,11 +540,9 @@ type GetClusterNodeResult struct {
 func GetClusterNode(ctx context.Context, in GetClusterNodeInput) (*GetClusterNodeResult, error) {
 	response, err := in.APIClient.GetNodeWithResponse(ctx, in.ClusterName, in.NodeName)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("getting node: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("getNode", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -579,11 +580,9 @@ type GetClusterKubeConfigResult struct {
 func GetClusterKubeConfig(ctx context.Context, in GetClusterKubeConfigInput) (*GetClusterKubeConfigResult, error) {
 	response, err := in.APIClient.GetClusterKubeConfigWithResponse(ctx, in.ClusterName)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("getting cluster kubeconfig: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("getClusterKubeconfig", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -598,9 +597,11 @@ func GetClusterKubeConfig(ctx context.Context, in GetClusterKubeConfigInput) (*G
 }
 
 func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
-	includeMap := make(map[string]interface{})
+	includeMap := make(map[string]any)
 	for _, i := range *cluster.Included {
-		includeMap[i["@id"].(string)] = i
+		if v, ok := mapValAs[string](i, "@id"); ok {
+			includeMap[v] = i
+		}
 	}
 	cr := &clusterResponse{}
 	cr.Name = nilStr(cluster.Name)
@@ -633,15 +634,15 @@ func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	}
 	if cluster.Provider != nil {
 		if provider, ok := includeMap[*cluster.Provider]; ok {
-			if p, ok := provider.(map[string]interface{})["name"]; ok {
-				cr.ProviderName = p.(string)
+			if p, ok := provider.(map[string]any); ok {
+				cr.ProviderName, _ = mapValAs[string](p, "name") //nolint
 			}
 		}
 	}
 	if cluster.ResilienceZone != nil {
 		if provider, ok := includeMap[*cluster.ResilienceZone]; ok {
-			if p, ok := provider.(map[string]interface{})["name"]; ok {
-				cr.ResilienceZone = p.(string)
+			if p, ok := provider.(map[string]any); ok {
+				cr.ResilienceZone, _ = mapValAs[string](p, "name")
 			}
 		}
 	}
@@ -689,4 +690,18 @@ func nilInt64(i *int64) int64 {
 		return *i
 	}
 	return 0
+}
+
+func logStatus(r *http.Response) []any {
+	return []any{"status", r.StatusCode, "content-type", r.Header.Get("Content-Type")}
+}
+
+func mapValAs[T any](haystak map[string]any, needle string) (T, bool) {
+	if v, ok := haystak[needle]; ok {
+		if v2, ok := v.(T); ok {
+			return v2, true
+		}
+	}
+	var zero T
+	return zero, false
 }

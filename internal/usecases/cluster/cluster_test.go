@@ -14,11 +14,11 @@ import (
 func TestClusterList_ToResponse(t *testing.T) {
 	cl := ClusterList{
 		Clusters: make([]string, 0),
-		Included: make([]map[string]interface{}, 0),
+		Included: make([]map[string]any, 0),
 	}
 	t.Run("Valid input", func(t *testing.T) {
 		cl.Clusters = []string{"my-cluster"}
-		cl.Included = []map[string]interface{}{
+		cl.Included = []map[string]any{
 			{
 				"@id":   "my-provider-id",
 				"@type": "Provider",
@@ -37,7 +37,7 @@ func TestClusterList_ToResponse(t *testing.T) {
 				"environmentName": "my-environment",
 				"provider":        "my-provider-id",
 				"resilienceZone":  "my-resilience-zone-id",
-				"kubernetesVersion": map[string]interface{}{
+				"kubernetesVersion": map[string]any{
 					"version": "1.2.3",
 				},
 			},
@@ -61,7 +61,7 @@ func TestClusterList_ToResponse(t *testing.T) {
 
 	t.Run("Empty input", func(t *testing.T) {
 		cl.Clusters = []string{""}
-		cl.Included = []map[string]interface{}{}
+		cl.Included = []map[string]any{}
 		want := &clusterListResponse{[]clusterResponse{}}
 		got := cl.ToResponse()
 		assert.Equal(t, want, got)
@@ -71,10 +71,10 @@ func TestClusterList_ToResponse(t *testing.T) {
 func TestClusterList_MarshalJSON(t *testing.T) {
 	cl := ClusterList{
 		Clusters: make([]string, 0),
-		Included: make([]map[string]interface{}, 0),
+		Included: make([]map[string]any, 0),
 	}
 	cl.Clusters = []string{"my-cluster"}
-	cl.Included = []map[string]interface{}{
+	cl.Included = []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -93,7 +93,7 @@ func TestClusterList_MarshalJSON(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},
@@ -108,7 +108,7 @@ func TestListClusters(t *testing.T) {
 	logger := logger.NewTestLogger(t)
 
 	clusters := []string{"my-cluster", "my-cluster-2"}
-	included := []map[string]interface{}{
+	included := []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -127,7 +127,7 @@ func TestListClusters(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},
@@ -139,7 +139,7 @@ func TestListClusters(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},
@@ -201,7 +201,7 @@ func TestGetCluster(t *testing.T) {
 	logger := logger.NewTestLogger(t)
 	mockClient := apiclient.NewMockClientWithResponsesInterface(t)
 	name := "my-cluster"
-	included := []map[string]interface{}{
+	included := []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -220,7 +220,7 @@ func TestGetCluster(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},
@@ -262,11 +262,11 @@ func TestGetCluster(t *testing.T) {
 func TestNodeList_ToResponse(t *testing.T) {
 	cl := ClusterList{
 		Clusters: make([]string, 0),
-		Included: make([]map[string]interface{}, 0),
+		Included: make([]map[string]any, 0),
 	}
 	t.Run("Valid input", func(t *testing.T) {
 		cl.Clusters = []string{"my-cluster"}
-		cl.Included = []map[string]interface{}{
+		cl.Included = []map[string]any{
 			{
 				"@id":   "my-provider-id",
 				"@type": "Provider",
@@ -285,7 +285,7 @@ func TestNodeList_ToResponse(t *testing.T) {
 				"environmentName": "my-environment",
 				"provider":        "my-provider-id",
 				"resilienceZone":  "my-resilience-zone-id",
-				"kubernetesVersion": map[string]interface{}{
+				"kubernetesVersion": map[string]any{
 					"version": "1.2.3",
 				},
 			},
@@ -309,7 +309,7 @@ func TestNodeList_ToResponse(t *testing.T) {
 
 	t.Run("Empty input", func(t *testing.T) {
 		cl.Clusters = []string{""}
-		cl.Included = []map[string]interface{}{}
+		cl.Included = []map[string]any{}
 		want := &clusterListResponse{[]clusterResponse{}}
 		got := cl.ToResponse()
 		assert.Equal(t, want, got)
@@ -319,10 +319,10 @@ func TestNodeList_ToResponse(t *testing.T) {
 func TestNodeList_MarshalJSON(t *testing.T) {
 	cl := ClusterList{
 		Clusters: make([]string, 0),
-		Included: make([]map[string]interface{}, 0),
+		Included: make([]map[string]any, 0),
 	}
 	cl.Clusters = []string{"my-cluster"}
-	cl.Included = []map[string]interface{}{
+	cl.Included = []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -341,7 +341,7 @@ func TestNodeList_MarshalJSON(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},
@@ -356,7 +356,7 @@ func TestListClusterNodes(t *testing.T) {
 	logger := logger.NewTestLogger(t)
 
 	clusters := []string{"my-cluster", "my-cluster-2"}
-	included := []map[string]interface{}{
+	included := []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -375,7 +375,7 @@ func TestListClusterNodes(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},
@@ -387,7 +387,7 @@ func TestListClusterNodes(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},
@@ -449,7 +449,7 @@ func TestGetClusterNode(t *testing.T) {
 	logger := logger.NewTestLogger(t)
 	mockClient := apiclient.NewMockClientWithResponsesInterface(t)
 	name := "my-cluster"
-	included := []map[string]interface{}{
+	included := []map[string]any{
 		{
 			"@id":   "my-provider-id",
 			"@type": "Provider",
@@ -468,7 +468,7 @@ func TestGetClusterNode(t *testing.T) {
 			"environmentName": "my-environment",
 			"provider":        "my-provider-id",
 			"resilienceZone":  "my-resilience-zone-id",
-			"kubernetesVersion": map[string]interface{}{
+			"kubernetesVersion": map[string]any{
 				"version": "1.2.3",
 			},
 		},

@@ -13,6 +13,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	newDirPermissions  = 0o700
+	newFilePermissions = 0o600
+)
+
 type fsCache struct {
 	CacheDir string
 }
@@ -60,7 +65,7 @@ func (c *fsCache) Lookup(key Key) (*oidc.TokenSet, error) {
 
 // Save stores a cached token
 func (c *fsCache) Save(key Key, tokenSet oidc.TokenSet) error {
-	if err := os.MkdirAll(c.CacheDir, 0o700); err != nil {
+	if err := os.MkdirAll(c.CacheDir, newDirPermissions); err != nil {
 		return fmt.Errorf("could not create directory %s: %w", c.CacheDir, err)
 	}
 	filename, err := computeFilename(key)
@@ -68,7 +73,7 @@ func (c *fsCache) Save(key Key, tokenSet oidc.TokenSet) error {
 		return fmt.Errorf("could not compute the key: %w", err)
 	}
 	p := filepath.Join(c.CacheDir, filename)
-	f, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
+	f, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE|os.O_TRUNC, newFilePermissions)
 	if err != nil {
 		return fmt.Errorf("could not create file %s: %w", p, err)
 	}

@@ -15,7 +15,7 @@ func NewGetResilienceZonesCmd(ec *ExecutionContext) *cobra.Command {
 		Short:   "List resilience zones",
 		Aliases: []string{"rzs"},
 		GroupID: groupOther,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}

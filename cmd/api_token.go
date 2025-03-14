@@ -14,7 +14,7 @@ func NewAPITokenCmd(ec *ExecutionContext) *cobra.Command {
 		Short:   "Get access token for the API",
 		Long:    "Get access token for the API. It uses the cached token if it is valid and performs login otherwise.",
 		GroupID: groupAuth,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}

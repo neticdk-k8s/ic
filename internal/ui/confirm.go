@@ -1,8 +1,8 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -18,6 +18,8 @@ type confirmModel struct {
 }
 
 type errMsg error
+
+var ExitConfirmError = errors.New("exit confirm")
 
 func NewConfirmModel(action string, confirmText string) *confirmModel {
 	ti := textinput.New()
@@ -85,7 +87,7 @@ func Confirm(action string, confirmText string) error {
 			return nil
 		}
 		if m.quitting || strings.Trim(m.textInput.Value(), " ") == "" {
-			os.Exit(0)
+			return ExitConfirmError
 		}
 		return fmt.Errorf("answer did not match: %s", confirmText)
 	}

@@ -16,12 +16,22 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	logoutRetryMinWait = time.Duration(2) * time.Second
+	logoutRetryMaxWait = time.Duration(30) * time.Second
+)
+
 // Client represents an OIDC Client
 type Client interface {
+	// Refresh creates an updated TokenSet by means of refreshing an oauth2 token
 	Refresh(ctx context.Context, refreshToken string) (*TokenSet, error)
+	// Logout deletes the session from the OIDC provider
 	Logout(idToken string) error
+	// GetTokenByAuthCode performs the Authorization Code Grant Flow and returns
 	GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeInput, localServerReadyChan chan<- string) (*TokenSet, error)
+	// GetAuthCodeURL returns a URL to OAuth 2.0 provider's consent page
 	GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (string, error)
+	// ExchangeAuthCode converts an authorization code into a TokenSet
 	ExchangeAuthCode(ctx context.Context, in ExchangeAuthCodeInput) (*TokenSet, error)
 }
 
@@ -67,6 +77,7 @@ func (c *client) Logout(idToken string) error {
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("logout failed with status code: %d", res.StatusCode)
@@ -78,9 +89,9 @@ func (c *client) Logout(idToken string) error {
 func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	client := retryablehttp.NewClient()
 	client.HTTPClient.Timeout = time.Duration(2) * time.Second
-	client.Logger = OIDCSlogAdapter{Logger: c.logger}
-	client.RetryWaitMin = time.Duration(2) * time.Second
-	client.RetryWaitMax = time.Duration(30) * time.Second
+	client.Logger = SlogAdapter{Logger: c.logger}
+	client.RetryWaitMin = logoutRetryMinWait
+	client.RetryWaitMax = logoutRetryMaxWait
 	client.RetryMax = 5
 
 	defer client.HTTPClient.CloseIdleConnections()
@@ -146,7 +157,7 @@ type GetAuthCodeURLInput struct {
 }
 
 // GetAuthCodeURL returns a URL to OAuth 2.0 provider's consent page
-func (c *client) GetAuthCodeURL(ctx context.Context, in GetAuthCodeURLInput) (string, error) {
+func (c *client) GetAuthCodeURL(_ context.Context, in GetAuthCodeURLInput) (string, error) {
 	cfg := c.oauth2config
 	cfg.RedirectURL = in.RedirectURI
 

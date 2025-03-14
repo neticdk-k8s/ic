@@ -14,7 +14,7 @@ func NewGetPartitionsCmd(ec *ExecutionContext) *cobra.Command {
 		Use:     "partitions",
 		Short:   "List partitions",
 		GroupID: groupOther,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}

@@ -16,7 +16,7 @@ func NewGetComponentsCmd(ec *ExecutionContext) *cobra.Command {
 		Use:     "components",
 		Short:   "Get list of components",
 		GroupID: groupComponent,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return o.run(ec)
 		},
 	}
@@ -26,7 +26,7 @@ func NewGetComponentsCmd(ec *ExecutionContext) *cobra.Command {
 
 type getComponentsOptions struct{}
 
-func (o *getComponentsOptions) bindFlags(f *pflag.FlagSet) {}
+func (o *getComponentsOptions) bindFlags(_ *pflag.FlagSet) {}
 
 func (o *getComponentsOptions) run(ec *ExecutionContext) error {
 	logger := ec.Logger.WithPrefix("Components")

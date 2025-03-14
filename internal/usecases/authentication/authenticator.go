@@ -87,10 +87,10 @@ type authenticator struct {
 }
 
 // NewAuthenticator creates a new Authenticator
-func NewAuthenticator(logger logger.Logger, authentication Authentication) *authenticator {
+func NewAuthenticator(l logger.Logger, a Authentication) *authenticator {
 	return &authenticator{
-		logger:         logger,
-		authentication: authentication,
+		logger:         l,
+		authentication: a,
 	}
 }
 
@@ -215,12 +215,12 @@ type authentication struct {
 }
 
 // NewAuthentication creates a new authentication
-func NewAuthentication(logger logger.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
+func NewAuthentication(l logger.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
 	authn := &authentication{
 		oidcClientFactory: &oidc.Factory{
-			Logger: logger,
+			Logger: l,
 		},
-		logger:           logger,
+		logger:           l,
 		authCodeBrowser:  authCodeBrowser,
 		authCodeKeyboard: authCodeKeyboard,
 	}
@@ -244,9 +244,8 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 				UsingCachedToken: true,
 				TokenSet:         *in.CachedTokenSet,
 			}, nil
-		} else {
-			a.logger.Debug("Cached token is expired")
 		}
+		a.logger.Debug("Cached token is expired")
 	}
 
 	oidcClient, err := a.oidcClientFactory.New(ctx, in.Provider)

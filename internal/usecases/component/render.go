@@ -9,6 +9,7 @@ import (
 )
 
 type Renderer interface {
+	// Render renders the component
 	Render(format string) error
 }
 

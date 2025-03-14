@@ -31,7 +31,7 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 		SilenceUsage:          true,
 		SilenceErrors:         true,
 		Version:               ec.Version,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			if err := initConfig(cmd); err != nil {
 				return err
 			}
@@ -50,7 +50,7 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 			}
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return nil
 		},
 	}

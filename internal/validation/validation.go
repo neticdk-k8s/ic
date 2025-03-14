@@ -5,6 +5,11 @@ import (
 	"regexp"
 )
 
+const (
+	minDNSLabelLen = 3
+	maxDNSLabelLen = 63
+)
+
 var (
 	dnsRegexStringRFC1035Label = "^[a-z]([-a-z0-9]*[a-z0-9])?$"
 	printableASCIIRegexString  = "^[\x20-\x7E]*$"
@@ -16,7 +21,7 @@ func IsWebURL(s string) bool {
 }
 
 func IsDNSRFC1035Label(s string) bool {
-	if len(s) < 3 || len(s) > 63 {
+	if len(s) < minDNSLabelLen || len(s) > maxDNSLabelLen {
 		return false
 	}
 	dnsRegexRFC1035Label := regexp.MustCompile(dnsRegexStringRFC1035Label)

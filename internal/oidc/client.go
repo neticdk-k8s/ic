@@ -16,6 +16,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	logoutRetryWaitMinSeconds = time.Duration(2) * time.Second
+	logoutRetryWaitMaxSeconds = time.Duration(30) * time.Second
+)
+
 // Client represents an OIDC Client
 type Client interface {
 	Refresh(ctx context.Context, refreshToken string) (*TokenSet, error)
@@ -67,6 +72,7 @@ func (c *client) Logout(idToken string) error {
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("logout failed with status code: %d", res.StatusCode)
@@ -79,8 +85,8 @@ func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	client := retryablehttp.NewClient()
 	client.HTTPClient.Timeout = time.Duration(2) * time.Second
 	client.Logger = OIDCSlogAdapter{Logger: c.logger}
-	client.RetryWaitMin = time.Duration(2) * time.Second
-	client.RetryWaitMax = time.Duration(30) * time.Second
+	client.RetryWaitMin = logoutRetryWaitMinSeconds
+	client.RetryWaitMax = logoutRetryWaitMaxSeconds
 	client.RetryMax = 5
 
 	defer client.HTTPClient.CloseIdleConnections()

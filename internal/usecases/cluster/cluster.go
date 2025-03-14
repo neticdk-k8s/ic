@@ -112,7 +112,7 @@ func ListClusters(ctx context.Context, in ListClustersInput) (*ListClusterResult
 	cl := &ClusterList{}
 	problem, err := listClusters(ctx, &in, cl)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("listing clusters: %w", err)
 	}
 	if problem != nil {
 		return &ListClusterResults{nil, nil, problem}, nil
@@ -138,9 +138,7 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 	if err != nil {
 		return nil, fmt.Errorf("reading clusters: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("listClusters", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -180,11 +178,9 @@ type GetClusterResult struct {
 func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*GetClusterResult, error) {
 	response, err := in.APIClient.GetClusterWithResponse(ctx, clusterID)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("getting cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("getCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -254,11 +250,9 @@ func CreateCluster(ctx context.Context, in CreateClusterInput) (*CreateClusterRe
 	}
 	response, err := in.APIClient.CreateClusterWithResponse(ctx, createCluster)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("creating cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("createCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusCreated:
 	case http.StatusBadRequest:
@@ -322,11 +316,9 @@ func UpdateCluster(ctx context.Context, clusterID string, in UpdateClusterInput)
 	}
 	response, err := in.APIClient.UpdateClusterWithResponse(ctx, clusterID, updateCluster)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("updating cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("updateCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -364,11 +356,9 @@ type DeleteClusterResult struct {
 func DeleteCluster(ctx context.Context, clusterID string, in DeleteClusterInput) (*DeleteClusterResult, error) {
 	response, err := in.APIClient.DeleteClusterWithResponse(ctx, clusterID)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("deleting cluster: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("deleteCluster", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusNoContent:
 	case http.StatusNotFound:
@@ -467,7 +457,7 @@ func ListClusterNodes(ctx context.Context, in ListClusterNodesInput) (*ListClust
 	nl := &ClusterNodesList{}
 	problem, err := listClusterNodes(ctx, &in, nl)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("listing cluster nodes: %w", err)
 	}
 	if problem != nil {
 		return &ListClusterNodesResults{nil, nil, problem}, nil
@@ -493,9 +483,7 @@ func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *
 	if err != nil {
 		return nil, fmt.Errorf("reading cluster node list: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("listNodes", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -537,11 +525,9 @@ type GetClusterNodeResult struct {
 func GetClusterNode(ctx context.Context, in GetClusterNodeInput) (*GetClusterNodeResult, error) {
 	response, err := in.APIClient.GetNodeWithResponse(ctx, in.ClusterName, in.NodeName)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("getting node: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("getNode", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -579,11 +565,9 @@ type GetClusterKubeConfigResult struct {
 func GetClusterKubeConfig(ctx context.Context, in GetClusterKubeConfigInput) (*GetClusterKubeConfigResult, error) {
 	response, err := in.APIClient.GetClusterKubeConfigWithResponse(ctx, in.ClusterName)
 	if err != nil {
-		return nil, fmt.Errorf("apiclient: %w", err)
+		return nil, fmt.Errorf("getting cluster kubeconfig: %w", err)
 	}
-	in.Logger.Debug("apiclient",
-		"status", response.StatusCode(),
-		"content-type", response.HTTPResponse.Header.Get("Content-Type"))
+	in.Logger.Debug("getClusterKubeconfig", logStatus(response.HTTPResponse))
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -689,4 +673,8 @@ func nilInt64(i *int64) int64 {
 		return *i
 	}
 	return 0
+}
+
+func logStatus(r *http.Response) []any {
+	return []any{"status", r.StatusCode, "content-type", r.Header.Get("Content-Type")}
 }

@@ -85,7 +85,7 @@ func (o *getClusterNodesOptions) run(ec *ExecutionContext) error {
 	in := cluster.ListClusterNodesInput{
 		Logger:      logger,
 		APIClient:   ec.APIClient,
-		PerPage:     50,
+		PerPage:     PerPage,
 		Filters:     searchFields,
 		ClusterName: o.ClusterName,
 	}

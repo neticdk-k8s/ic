@@ -13,6 +13,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const PerPage = 50
+
 var getClustersFilterNames []string = []string{
 	"name", "description", "clusterID", "clusterType", "region", "environmentName",
 	"providerName", "navisionSubscriptionNumber", "navisionCustomerNumber",
@@ -93,7 +95,7 @@ func (o *getClustersOptions) run(ec *ExecutionContext) error {
 	in := cluster.ListClustersInput{
 		Logger:    logger,
 		APIClient: ec.APIClient,
-		PerPage:   50,
+		PerPage:   PerPage,
 		Filters:   searchFields,
 	}
 	result, err := cluster.ListClusters(ec.Command.Context(), in)

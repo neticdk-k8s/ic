@@ -3,21 +3,25 @@ package cmd
 import (
 	"bytes"
 	"context"
+	goerr "errors"
+	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
-	"github.com/neticdk-k8s/ic/internal/logger"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/errors"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func Test_CreateClusterCommand(t *testing.T) {
-	t.Parallel()
 	ec, got := newMockedCreateClusterEC(t)
-	cmd := NewRootCmd(ec)
+	cmd := newRootCmd(ec)
 
 	cmd.SetArgs([]string{"create", "cluster", "--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123456", "--infrastructure-provider", "netic", "--resilience-zone", "platform"})
 	err := cmd.ExecuteContext(context.Background())
@@ -31,7 +35,7 @@ func Test_CreateClusterCommand(t *testing.T) {
 func Test_CreateClusterCommandWithJSONOutput(t *testing.T) {
 	t.Parallel()
 	ec, got := newMockedCreateClusterEC(t)
-	cmd := NewRootCmd(ec)
+	cmd := newRootCmd(ec)
 
 	cmd.SetArgs([]string{"create", "cluster", "--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123456", "--infrastructure-provider", "netic", "--resilience-zone", "platform", "-o", "json"})
 	err := cmd.ExecuteContext(context.Background())
@@ -71,12 +75,13 @@ func Test_CreateClusterCommandRequiredParameters(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			got := new(bytes.Buffer)
-			in := ExecutionContextInput{
-				Stdout: got,
-				Stderr: got,
-			}
-			ec := NewExecutionContext(in)
-			cmd := NewRootCmd(ec)
+			ec := cmd.NewExecutionContext(AppName, ShortDesc, "test")
+			ec.Stderr = got
+			ec.Stdout = got
+			ui.SetDefaultOutput(got)
+			ac := ic.NewContext()
+			ac.EC = ec
+			cmd := newRootCmd(ac)
 			args := append([]string{"create", "cluster"}, tc.args...)
 			cmd.SetArgs(args)
 			err := cmd.Execute()
@@ -96,17 +101,17 @@ func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
 		{
 			testName:     "invalid partition",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "invalid"},
-			expErrString: "invalid argument",
+			expErrString: "is not valid",
 		},
 		{
 			testName:     "invalid region",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "invalid"},
-			expErrString: "invalid argument",
+			expErrString: "is not valid",
 		},
 		{
 			testName:     "invalid region in partition",
 			args:         []string{"--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123446", "--resilience-zone", "platform", "--partition", "netic", "--region", "invalid"},
-			expErrString: "invalid argument",
+			expErrString: "is not valid",
 		},
 		{
 			testName:     "custom operations without valid url",
@@ -158,18 +163,23 @@ func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			got := new(bytes.Buffer)
-			in := ExecutionContextInput{
-				Stdout: got,
-				Stderr: got,
-			}
-			ec := NewExecutionContext(in)
-			cmd := NewRootCmd(ec)
+			ec := cmd.NewExecutionContext(AppName, ShortDesc, "test")
+			ec.Stderr = got
+			ec.Stdout = got
+			ui.SetDefaultOutput(got)
+			ac := ic.NewContext()
+			ac.EC = ec
+			cmd := newRootCmd(ac)
 			args := append([]string{"create", "cluster"}, tc.args...)
 			cmd.SetArgs(args)
 			err := cmd.Execute()
-			assert.Error(t, err)
 			if err != nil {
-				assert.Contains(t, err.Error(), tc.expErrString)
+				var invalidArgErr *errors.InvalidArgumentError
+				if goerr.As(err, &invalidArgErr) {
+					assert.Contains(t, err.(errors.ErrorWithHelp).Help(), tc.expErrString)
+				} else {
+					assert.Contains(t, err.Error(), tc.expErrString)
+				}
 			}
 		})
 	}
@@ -238,8 +248,8 @@ func Test_CreateClusterCommandServiceLevels(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
-			ec, _ := newMockedCreateClusterEC(t)
-			cmd := NewRootCmd(ec)
+			ac, _ := newMockedCreateClusterEC(t)
+			cmd := newRootCmd(ac)
 			cmd.SetArgs(tc.args)
 			o := &createClusterOptions{}
 			o.bindFlags(cmd.Flags())
@@ -247,9 +257,17 @@ func Test_CreateClusterCommandServiceLevels(t *testing.T) {
 			if err != nil {
 				t.Log(err)
 			}
-			err = cmd.Execute()
 			assert.NoError(t, err)
-			o.complete()
+			err = o.Complete(t.Context(), ac)
+			if err != nil {
+				t.Log(err)
+			}
+			assert.NoError(t, err)
+			err = cmd.Execute()
+			if err != nil {
+				t.Log(err.(errors.ErrorWithHelp).Unwrap())
+			}
+			assert.NoError(t, err)
 			assert.Equal(t, tc.expCO, o.HasCustomOperations)
 			assert.Equal(t, tc.expTO, o.HasTechnicalOperations)
 			assert.Equal(t, tc.expTM, o.HasTechnicalManagement)
@@ -259,17 +277,19 @@ func Test_CreateClusterCommandServiceLevels(t *testing.T) {
 	}
 }
 
-func newMockedCreateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
+func newMockedCreateClusterEC(t *testing.T) (*ic.Context, *bytes.Buffer) {
 	got := new(bytes.Buffer)
-	in := ExecutionContextInput{
-		Stdout: got,
-		Stderr: got,
-	}
-	ec := NewExecutionContext(in)
+	ec := cmd.NewExecutionContext(AppName, ShortDesc, "test")
+	ec.Stdin = nil
+	ec.Stderr = got
+	ec.Stdout = got
+	ui.SetDefaultOutput(got)
+	ac := ic.NewContext()
+	ac.EC = ec
 	mockAuthenticator := authentication.NewMockAuthenticator(t)
 	mockAuthenticator.EXPECT().
 		SetLogger(mock.Anything).
-		Run(func(_ logger.Logger) {}).
+		Run(func(_ *slog.Logger) {}).
 		Return()
 	mockAuthenticator.EXPECT().
 		Login(mock.Anything, mock.Anything).
@@ -279,7 +299,7 @@ func newMockedCreateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
 			IDToken:      "YOUR_ID_TOKEN",
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}, nil)
-	ec.Authenticator = mockAuthenticator
+	ac.Authenticator = mockAuthenticator
 	included := []map[string]interface{}{
 		{
 			"@id":   "my-provider-id",
@@ -323,7 +343,7 @@ func newMockedCreateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
 				},
 			}, nil)
 	apiClient := mockClientWithResponsesInterface
-	ec.APIClient = apiClient
+	ac.APIClient = apiClient
 
-	return ec, got
+	return ac, got
 }

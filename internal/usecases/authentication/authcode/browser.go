@@ -3,10 +3,10 @@ package authcode
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/int128/oauth2cli/oauth2params"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/pkg/browser"
 	"github.com/pkg/errors"
@@ -25,7 +25,7 @@ type BrowserLoginInput struct {
 // Browser represents a browser based login
 type Browser struct {
 	// Logger holds a logging instance
-	Logger logger.Logger
+	Logger *slog.Logger
 }
 
 // Login performs browser based autocode flow, i.e.:

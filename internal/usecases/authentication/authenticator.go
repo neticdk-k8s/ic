@@ -3,8 +3,8 @@ package authentication
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/tokencache"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication/authcode"
@@ -78,16 +78,16 @@ type Authenticator interface {
 	Logout(ctx context.Context, in LogoutInput) error
 
 	// SetLogger sets the logger used for authentication
-	SetLogger(logger.Logger)
+	SetLogger(*slog.Logger)
 }
 
 type authenticator struct {
-	logger         logger.Logger
+	logger         *slog.Logger
 	authentication Authentication
 }
 
 // NewAuthenticator creates a new Authenticator
-func NewAuthenticator(l logger.Logger, a Authentication) *authenticator {
+func NewAuthenticator(l *slog.Logger, a Authentication) *authenticator {
 	return &authenticator{
 		logger:         l,
 		authentication: a,
@@ -100,7 +100,7 @@ func NewAuthenticator(l logger.Logger, a Authentication) *authenticator {
 //  2. authenticating using the cached token or if not present performing OIDC authentication using the grant type provided
 //  3. caching the token obtained from the auth flow
 func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSet, error) {
-	a.logger.Debug("Fetching cached token")
+	a.logger.DebugContext(ctx, "Fetching cached token")
 
 	tokenCacheKey := tokencache.Key{
 		IssuerURL:   in.Provider.IssuerURL,
@@ -111,9 +111,9 @@ func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSe
 	cachedTokenSet, err := in.TokenCache.Lookup(tokenCacheKey)
 	if err != nil {
 		if errors.Is(err, &tokencache.CacheMissError{}) {
-			a.logger.Debug("Cached token not found")
+			a.logger.DebugContext(ctx, "Cached token not found")
 		} else {
-			a.logger.Error("Fetching cached token", "err", err)
+			a.logger.ErrorContext(ctx, "Fetching cached token", "err", err)
 		}
 	}
 
@@ -132,12 +132,12 @@ func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSe
 	if err != nil {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
-	a.logger.Debug("Token", "token", tokenClaims.Pretty)
+	a.logger.DebugContext(ctx, "Token", "token", tokenClaims.Pretty)
 
 	if authResult.UsingCachedToken {
-		a.logger.Debug("Using cached token", "expires", tokenClaims.Expiry)
+		a.logger.DebugContext(ctx, "Using cached token", "expires", tokenClaims.Expiry)
 	} else {
-		a.logger.Debug("Using new token", "expires", tokenClaims.Expiry)
+		a.logger.DebugContext(ctx, "Using new token", "expires", tokenClaims.Expiry)
 		err = in.TokenCache.Save(tokenCacheKey, authResult.TokenSet)
 		if err != nil {
 			return nil, fmt.Errorf("caching token: %w", err)
@@ -153,7 +153,7 @@ func (a *authenticator) Login(ctx context.Context, in LoginInput) (*oidc.TokenSe
 //  2. using the logout url to log out of the OIDC provider
 //  3. removing the cached token
 func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
-	a.logger.Debug("Fetching cached token")
+	a.logger.DebugContext(ctx, "Fetching cached token")
 
 	tokenCacheKey := tokencache.Key{
 		IssuerURL:   in.Provider.IssuerURL,
@@ -164,7 +164,7 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 	cachedTokenSet, err := in.TokenCache.Lookup(tokenCacheKey)
 	if err != nil {
 		if errors.Is(err, &tokencache.CacheMissError{}) {
-			a.logger.Warn("Cached token not found - cannot log out")
+			a.logger.WarnContext(ctx, "Cached token not found - cannot log out")
 			return err
 		}
 		return fmt.Errorf("looking up cached token: %w", err)
@@ -180,7 +180,7 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 		return fmt.Errorf("logging out: %w", err)
 	}
 
-	a.logger.Debug("Invalidating cached token")
+	a.logger.DebugContext(ctx, "Invalidating cached token")
 	if err := in.TokenCache.Invalidate(tokenCacheKey); err != nil {
 		return fmt.Errorf("invalidating cached token: %w", err)
 	}
@@ -189,7 +189,7 @@ func (a *authenticator) Logout(ctx context.Context, in LogoutInput) error {
 }
 
 // SetLogger sets the logger used for authentication
-func (a *authenticator) SetLogger(l logger.Logger) {
+func (a *authenticator) SetLogger(l *slog.Logger) {
 	a.logger = l
 	a.authentication.SetLogger(l)
 }
@@ -202,12 +202,12 @@ type Authentication interface {
 	Logout(ctx context.Context, in AuthenticateLogoutInput) error
 
 	// SetLogger sets the logger used for authentication
-	SetLogger(logger.Logger)
+	SetLogger(*slog.Logger)
 }
 
 type authentication struct {
 	oidcClientFactory oidc.FactoryClient
-	logger            logger.Logger
+	logger            *slog.Logger
 	// AuthCodeBrowser is the configuration used when authenticating using authcode-browser
 	authCodeBrowser *authcode.Browser
 	// AuthCodeKeyboard is the configuration used when authenticating using authcode-keyboard
@@ -215,7 +215,7 @@ type authentication struct {
 }
 
 // NewAuthentication creates a new authentication
-func NewAuthentication(l logger.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
+func NewAuthentication(l *slog.Logger, clientFactory oidc.FactoryClient, authCodeBrowser *authcode.Browser, authCodeKeyboard *authcode.Keyboard) *authentication {
 	authn := &authentication{
 		oidcClientFactory: &oidc.Factory{
 			Logger: l,
@@ -233,19 +233,19 @@ func NewAuthentication(l logger.Logger, clientFactory oidc.FactoryClient, authCo
 // Authenticate performs the OIDC authentication using the configuration given by AuthenticateInput
 func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput) (*AuthResult, error) {
 	if in.CachedTokenSet != nil {
-		a.logger.Debug("Found cached token")
+		a.logger.DebugContext(ctx, "Found cached token")
 		claims, err := in.CachedTokenSet.DecodeWithoutVerify()
 		if err != nil {
 			return nil, fmt.Errorf("decoding token: %w", err)
 		}
 		if !claims.IsExpired() {
-			a.logger.Debug("Found cached token", "expires", claims.Expiry)
+			a.logger.DebugContext(ctx, "Found cached token", "expires", claims.Expiry)
 			return &AuthResult{
 				UsingCachedToken: true,
 				TokenSet:         *in.CachedTokenSet,
 			}, nil
 		}
-		a.logger.Debug("Cached token is expired")
+		a.logger.DebugContext(ctx, "Cached token is expired")
 	}
 
 	oidcClient, err := a.oidcClientFactory.New(ctx, in.Provider)
@@ -254,16 +254,16 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 	}
 
 	if in.CachedTokenSet != nil && in.CachedTokenSet.RefreshToken != "" {
-		a.logger.Debug("Refreshing token")
+		a.logger.DebugContext(ctx, "Refreshing token")
 		tokenSet, err := oidcClient.Refresh(ctx, in.CachedTokenSet.RefreshToken)
 		if err == nil {
 			return &AuthResult{TokenSet: *tokenSet}, nil
 		}
-		a.logger.Error("Refreshing token", "err", err)
+		a.logger.ErrorContext(ctx, "Refreshing token", "err", err)
 	}
 
 	if in.AuthOptions.AuthCodeBrowser != nil {
-		a.logger.Debug("Authenticating using authcode-browser")
+		a.logger.DebugContext(ctx, "Authenticating using authcode-browser")
 		tokenSet, err := a.authCodeBrowser.Login(ctx, in.AuthOptions.AuthCodeBrowser, oidcClient)
 		if err != nil {
 			return nil, fmt.Errorf("authcode-browser error: %w", err)
@@ -272,7 +272,7 @@ func (a *authentication) Authenticate(ctx context.Context, in AuthenticateInput)
 	}
 
 	if in.AuthOptions.AuthCodeKeyboard != nil {
-		a.logger.Debug("Authenticating using authcode-keyboard")
+		a.logger.DebugContext(ctx, "Authenticating using authcode-keyboard")
 		tokenSet, err := a.authCodeKeyboard.Login(ctx, in.AuthOptions.AuthCodeKeyboard, oidcClient)
 		if err != nil {
 			return nil, fmt.Errorf("authcode-keyboard error: %w", err)
@@ -290,8 +290,8 @@ func (a *authentication) Logout(ctx context.Context, in AuthenticateLogoutInput)
 		return fmt.Errorf("creating OIDC client: %w", err)
 	}
 
-	a.logger.Debug("Found cached token")
-	a.logger.Debug("Logging out from OIDC provider")
+	a.logger.DebugContext(ctx, "Found cached token")
+	a.logger.DebugContext(ctx, "Logging out from OIDC provider")
 	err = oidcClient.Logout(in.CachedTokenSet.IDToken)
 	if err != nil {
 		return fmt.Errorf("logging out of keycloak: %w", err)
@@ -300,7 +300,7 @@ func (a *authentication) Logout(ctx context.Context, in AuthenticateLogoutInput)
 }
 
 // SetLogger sets the logger used for authentication
-func (a *authentication) SetLogger(l logger.Logger) {
+func (a *authentication) SetLogger(l *slog.Logger) {
 	a.logger = l
 	a.oidcClientFactory.SetLogger(l)
 	a.authCodeBrowser.Logger = l

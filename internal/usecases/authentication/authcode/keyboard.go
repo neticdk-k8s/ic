@@ -3,9 +3,9 @@ package authcode
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/int128/oauth2cli/oauth2params"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/reader"
 )
@@ -23,7 +23,7 @@ type Keyboard struct {
 	// Reader is used to read input from stdin
 	Reader reader.Reader
 	// Logger holds a logging instance
-	Logger logger.Logger
+	Logger *slog.Logger
 }
 
 // Login performs keyboard based autocode flow, i.e.:
@@ -62,7 +62,7 @@ func (k *Keyboard) Login(ctx context.Context, in *KeyboardLoginInput, oidcClient
 		return nil, fmt.Errorf("reading authorization code: %w", err)
 	}
 
-	k.Logger.Debug("Exchanging code and token")
+	k.Logger.DebugContext(ctx, "Exchanging code and token")
 	tokenSet, err := oidcClient.ExchangeAuthCode(ctx, oidc.ExchangeAuthCodeInput{
 		Code:        code,
 		PKCEParams:  pkce,

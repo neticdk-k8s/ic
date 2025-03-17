@@ -1,23 +1,28 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"strings"
 
-const deleteCommandExample = `  # Delete a cluster
-  ic delete cluster my-cluster.my-provider`
+	"github.com/neticdk-k8s/ic/internal/ic"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/spf13/cobra"
+)
 
 // New creates a new delete command
-func NewDeleteCmd(ec *ExecutionContext) *cobra.Command {
-	c := &cobra.Command{
-		Use:     "delete",
-		Short:   "Delete a resources",
-		GroupID: groupBase,
-		Example: deleteCommandExample,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			return cmd.Usage()
-		},
+func deleteCmd(ac *ic.Context) *cobra.Command {
+	o := &cmd.NoopRunner[*ic.Context]{}
+	c := cmd.NewSubCommand("delete", o, ac).
+		WithShortDesc("Delete a resource").
+		WithExample(deleteCmdExample()).
+		WithGroupID(cmd.GroupBase).
+		WithNoArgs().
+		Build()
+	c.RunE = func(cmd *cobra.Command, _ []string) error {
+		return cmd.Help()
 	}
+
 	c.AddCommand(
-		NewDeleteClusterCmd(ec),
+		deleteClusterCmd(ac),
 	)
 
 	c.AddGroup(
@@ -27,4 +32,13 @@ func NewDeleteCmd(ec *ExecutionContext) *cobra.Command {
 		},
 	)
 	return c
+}
+
+func deleteCmdExample() string {
+	b := strings.Builder{}
+
+	b.WriteString("  # Delete a cluster\n")
+	b.WriteString("  ic delete cluster my-cluster.my-provider\n\n")
+
+	return b.String()
 }

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"github.com/neticdk-k8s/ic/internal/ic"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -23,59 +23,34 @@ const (
 	groupOther     = "group-other"
 )
 
-func NewRootCmd(ec *ExecutionContext) *cobra.Command {
-	c := &cobra.Command{
-		Use:                   "ic [command] [flags]",
-		DisableFlagsInUseLine: true,
-		Short:                 "Inventory CLI",
-		SilenceUsage:          true,
-		SilenceErrors:         true,
-		Version:               ec.Version,
-		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
-			if err := initConfig(cmd); err != nil {
-				return err
-			}
-			ec.Command = cmd
-			ec.SetLogLevel()
-			ec.SetupDefaultAuthenticator()
-			ec.SetupDefaultOIDCProvider()
-			if err := ec.SetupDefaultTokenCache(); err != nil {
+const (
+	AppName   = "ic"
+	ShortDesc = "Inventory CLI"
+	LongDesc  = `ic is a tool to manage das Inventar`
+)
+
+func newRootCmd(ac *ic.Context) *cobra.Command {
+	pf := pflag.NewFlagSet("", pflag.ContinueOnError)
+	pf.StringVarP(&ac.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
+	pf.StringVar(&ac.OIDC.IssuerURL, "oidc-issuer-url", "https://keycloak.netic.dk/auth/realms/mcs", "Issuer URL for the OIDC Provider")
+	pf.StringVar(&ac.OIDC.ClientID, "oidc-client-id", "inventory-cli", "OIDC client ID")
+	pf.StringVar(&ac.OIDC.GrantType, "oidc-grant-type", "authcode-browser", "OIDC authorization grant type. One of (authcode-browser|authcode-keyboard)")
+	pf.StringVar(&ac.OIDC.RedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
+	pf.StringVar(&ac.OIDC.AuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
+	pf.StringVar(&ac.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
+	pf.StringVar(&ac.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
+
+	c := cmd.NewRootCommand(ac.EC).
+		WithInitFunc(func(_ *cobra.Command, _ []string) error {
+			ac.SetupDefaultAuthenticator()
+			ac.SetupDefaultOIDCProvider()
+			if err := ac.SetupDefaultTokenCache(); err != nil {
 				return fmt.Errorf("settings up execution context: %w", err)
 			}
 			return nil
-		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				_ = cmd.Help()
-			}
-			return nil
-		},
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return nil
-		},
-	}
-
-	f := c.PersistentFlags()
-	f.StringVarP(&ec.LogLevel, "log-level", "l", "info", "Log level")
-	f.StringVarP(&ec.APIServer, "api-server", "s", "https://api.k8s.netic.dk", "URL for the inventory server.")
-	f.StringVarP(&ec.Interactive, "interactive", "i", "auto", "Run in interactive mode. One of (yes|no|auto)")
-	f.StringVarP(&ec.OutputFormat, "output-format", "o", "text", "Output format. One of (text|json)")
-	f.BoolVar(&ec.NoHeaders, "no-headers", false, "Do not print headers")
-	f.StringVar(&ec.OIDC.IssuerURL, "oidc-issuer-url", "https://keycloak.netic.dk/auth/realms/mcs", "Issuer URL for the OIDC Provider")
-	f.StringVar(&ec.OIDC.ClientID, "oidc-client-id", "inventory-cli", "OIDC client ID")
-	f.StringVar(&ec.OIDC.GrantType, "oidc-grant-type", "authcode-browser", "OIDC authorization grant type. One of (authcode-browser|authcode-keyboard)")
-	f.StringVar(&ec.OIDC.RedirectURLHostname, "oidc-redirect-url-hostname", "localhost", "[authcode-browser] Hostname of the redirect URL")
-	f.StringVar(&ec.OIDC.AuthBindAddr, "oidc-auth-bind-addr", "localhost:18000", "[authcode-browser] Bind address and port for local server used for OIDC redirect")
-	f.StringVar(&ec.OIDC.RedirectURIAuthCodeKeyboard, "oidc-redirect-uri-authcode-keyboard", oobRedirectURI, "[authcode-keyboard] Redirect URI when using authcode keyboard")
-	f.StringVar(&ec.OIDC.TokenCacheDir, "oidc-token-cache-dir", getDefaultTokenCacheDir(), "Directory used to store cached tokens")
-
-	viper.BindPFlags(c.PersistentFlags()) // nolint:errcheck
-
-	c.Flags().SortFlags = false
-	c.PersistentFlags().SortFlags = false
-
-	c.SetOut(ec.Stdout)
-	c.SetErr(ec.Stderr)
+		}).
+		WithPersistentFlags(pf).
+		Build()
 
 	c.AddGroup(
 		&cobra.Group{
@@ -92,59 +67,18 @@ func NewRootCmd(ec *ExecutionContext) *cobra.Command {
 		},
 	)
 
-	c.SetHelpCommandGroupID(groupOther)
-	c.SetCompletionCommandGroupID(groupOther)
-
 	c.AddCommand(
-		NewLoginCmd(ec),
-		NewLogoutCmd(ec),
-		NewAPITokenCmd(ec),
-		NewGetCmd(ec),
-		NewCreateCmd(ec),
-		NewDeleteCmd(ec),
-		NewUpdateCmd(ec),
-		NewFiltersHelpCmd(ec),
+		loginCmd(ac),
+		logoutCmd(ac),
+		apiTokenCmd(ac),
+		getCmd(ac),
+		createCmd(ac),
+		deleteCmd(ac),
+		updateCmd(ac),
+		filtersHelpCmd(ac),
 	)
 
 	return c
-}
-
-// initConfig ensures that precedence of configuration setting is correct
-// precedence:
-// flag -> environment -> configuration file value -> flag default
-func initConfig(cmd *cobra.Command) error {
-	v := viper.New()
-	v.SetConfigName(defaultConfigFilename)
-	v.AddConfigPath(".")
-	if dir, err := os.UserConfigDir(); err == nil {
-		v.AddConfigPath(filepath.Join(dir, "ic"))
-	}
-	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return err
-		}
-	}
-	v.SetEnvPrefix(envPrefix)
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	v.AutomaticEnv()
-
-	// Bind the current command's flags to viper
-	bindFlags(cmd, v)
-
-	return nil
-}
-
-func bindFlags(cmd *cobra.Command, v *viper.Viper) {
-	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		// Determine the naming convention of the flags when represented in the config file
-		configName := f.Name
-
-		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && v.IsSet(configName) {
-			val := v.Get(configName)
-			_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
-		}
-	})
 }
 
 func getDefaultTokenCacheDir() string {
@@ -157,19 +91,18 @@ func getDefaultTokenCacheDir() string {
 
 // Execute runs the root command and returns the exit code
 func Execute(version string) int {
-	in := ExecutionContextInput{
-		Version: version,
-		Stdout:  os.Stdout,
-		Stderr:  os.Stderr,
-	}
-	ec := NewExecutionContext(in)
-	rootCmd := NewRootCmd(ec)
+	ec := cmd.NewExecutionContext(AppName, ShortDesc, version)
+	ec.PFlags.NoInputEnabled = true
+	ec.PFlags.ForceEnabled = true
+	ec.PFlags.NoHeadersEnabled = true
+	ac := ic.NewContext()
+	ac.EC = ec
+	ec.LongDescription = LongDesc
+	rootCmd := newRootCmd(ac)
 	err := rootCmd.Execute()
-	if ec.Spinner.Running() {
-		ec.Spinner.Stop()
-	}
+	_ = ec.Spinner.Stop()
 	if err != nil {
-		ec.Logger.Error(err.Error())
+		ec.ErrorHandler.HandleError(err)
 		return 1
 	}
 	return 0

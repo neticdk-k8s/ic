@@ -1,33 +1,28 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"strings"
 
-	"github.com/neticdk-k8s/ic/internal/errors"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
 	"github.com/neticdk-k8s/ic/internal/validation"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/errors"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/neticdk/go-common/pkg/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-// New creates a new "create cluster" command
-func NewCreateClusterCmd(ec *ExecutionContext) *cobra.Command {
-	o := createClusterOptions{}
-	c := &cobra.Command{
-		Use:     "cluster",
-		Short:   "Create a cluster",
-		GroupID: groupCluster,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			o.complete()
-			if err := o.validate(ec); err != nil {
-				return err
-			}
-			return o.run(ec)
-		},
-	}
+func createClusterCmd(ac *ic.Context) *cobra.Command {
+	o := &createClusterOptions{}
+	c := cmd.NewSubCommand("cluster", o, ac).
+		WithShortDesc("Create a cluster").
+		WithGroupID(groupCluster).
+		Build()
 
 	o.bindFlags(c.Flags())
 	c.Flags().SortFlags = false
@@ -76,10 +71,30 @@ func (o *createClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.CustomOperationsURL, "co-url", "", "Custom Operations URL")
 }
 
-func (o *createClusterOptions) validate(ec *ExecutionContext) error {
+func (o *createClusterOptions) Complete(_ context.Context, _ *ic.Context) error {
+	if o.HasCustomOperations {
+		o.HasTechnicalOperations = false
+		o.HasTechnicalManagement = false
+		o.HasApplicationOperations = false
+		o.HasApplicationManagement = false
+	}
+	if o.HasTechnicalManagement {
+		o.HasTechnicalOperations = true
+	}
+	if o.HasApplicationOperations {
+		o.HasTechnicalManagement = true
+	}
+	if o.HasApplicationManagement {
+		o.HasApplicationOperations = true
+	}
+
+	return nil
+}
+
+func (o *createClusterOptions) Validate(ctx context.Context, ac *ic.Context) error {
 	p, ok := types.ParsePartition(o.Partition)
 	if !ok {
-		return &InvalidArgumentError{
+		return &errors.InvalidArgumentError{
 			Flag:  "partition",
 			Val:   o.Partition,
 			OneOf: types.AllPartitionsString(),
@@ -87,21 +102,21 @@ func (o *createClusterOptions) validate(ec *ExecutionContext) error {
 	}
 	r, ok := types.ParseRegion(o.Region)
 	if !ok {
-		return &InvalidArgumentError{
+		return &errors.InvalidArgumentError{
 			Flag:     "region",
 			Val:      o.Region,
 			SeeOther: "get regions",
 		}
 	}
 	if !types.HasRegion(p, r) {
-		return &InvalidArgumentError{
+		return &errors.InvalidArgumentError{
 			Flag:     "region",
 			Val:      o.Region,
 			SeeOther: fmt.Sprintf("get regions --partition %s", o.Partition),
 		}
 	}
 	if o.HasCustomOperations && !validation.IsWebURL(o.CustomOperationsURL) {
-		return &InvalidArgumentError{
+		return &errors.InvalidArgumentError{
 			Flag:    "co-url",
 			Val:     o.CustomOperationsURL,
 			Context: "must be a URL using a http(s) scheme",
@@ -130,7 +145,7 @@ func (o *createClusterOptions) validate(ec *ExecutionContext) error {
 	}
 	for _, v := range rfc1035FieldFlags {
 		if !validation.IsDNSRFC1035Label(v.Val) {
-			return &InvalidArgumentError{
+			return &errors.InvalidArgumentError{
 				Flag:    v.Flag,
 				Val:     v.Val,
 				Context: "must be an RFC1035 DNS label",
@@ -138,17 +153,17 @@ func (o *createClusterOptions) validate(ec *ExecutionContext) error {
 		}
 	}
 	if !slices.Contains(types.AllInfrastructureProvidersString(), o.InfrastructureProvider) {
-		return &InvalidArgumentError{
+		return &errors.InvalidArgumentError{
 			Flag:  "infrastructure-provider",
 			Val:   o.InfrastructureProvider,
 			OneOf: types.AllInfrastructureProvidersString(),
 		}
 	}
 	if !slices.Contains(types.AllResilienceZonesString(), o.ResilienceZone) {
-		ec.Logger.Warn(fmt.Sprintf("Non-standard resilience zone used: %s", o.ResilienceZone))
+		ac.EC.Logger.WarnContext(ctx, fmt.Sprintf("Non-standard resilience zone used: %s", o.ResilienceZone))
 	}
 	if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
-		return &InvalidArgumentError{
+		return &errors.InvalidArgumentError{
 			Flag:    "subscription",
 			Val:     o.SubscriptionID,
 			Context: "must be an ASCII string of minimum 5 characters length",
@@ -157,72 +172,65 @@ func (o *createClusterOptions) validate(ec *ExecutionContext) error {
 	return nil
 }
 
-func (o *createClusterOptions) complete() {
-	if o.HasCustomOperations {
-		o.HasTechnicalOperations = false
-		o.HasTechnicalManagement = false
-		o.HasApplicationOperations = false
-		o.HasApplicationManagement = false
-	}
-	if o.HasTechnicalManagement {
-		o.HasTechnicalOperations = true
-	}
-	if o.HasApplicationOperations {
-		o.HasTechnicalManagement = true
-	}
-	if o.HasApplicationManagement {
-		o.HasApplicationOperations = true
-	}
-}
+func (o *createClusterOptions) Run(ctx context.Context, ac *ic.Context) error {
+	logger := ac.EC.Logger.WithGroup("Clusters")
+	ac.Authenticator.SetLogger(logger)
 
-func (o *createClusterOptions) run(ec *ExecutionContext) error {
-	logger := ec.Logger.WithPrefix("Clusters")
-	ec.Authenticator.SetLogger(logger)
-
-	_, err := doLogin(ec)
+	_, err := doLogin(ctx, ac)
 	if err != nil {
-		return fmt.Errorf("logging in: %w", err)
+		return err
 	}
 
-	ec.Spin("Creating cluster")
-
-	in := cluster.CreateClusterInput{
-		Logger:                   logger,
-		APIClient:                ec.APIClient,
-		Name:                     o.Name,
-		Description:              o.Description,
-		EnvironmentName:          o.EnvironmentName,
-		Provider:                 o.ProviderName,
-		Partition:                o.Partition,
-		Region:                   o.Region,
-		ResilienceZone:           o.ResilienceZone,
-		SubscriptionID:           o.SubscriptionID,
-		InfrastructureProvider:   o.InfrastructureProvider,
-		HasTechnicalOperations:   o.HasTechnicalOperations,
-		HasTechnicalManagement:   o.HasTechnicalManagement,
-		HasApplicationOperations: o.HasApplicationOperations,
-		HasApplicationManagement: o.HasApplicationManagement,
-		HasCustomOperations:      o.HasCustomOperations,
-		CustomOperationsURL:      o.CustomOperationsURL,
-	}
-	result, err := cluster.CreateCluster(ec.Command.Context(), in)
-	if err != nil {
-		return fmt.Errorf("creating cluster: %w", err)
-	}
-	if result.Problem != nil {
-		return &errors.ProblemError{
-			Title:   "creating cluster",
-			Problem: result.Problem,
+	var result *cluster.CreateClusterResult
+	spinnerText := fmt.Sprintf("Creating cluster %s", o.Name)
+	if err := ui.Spin(ac.EC.Spinner, spinnerText, func(_ ui.Spinner) error {
+		in := cluster.CreateClusterInput{
+			Logger:                   logger,
+			APIClient:                ac.APIClient,
+			Name:                     o.Name,
+			Description:              o.Description,
+			EnvironmentName:          o.EnvironmentName,
+			Provider:                 o.ProviderName,
+			Partition:                o.Partition,
+			Region:                   o.Region,
+			ResilienceZone:           o.ResilienceZone,
+			SubscriptionID:           o.SubscriptionID,
+			InfrastructureProvider:   o.InfrastructureProvider,
+			HasTechnicalOperations:   o.HasTechnicalOperations,
+			HasTechnicalManagement:   o.HasTechnicalManagement,
+			HasApplicationOperations: o.HasApplicationOperations,
+			HasApplicationManagement: o.HasApplicationManagement,
+			HasCustomOperations:      o.HasCustomOperations,
+			CustomOperationsURL:      o.CustomOperationsURL,
 		}
+		result, err = cluster.CreateCluster(ctx, in)
+		return err
+	}); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Creating cluster",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
-	ec.Spinner.Stop()
+	if result.Problem != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			*result.Problem.Title,
+			*result.Problem.Detail,
+			nil,
+			0,
+		)
+	}
 
-	ec.Logger.Info("Cluster created ✅")
-
-	r := cluster.NewClusterRenderer(result.ClusterResponse, result.JSONResponse, ec.Stdout)
-	if err := r.Render(ec.OutputFormat); err != nil {
-		return fmt.Errorf("rendering output: %w", err)
+	r := cluster.NewClusterRenderer(result.ClusterResponse, result.JSONResponse, ac.EC.Stdout)
+	if err := r.Render(ac.EC.PFlags.OutputFormat); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Failed to render output",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
 	return nil

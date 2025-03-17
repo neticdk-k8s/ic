@@ -1,34 +1,39 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/usecases/resiliencezone"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
 	"github.com/spf13/cobra"
 )
 
-// New creates a new "get resilience-zones" command
-func NewGetResilienceZonesCmd(ec *ExecutionContext) *cobra.Command {
-	o := getResilienceZonesOptions{}
-	c := &cobra.Command{
-		Use:     "resilience-zones",
-		Short:   "List resilience zones",
-		Aliases: []string{"rzs"},
-		GroupID: groupOther,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return o.run(ec)
-		},
-	}
+func getResilienceZonesCmd(ac *ic.Context) *cobra.Command {
+	o := &getResilienceZonesOptions{}
+	c := cmd.NewSubCommand("resilience-zones", o, ac).
+		WithShortDesc("List resilience zones").
+		WithGroupID(groupOther).
+		Build()
+
 	return c
 }
 
 type getResilienceZonesOptions struct{}
 
-func (o *getResilienceZonesOptions) run(ec *ExecutionContext) error {
+func (o *getResilienceZonesOptions) Complete(_ context.Context, _ *ic.Context) error { return nil }
+func (o *getResilienceZonesOptions) Validate(_ context.Context, _ *ic.Context) error { return nil }
+
+func (o *getResilienceZonesOptions) Run(_ context.Context, ac *ic.Context) error {
 	rzs := resiliencezone.ListResilienceZones()
-	r := resiliencezone.NewResilienceZonesRenderer(rzs, ec.Stdout, ec.NoHeaders)
-	if err := r.Render(ec.OutputFormat); err != nil {
-		return fmt.Errorf("rendering output: %w", err)
+	r := resiliencezone.NewResilienceZonesRenderer(rzs, ac.EC.Stdout, ac.EC.PFlags.NoHeaders)
+	if err := r.Render(ac.EC.PFlags.OutputFormat); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Failed to render output",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
 	return nil

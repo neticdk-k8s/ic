@@ -3,6 +3,7 @@ package oidc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/int128/oauth2cli"
 	"github.com/int128/oauth2cli/oauth2params"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
@@ -39,7 +39,7 @@ type client struct {
 	provider          *gooidc.Provider
 	oauth2config      oauth2.Config
 	providerLogoutURL string
-	logger            logger.Logger
+	logger            *slog.Logger
 }
 
 // Refresh creates an updated TokenSet by means of refreshing an oauth2 token
@@ -89,7 +89,7 @@ func (c *client) Logout(idToken string) error {
 func (c *client) logoutWithRetries(logoutURL string) (*http.Response, error) {
 	client := retryablehttp.NewClient()
 	client.HTTPClient.Timeout = time.Duration(2) * time.Second
-	client.Logger = SlogAdapter{Logger: c.logger}
+	client.Logger = c.logger
 	client.RetryWaitMin = logoutRetryMinWait
 	client.RetryWaitMax = logoutRetryMaxWait
 	client.RetryMax = 5
@@ -132,7 +132,9 @@ func (c *client) GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeIn
 		LocalServerReadyChan:   localServerReadyChan,
 		RedirectURLHostname:    in.RedirectURLHostname,
 		LocalServerBindAddress: []string{in.BindAddress},
-		Logf:                   c.logger.Debugf,
+		Logf: func(format string, args ...any) {
+			c.logger.DebugContext(ctx, fmt.Sprintf(format, args...))
+		},
 	}
 
 	token, err := oauth2cli.GetToken(ctx, cfg)

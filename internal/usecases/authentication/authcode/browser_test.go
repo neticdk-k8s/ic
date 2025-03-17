@@ -3,11 +3,11 @@ package authcode
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -43,7 +43,7 @@ func TestBrowser_Login(t *testing.T) {
 				RefreshToken: "YOUR_REFRESH_TOKEN",
 			}, nil)
 		u := Browser{
-			Logger: logger.NewTestLogger(t),
+			Logger: slog.Default(),
 		}
 		got, err := u.Login(ctx, o, mockClient)
 		assert.NoError(t, err, "Login returned error")
@@ -79,7 +79,7 @@ func TestBrowser_Login(t *testing.T) {
 			}).
 			Return(nil, errors.New("oauth2 error: bad credentials"))
 		u := Browser{
-			Logger: logger.NewTestLogger(t),
+			Logger: slog.Default(),
 		}
 		got, err := u.Login(ctx, o, mockClient)
 		assert.Error(t, err, "Login returned error")

@@ -2,11 +2,11 @@ package cluster
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -105,7 +105,7 @@ func TestClusterList_MarshalJSON(t *testing.T) {
 }
 
 func TestListClusters(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 
 	clusters := []string{"my-cluster", "my-cluster-2"}
 	included := []map[string]any{
@@ -198,7 +198,7 @@ func TestListClusters(t *testing.T) {
 }
 
 func TestGetCluster(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 	mockClient := apiclient.NewMockClientWithResponsesInterface(t)
 	name := "my-cluster"
 	included := []map[string]any{
@@ -353,7 +353,7 @@ func TestNodeList_MarshalJSON(t *testing.T) {
 }
 
 func TestListClusterNodes(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 
 	clusters := []string{"my-cluster", "my-cluster-2"}
 	included := []map[string]any{
@@ -446,7 +446,7 @@ func TestListClusterNodes(t *testing.T) {
 }
 
 func TestGetClusterNode(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 	mockClient := apiclient.NewMockClientWithResponsesInterface(t)
 	name := "my-cluster"
 	included := []map[string]any{
@@ -508,7 +508,7 @@ func TestGetClusterNode(t *testing.T) {
 }
 
 func TestGetClusterKubeConfig(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 
 	want := []byte(`apiVersion: v1
 clusters:

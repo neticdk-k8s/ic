@@ -62,7 +62,7 @@ func (k *Keyboard) Login(ctx context.Context, in *KeyboardLoginInput, oidcClient
 		return nil, fmt.Errorf("reading authorization code: %w", err)
 	}
 
-	k.Logger.Debug("Exchanging code and token")
+	k.Logger.DebugContext(ctx, "Exchanging code and token")
 	tokenSet, err := oidcClient.ExchangeAuthCode(ctx, oidc.ExchangeAuthCodeInput{
 		Code:        code,
 		PKCEParams:  pkce,

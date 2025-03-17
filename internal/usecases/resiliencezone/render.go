@@ -41,7 +41,7 @@ func (r *resilienceZonesRenderer) Render(format string) error {
 	switch format {
 	case "json":
 		return r.renderJSON()
-	case "text", "table":
+	case "plain", "table":
 		return r.renderText()
 	default:
 		return fmt.Errorf("unknown format: %s", format)

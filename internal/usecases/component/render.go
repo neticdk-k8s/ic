@@ -40,7 +40,7 @@ func (r *componentRenderer) Render(format string) error {
 	switch format {
 	case "json":
 		return r.renderJSON()
-	case "text", "table":
+	case "plain", "table":
 		return r.renderText()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -111,7 +111,7 @@ func (r *componentsRenderer) Render(format string) error {
 	switch format {
 	case "json":
 		return r.renderJSON()
-	case "text", "table":
+	case "plain", "table":
 		return r.renderTable()
 	default:
 		return fmt.Errorf("unknown format: %s", format)

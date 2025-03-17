@@ -1,48 +1,49 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/neticdk-k8s/ic/internal/errors"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/neticdk/go-common/pkg/qsparser"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-// New creates a new "get cluster-nodes" command
-func NewGetClusterNodesCmd(ec *ExecutionContext) *cobra.Command {
-	o := getClusterNodesOptions{}
-	c := &cobra.Command{
-		Use:     "cluster-nodes",
-		Aliases: []string{"nodes"},
-		Short:   "Get list of nodes for a cluster",
-		Long: `Get list of nodes for a nodes.
+const getClusterNodesLongDesc = `Get list of nodes for a nodes.
 
 Supported field names for filters:
 
 name, role, criName, criVersion, controlPlane, topologyRegion,
 topologyZone, memoryAllocatableBytes, cpuAllocatableMillis,
 memoryCapacityBytes, cpuCapacityMillis
-`,
+`
 
-		GroupID: groupCluster,
-		Example: `
+const getClusterNodesExample = `
 # get nodes for my-cluster.my-provider
 ic get cluster-nodes --cluster-name my-cluster.my-provider
 
-use: 'ic help filters' for more information on using filters`,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return o.run(ec)
-		},
-	}
+use: 'ic help filters' for more information on using filters`
+
+func getClusterNodesCmd(ac *ic.Context) *cobra.Command {
+	o := &getClusterNodesOptions{}
+	c := cmd.NewSubCommand("cluster-nodes", o, ac).
+		WithShortDesc("Get list of nodes in a cluster").
+		WithLongDesc(getClusterNodesLongDesc).
+		WithExample(getClusterNodesExample).
+		WithGroupID(groupCluster).
+		Build()
+	c.Aliases = []string{"nodes"}
+
 	o.bindFlags(c.Flags())
 	c.MarkFlagRequired("cluster-name") //nolint:errcheck
 	return c
 }
 
 type getClusterNodesOptions struct {
-	ClusterName string
+	clusterName string
 	// A filter has the form: fieldName operator value (e.g. name=Peter)
 	//
 	// Supported operators:
@@ -58,17 +59,20 @@ type getClusterNodesOptions struct {
 }
 
 func (o *getClusterNodesOptions) bindFlags(f *pflag.FlagSet) {
-	f.StringVar(&o.ClusterName, "cluster-name", "", "The name of the cluster")
-	f.StringArrayVarP(&o.Filters, "filter", "f", []string{}, "Filter output based on conditions")
+	f.StringVar(&o.clusterName, "cluster-name", "", "The name of the cluster")
+	f.StringArrayVar(&o.Filters, "filter", []string{}, "Filter output based on conditions")
 }
 
-func (o *getClusterNodesOptions) run(ec *ExecutionContext) error {
-	logger := ec.Logger.WithPrefix("ClusterNodes")
-	ec.Authenticator.SetLogger(logger)
+func (o *getClusterNodesOptions) Complete(_ context.Context, _ *ic.Context) error { return nil }
+func (o *getClusterNodesOptions) Validate(_ context.Context, _ *ic.Context) error { return nil }
 
-	_, err := doLogin(ec)
+func (o *getClusterNodesOptions) Run(ctx context.Context, ac *ic.Context) error {
+	logger := ac.EC.Logger.WithGroup("ClusterNodes")
+	ac.Authenticator.SetLogger(logger)
+
+	_, err := doLogin(ctx, ac)
 	if err != nil {
-		return fmt.Errorf("logging in: %w", err)
+		return err
 	}
 
 	searchFields := make(map[string]*qsparser.SearchField)
@@ -80,31 +84,43 @@ func (o *getClusterNodesOptions) run(ec *ExecutionContext) error {
 		searchFields[out.FieldName] = out.SearchField
 	}
 
-	ec.Spin("Getting cluster nodes")
+	var result *cluster.ListClusterNodesResults
 
-	in := cluster.ListClusterNodesInput{
-		Logger:      logger,
-		APIClient:   ec.APIClient,
-		PerPage:     PerPage,
-		Filters:     searchFields,
-		ClusterName: o.ClusterName,
-	}
-	result, err := cluster.ListClusterNodes(ec.Command.Context(), in)
-	if err != nil {
-		return fmt.Errorf("listing cluster nodes: %w", err)
+	if err := ui.Spin(ac.EC.Spinner, "Getting cluster nodes", func(_ ui.Spinner) error {
+		in := cluster.ListClusterNodesInput{
+			Logger:      logger,
+			APIClient:   ac.APIClient,
+			PerPage:     PerPage,
+			Filters:     searchFields,
+			ClusterName: o.clusterName,
+		}
+		result, err = cluster.ListClusterNodes(ctx, in)
+		return err
+	}); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Listing cluster nodes",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 	if result.Problem != nil {
-		return &errors.ProblemError{
-			Title:   "listing cluster nodes",
-			Problem: result.Problem,
-		}
+		return ac.EC.ErrorHandler.NewGeneralError(
+			*result.Problem.Title,
+			*result.Problem.Detail,
+			nil,
+			0,
+		)
 	}
 
-	ec.Spinner.Stop()
-
-	r := cluster.NewClusterNodesRenderer(result.ClusterNodeListResponse, result.JSONResponse, ec.Stdout, ec.NoHeaders)
-	if err := r.Render(ec.OutputFormat); err != nil {
-		return fmt.Errorf("rendering output: %w", err)
+	r := cluster.NewClusterNodesRenderer(result.ClusterNodeListResponse, result.JSONResponse, ac.EC.Stdout, ac.EC.PFlags.NoHeaders)
+	if err := r.Render(ac.EC.PFlags.OutputFormat); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Failed to render output",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
 	return nil

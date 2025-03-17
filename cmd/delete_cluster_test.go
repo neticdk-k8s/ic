@@ -8,20 +8,27 @@ import (
 	"testing"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func Test_DeleteClusterCommand(t *testing.T) {
-	t.Parallel()
 	got := new(bytes.Buffer)
-	in := ExecutionContextInput{
-		Stdout: got,
-		Stderr: got,
-	}
-	ec := NewExecutionContext(in)
+	ec := cmd.NewExecutionContext(AppName, ShortDesc, "test")
+	ec.Stdin = nil
+	ec.Stderr = got
+	ec.Stdout = got
+	ec.PFlags.NoInputEnabled = true
+	ec.PFlags.ForceEnabled = true
+	ec.PFlags.NoHeadersEnabled = true
+	ui.SetDefaultOutput(got)
+	ac := ic.NewContext()
+	ac.EC = ec
 	mockAuthenticator := authentication.NewMockAuthenticator(t)
 	mockAuthenticator.EXPECT().
 		SetLogger(mock.Anything).
@@ -35,10 +42,10 @@ func Test_DeleteClusterCommand(t *testing.T) {
 			IDToken:      "YOUR_ID_TOKEN",
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}, nil)
-	ec.Authenticator = mockAuthenticator
+	ac.Authenticator = mockAuthenticator
 	mockClientWithResponsesInterface := apiclient.NewMockClientWithResponsesInterface(t)
 	mockClientWithResponsesInterface.EXPECT().
-		DeleteClusterWithResponse(mock.Anything, mock.Anything).
+		DeleteClusterWithResponse(mock.Anything, mock.Anything, mock.Anything).
 		Return(
 			&apiclient.DeleteClusterResponse{
 				Body: make([]byte, 0),
@@ -48,13 +55,14 @@ func Test_DeleteClusterCommand(t *testing.T) {
 				},
 			}, nil)
 	apiClient := mockClientWithResponsesInterface
-	ec.APIClient = apiClient
+	ac.APIClient = apiClient
 
-	cmd := NewRootCmd(ec)
+	cmd := newRootCmd(ac)
 
-	cmd.SetArgs([]string{"delete", "cluster", "my-cluster", "-y"})
+	cmd.SetArgs([]string{"--force", "delete", "cluster", "my-cluster"})
 	err := cmd.ExecuteContext(context.Background())
 	assert.NoError(t, err)
+	t.Log(got.String())
 	assert.Contains(t, got.String(), "Logging in")
 	assert.Contains(t, got.String(), "Deleting cluster")
 	assert.Contains(t, got.String(), "Cluster deleted")

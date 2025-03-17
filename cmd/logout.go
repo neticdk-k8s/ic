@@ -2,17 +2,14 @@ package cmd
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/neticdk-k8s/ic/internal/ic"
-	"github.com/neticdk-k8s/ic/internal/tokencache"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
 	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/spf13/cobra"
 )
 
-// New creates a new logout command
 func logoutCmd(ac *ic.Context) *cobra.Command {
 	o := &logoutOptions{}
 	c := cmd.NewSubCommand("logout", o, ac).
@@ -28,6 +25,7 @@ type logoutOptions struct{}
 
 func (o *logoutOptions) Complete(_ context.Context, _ *ic.Context) error { return nil }
 func (o *logoutOptions) Validate(_ context.Context, _ *ic.Context) error { return nil }
+
 func (o *logoutOptions) Run(ctx context.Context, ac *ic.Context) error {
 	logger := ac.EC.Logger.WithGroup("Logout")
 	ac.Authenticator.SetLogger(logger)
@@ -37,13 +35,18 @@ func (o *logoutOptions) Run(ctx context.Context, ac *ic.Context) error {
 		TokenCache: ac.TokenCache,
 	}
 
-	ac.EC.Spin("Logging out")
-	err := ac.Authenticator.Logout(ctx, logoutInput)
-	if err != nil && !errors.Is(err, &tokencache.CacheMissError{}) {
-		return fmt.Errorf("logging out: %w", err)
+	if err := ui.Spin(ac.EC.Spinner, "Logging out", func(_ ui.Spinner) error {
+		return ac.Authenticator.Logout(ctx, logoutInput)
+	}); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Logging out",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
-	ac.EC.Logger.Info("Logout succeeded ✅")
+	ui.Success.Println("Logged out")
 
 	return nil
 }

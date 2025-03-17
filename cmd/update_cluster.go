@@ -1,34 +1,31 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"slices"
 	"strings"
 
-	"github.com/neticdk-k8s/ic/internal/errors"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
 	"github.com/neticdk-k8s/ic/internal/validation"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/errors"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/neticdk/go-common/pkg/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
 // New creates a new "update cluster" command
-func NewUpdateClusterCmd(ec *ExecutionContext) *cobra.Command {
-	o := updateClusterOptions{}
-	c := &cobra.Command{
-		Use:     "cluster",
-		Short:   "Update a cluster's metadata",
-		GroupID: groupCluster,
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			o.complete()
-			if err := o.validate(cmd, ec); err != nil {
-				return err
-			}
-			return o.run(ec, args)
-		},
-	}
+func updateClusterCmd(ac *ic.Context) *cobra.Command {
+	o := &updateClusterOptions{}
+	c := cmd.NewSubCommand("cluster", o, ac).
+		WithShortDesc("Update a cluster's metadata").
+		WithGroupID(groupCluster).
+		WithExactArgs(1).
+		Build()
+	c.Use = "cluster CLUSTER-ID" //nolint:goconst
 
 	o.bindFlags(c.Flags())
 	c.Flags().SortFlags = false
@@ -38,6 +35,7 @@ func NewUpdateClusterCmd(ec *ExecutionContext) *cobra.Command {
 }
 
 type updateClusterOptions struct {
+	clusterID                string
 	Description              string
 	EnvironmentName          string
 	SubscriptionID           string
@@ -65,9 +63,33 @@ func (o *updateClusterOptions) bindFlags(f *pflag.FlagSet) {
 	f.StringVar(&o.CustomOperationsURL, "co-url", "", "Custom Operations URL")
 }
 
-func (o *updateClusterOptions) validate(cmd *cobra.Command, ec *ExecutionContext) error {
+func (o *updateClusterOptions) Complete(_ context.Context, ac *ic.Context) error {
+	o.clusterID = ac.EC.CommandArgs[0]
+
+	if o.HasCustomOperations {
+		o.HasTechnicalOperations = false
+		o.HasTechnicalManagement = false
+		o.HasApplicationOperations = false
+		o.HasApplicationManagement = false
+	}
+	if o.HasTechnicalManagement {
+		o.HasTechnicalOperations = true
+	}
+	if o.HasApplicationOperations {
+		o.HasTechnicalManagement = true
+	}
+	if o.HasApplicationManagement {
+		o.HasApplicationOperations = true
+	}
+
+	return nil
+}
+
+func (o *updateClusterOptions) Validate(ctx context.Context, ac *ic.Context) error {
+	command := ac.EC.Command
+
 	if o.HasCustomOperations && !validation.IsWebURL(o.CustomOperationsURL) {
-		return &InvalidArgumentError{
+		return &errors.InvalidArgumentError{
 			Flag:    "co-url",
 			Val:     o.CustomOperationsURL,
 			Context: "must be a URL using a http(s) scheme",
@@ -87,9 +109,9 @@ func (o *updateClusterOptions) validate(cmd *cobra.Command, ec *ExecutionContext
 		},
 	}
 	for _, v := range rfc1035FieldFlags {
-		if cmd.Flags().Changed(v.Flag) {
+		if command.Flags().Changed(v.Flag) {
 			if !validation.IsDNSRFC1035Label(v.Val) {
-				return &InvalidArgumentError{
+				return &errors.InvalidArgumentError{
 					Flag:    v.Flag,
 					Val:     v.Val,
 					Context: "must be an RFC1035 DNS label",
@@ -97,23 +119,23 @@ func (o *updateClusterOptions) validate(cmd *cobra.Command, ec *ExecutionContext
 			}
 		}
 	}
-	if cmd.Flags().Changed("infrastructure-provider") {
+	if command.Flags().Changed("infrastructure-provider") {
 		if !slices.Contains(types.AllInfrastructureProvidersString(), o.InfrastructureProvider) {
-			return &InvalidArgumentError{
+			return &errors.InvalidArgumentError{
 				Flag:  "infrastructure-provider",
 				Val:   o.InfrastructureProvider,
 				OneOf: types.AllInfrastructureProvidersString(),
 			}
 		}
 	}
-	if cmd.Flags().Changed("resilience-zone") {
+	if command.Flags().Changed("resilience-zone") {
 		if !slices.Contains(types.AllResilienceZonesString(), o.ResilienceZone) {
-			ec.Logger.Warn(fmt.Sprintf("Non-standard resilience zone used: %s", o.ResilienceZone))
+			ac.EC.Logger.WarnContext(ctx, fmt.Sprintf("Non-standard resilience zone used: %s", o.ResilienceZone))
 		}
 	}
-	if cmd.Flags().Changed("subscription") {
+	if command.Flags().Changed("subscription") {
 		if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
-			return &InvalidArgumentError{
+			return &errors.InvalidArgumentError{
 				Flag:    "subscription",
 				Val:     o.SubscriptionID,
 				Context: "must be an ASCII string of minimum 5 characters length",
@@ -123,86 +145,82 @@ func (o *updateClusterOptions) validate(cmd *cobra.Command, ec *ExecutionContext
 	return nil
 }
 
-func (o *updateClusterOptions) complete() {
-	if o.HasCustomOperations {
-		o.HasTechnicalOperations = false
-		o.HasTechnicalManagement = false
-		o.HasApplicationOperations = false
-		o.HasApplicationManagement = false
-	}
-	if o.HasTechnicalManagement {
-		o.HasTechnicalOperations = true
-	}
-	if o.HasApplicationOperations {
-		o.HasTechnicalManagement = true
-	}
-	if o.HasApplicationManagement {
-		o.HasApplicationOperations = true
-	}
-}
+func (o *updateClusterOptions) Run(ctx context.Context, ac *ic.Context) error {
+	logger := ac.EC.Logger.WithGroup("Clusters")
+	ac.Authenticator.SetLogger(logger)
 
-func (o *updateClusterOptions) run(ec *ExecutionContext, args []string) error {
-	logger := ec.Logger.WithPrefix("Clusters")
-	ec.Authenticator.SetLogger(logger)
-
-	_, err := doLogin(ec)
+	_, err := doLogin(ctx, ac)
 	if err != nil {
-		return fmt.Errorf("logging in: %w", err)
+		return err
 	}
 
-	ec.Spin("Updating cluster metadata")
-
-	in := cluster.UpdateClusterInput{
-		Logger:    logger,
-		APIClient: ec.APIClient,
-	}
-	if ec.Command.Flags().Changed("description") {
-		in.Description = &o.Description
-	}
-	if ec.Command.Flags().Changed("environment") {
-		in.EnvironmentName = &o.EnvironmentName
-	}
-	if ec.Command.Flags().Changed("resilience-zone") {
-		in.ResilienceZone = &o.ResilienceZone
-	}
-	if ec.Command.Flags().Changed("subscription") {
-		in.SubscriptionID = &o.SubscriptionID
-	}
-	if ec.Command.Flags().Changed("infrastructure-provider") {
-		in.InfrastructureProvider = &o.InfrastructureProvider
-	}
-	if ec.Command.Flags().Changed("has-to") ||
-		ec.Command.Flags().Changed("has-tm") ||
-		ec.Command.Flags().Changed("has-ao") ||
-		ec.Command.Flags().Changed("has-am") ||
-		ec.Command.Flags().Changed("has-co") {
-		in.HasTechnicalOperations = &o.HasTechnicalOperations
-		in.HasTechnicalManagement = &o.HasTechnicalManagement
-		in.HasApplicationOperations = &o.HasApplicationOperations
-		in.HasApplicationManagement = &o.HasApplicationManagement
-		in.HasCustomOperations = &o.HasCustomOperations
-	}
-	if ec.Command.Flags().Changed("co-url") {
-		in.CustomOperationsURL = &o.CustomOperationsURL
-	}
-	result, err := cluster.UpdateCluster(ec.Command.Context(), args[0], in)
-	if err != nil {
-		return fmt.Errorf("updating cluster: %w", err)
-	}
-	if result.Problem != nil {
-		return &errors.ProblemError{
-			Title:   "updating cluster",
-			Problem: result.Problem,
+	var result *cluster.UpdateClusterResult
+	spinnerText := fmt.Sprintf("Updating cluster metadata for %q", o.clusterID)
+	if err := ui.Spin(ac.EC.Spinner, spinnerText, func(s ui.Spinner) error {
+		in := cluster.UpdateClusterInput{
+			Logger:    logger,
+			APIClient: ac.APIClient,
 		}
+		if ac.EC.Command.Flags().Changed("description") {
+			in.Description = &o.Description
+		}
+		if ac.EC.Command.Flags().Changed("environment") {
+			in.EnvironmentName = &o.EnvironmentName
+		}
+		if ac.EC.Command.Flags().Changed("resilience-zone") {
+			in.ResilienceZone = &o.ResilienceZone
+		}
+		if ac.EC.Command.Flags().Changed("subscription") {
+			in.SubscriptionID = &o.SubscriptionID
+		}
+		if ac.EC.Command.Flags().Changed("infrastructure-provider") {
+			in.InfrastructureProvider = &o.InfrastructureProvider
+		}
+		if ac.EC.Command.Flags().Changed("has-to") ||
+			ac.EC.Command.Flags().Changed("has-tm") ||
+			ac.EC.Command.Flags().Changed("has-ao") ||
+			ac.EC.Command.Flags().Changed("has-am") ||
+			ac.EC.Command.Flags().Changed("has-co") {
+			in.HasTechnicalOperations = &o.HasTechnicalOperations
+			in.HasTechnicalManagement = &o.HasTechnicalManagement
+			in.HasApplicationOperations = &o.HasApplicationOperations
+			in.HasApplicationManagement = &o.HasApplicationManagement
+			in.HasCustomOperations = &o.HasCustomOperations
+		}
+		if ac.EC.Command.Flags().Changed("co-url") {
+			in.CustomOperationsURL = &o.CustomOperationsURL
+		}
+		result, err = cluster.UpdateCluster(ctx, o.clusterID, in)
+		if err == nil {
+			ui.UpdateSpinnerText(s, "Cluster metadata updated")
+		}
+		return err
+	}); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Updating cluster metadata",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
-	ec.Spinner.Stop()
+	if result.Problem != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			*result.Problem.Title,
+			*result.Problem.Detail,
+			nil,
+			0,
+		)
+	}
 
-	ec.Logger.Info("Cluster metadata updated ✅")
-
-	r := cluster.NewClusterRenderer(result.ClusterResponse, result.JSONResponse, ec.Stdout)
-	if err := r.Render(ec.OutputFormat); err != nil {
-		return fmt.Errorf("rendering output: %w", err)
+	r := cluster.NewClusterRenderer(result.ClusterResponse, result.JSONResponse, ac.EC.Stdout)
+	if err := r.Render(ac.EC.PFlags.OutputFormat); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Failed to render output",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
 	return nil

@@ -3,10 +3,10 @@ package authcode
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 	"time"
 
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/reader"
 	"github.com/stretchr/testify/assert"
@@ -47,7 +47,7 @@ func TestKeyboard_Login(t *testing.T) {
 			Return("YOUR_AUTH_CODE", nil)
 		u := Keyboard{
 			Reader: mockReader,
-			Logger: logger.NewTestLogger(t),
+			Logger: slog.Default(),
 		}
 		got, err := u.Login(ctx, o, mockClient)
 		assert.NoError(t, err, "Login returned error")
@@ -81,7 +81,7 @@ func TestKeyboard_Login(t *testing.T) {
 			Return("YOUR_INVALID_AUTH_CODE", nil)
 		u := Keyboard{
 			Reader: mockReader,
-			Logger: logger.NewTestLogger(t),
+			Logger: slog.Default(),
 		}
 		got, err := u.Login(ctx, o, mockClient)
 		assert.Error(t, err, "Login returned error")

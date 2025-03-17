@@ -93,6 +93,8 @@ func getDefaultTokenCacheDir() string {
 func Execute(version string) int {
 	ec := cmd.NewExecutionContext(AppName, ShortDesc, version)
 	ec.PFlags.NoInputEnabled = true
+	ec.PFlags.ForceEnabled = true
+	ec.PFlags.NoHeadersEnabled = true
 	ac := ic.NewContext()
 	ac.EC = ec
 	ec.LongDescription = LongDesc

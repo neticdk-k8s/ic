@@ -133,7 +133,7 @@ func (c *client) GetTokenByAuthCode(ctx context.Context, in GetTokenByAuthCodeIn
 		RedirectURLHostname:    in.RedirectURLHostname,
 		LocalServerBindAddress: []string{in.BindAddress},
 		Logf: func(format string, args ...any) {
-			c.logger.Debug(fmt.Sprintf(format, args...))
+			c.logger.DebugContext(ctx, fmt.Sprintf(format, args...))
 		},
 	}
 

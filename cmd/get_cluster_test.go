@@ -8,19 +8,23 @@ import (
 	"testing"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func Test_GetClusterCommand(t *testing.T) {
 	got := new(bytes.Buffer)
-	in := ExecutionContextInput{
-		Stdout: got,
-		Stderr: got,
-	}
-	ec := NewExecutionContext(in)
+	ec := cmd.NewExecutionContext(AppName, ShortDesc, "test")
+	ec.Stderr = got
+	ec.Stdout = got
+	ui.SetDefaultOutput(got)
+	ac := ic.NewContext()
+	ac.EC = ec
 	mockAuthenticator := authentication.NewMockAuthenticator(t)
 	mockAuthenticator.EXPECT().
 		SetLogger(mock.Anything).
@@ -34,7 +38,7 @@ func Test_GetClusterCommand(t *testing.T) {
 			IDToken:      "YOUR_ID_TOKEN",
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}, nil)
-	ec.Authenticator = mockAuthenticator
+	ac.Authenticator = mockAuthenticator
 	included := []map[string]interface{}{
 		{
 			"@id":   "my-provider-id",
@@ -78,9 +82,9 @@ func Test_GetClusterCommand(t *testing.T) {
 				},
 			}, nil)
 	apiClient := mockClientWithResponsesInterface
-	ec.APIClient = apiClient
+	ac.APIClient = apiClient
 
-	cmd := NewRootCmd(ec)
+	cmd := newRootCmd(ac)
 
 	t.Run("get cluster my-cluster.my-provider", func(t *testing.T) {
 		cmd.SetArgs([]string{"get", "cluster", "my-cluster.my-provider"})

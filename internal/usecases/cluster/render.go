@@ -12,7 +12,7 @@ import (
 const (
 	FormatJson  = "json"
 	FormatTable = "table"
-	FormatText  = "text"
+	FormatPlain = "plain"
 )
 
 type Renderer interface {
@@ -47,7 +47,7 @@ func (r *clusterRenderer) Render(format string) error {
 	switch format {
 	case FormatJson:
 		return r.renderJSON()
-	case FormatText, FormatTable:
+	case FormatPlain, FormatTable:
 		return r.renderText()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -124,7 +124,7 @@ func (r *clustersRenderer) Render(format string) error {
 	switch format {
 	case FormatJson:
 		return r.renderJSON()
-	case FormatText, FormatTable:
+	case FormatPlain, FormatTable:
 		return r.renderTable()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -179,7 +179,7 @@ func (r *clusterNodesRenderer) Render(format string) error {
 	switch format {
 	case FormatJson:
 		return r.renderJSON()
-	case FormatText, FormatTable:
+	case FormatPlain, FormatTable:
 		return r.renderTable()
 	default:
 		return fmt.Errorf("unknown format: %s", format)
@@ -237,7 +237,7 @@ func (r *clusterNodeRenderer) Render(format string) error {
 	switch format {
 	case FormatJson:
 		return r.renderJSON()
-	case FormatText, FormatTable:
+	case FormatPlain, FormatTable:
 		return r.renderText()
 	default:
 		return fmt.Errorf("unknown format: %s", format)

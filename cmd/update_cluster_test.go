@@ -3,21 +3,25 @@ package cmd
 import (
 	"bytes"
 	"context"
+	goerr "errors"
 	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/neticdk-k8s/ic/internal/apiclient"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/errors"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func Test_UpdateClusterCommand(t *testing.T) {
-	t.Parallel()
-	ec, got := newMockedUpdateClusterEC(t)
-	cmd := NewRootCmd(ec)
+	ac, got := newMockedUpdateClusterEC(t)
+	cmd := newRootCmd(ac)
 
 	cmd.SetArgs([]string{"update", "cluster", "my-cluster.my-provider", "--resilience-zone", "platform"})
 	err := cmd.ExecuteContext(context.Background())
@@ -30,9 +34,8 @@ func Test_UpdateClusterCommand(t *testing.T) {
 }
 
 func Test_UpdateClusterCommandWithJSONOutput(t *testing.T) {
-	t.Parallel()
-	ec, got := newMockedUpdateClusterEC(t)
-	cmd := NewRootCmd(ec)
+	ac, got := newMockedUpdateClusterEC(t)
+	cmd := newRootCmd(ac)
 
 	cmd.SetArgs([]string{"update", "cluster", "my-cluster.my-provider", "--resilience-zone", "platform", "-o", "json"})
 	err := cmd.ExecuteContext(context.Background())
@@ -52,7 +55,7 @@ func Test_UpdateClusterCommandInvalidParameters(t *testing.T) {
 		{
 			testName:     "no cluster given",
 			args:         []string{},
-			expErrString: "accepts 1 arg(s), received 0",
+			expErrString: "requires exactly 1",
 		},
 		{
 			testName:     "no parameters given",
@@ -99,30 +102,38 @@ func Test_UpdateClusterCommandInvalidParameters(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			got := new(bytes.Buffer)
-			in := ExecutionContextInput{
-				Stdout: got,
-				Stderr: got,
-			}
-			ec := NewExecutionContext(in)
-			cmd := NewRootCmd(ec)
+			ec := cmd.NewExecutionContext(AppName, ShortDesc, "test")
+			ec.Stderr = got
+			ec.Stdout = got
+			ui.SetDefaultOutput(got)
+			ac := ic.NewContext()
+			ac.EC = ec
+			cmd := newRootCmd(ac)
 			args := append([]string{"update", "cluster"}, tc.args...)
 			cmd.SetArgs(args)
 			err := cmd.Execute()
 			assert.Error(t, err)
 			if err != nil {
-				assert.Contains(t, err.Error(), tc.expErrString)
+				var invalidArgErr *errors.InvalidArgumentError
+				if goerr.As(err, &invalidArgErr) {
+					assert.Contains(t, err.(errors.ErrorWithHelp).Help(), tc.expErrString)
+				} else {
+					assert.Contains(t, err.Error(), tc.expErrString)
+				}
 			}
 		})
 	}
 }
 
-func newMockedUpdateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
+func newMockedUpdateClusterEC(t *testing.T) (*ic.Context, *bytes.Buffer) {
 	got := new(bytes.Buffer)
-	in := ExecutionContextInput{
-		Stdout: got,
-		Stderr: got,
-	}
-	ec := NewExecutionContext(in)
+	ec := cmd.NewExecutionContext(AppName, ShortDesc, "test")
+	ec.Stdin = nil
+	ec.Stderr = got
+	ec.Stdout = got
+	ui.SetDefaultOutput(got)
+	ac := ic.NewContext()
+	ac.EC = ec
 	mockAuthenticator := authentication.NewMockAuthenticator(t)
 	mockAuthenticator.EXPECT().
 		SetLogger(mock.Anything).
@@ -136,7 +147,7 @@ func newMockedUpdateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
 			IDToken:      "YOUR_ID_TOKEN",
 			RefreshToken: "YOUR_REFRESH_TOKEN",
 		}, nil)
-	ec.Authenticator = mockAuthenticator
+	ac.Authenticator = mockAuthenticator
 	included := []map[string]interface{}{
 		{
 			"@id":   "my-provider-id",
@@ -180,7 +191,7 @@ func newMockedUpdateClusterEC(t *testing.T) (*ExecutionContext, *bytes.Buffer) {
 				},
 			}, nil)
 	apiClient := mockClientWithResponsesInterface
-	ec.APIClient = apiClient
+	ac.APIClient = apiClient
 
-	return ec, got
+	return ac, got
 }

@@ -149,7 +149,7 @@ func listClusters(ctx context.Context, in *ListClustersInput, clusterList *Clust
 	if err != nil {
 		return nil, fmt.Errorf("reading clusters: %w", err)
 	}
-	in.Logger.Debug("listClusters", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "listClusters", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -191,7 +191,7 @@ func GetCluster(ctx context.Context, clusterID string, in GetClusterInput) (*Get
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster: %w", err)
 	}
-	in.Logger.Debug("getCluster", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "getCluster", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -263,7 +263,7 @@ func CreateCluster(ctx context.Context, in CreateClusterInput) (*CreateClusterRe
 	if err != nil {
 		return nil, fmt.Errorf("creating cluster: %w", err)
 	}
-	in.Logger.Debug("createCluster", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "createCluster", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusCreated:
 	case http.StatusBadRequest:
@@ -329,7 +329,7 @@ func UpdateCluster(ctx context.Context, clusterID string, in UpdateClusterInput)
 	if err != nil {
 		return nil, fmt.Errorf("updating cluster: %w", err)
 	}
-	in.Logger.Debug("updateCluster", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "updateCluster", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -369,7 +369,7 @@ func DeleteCluster(ctx context.Context, clusterID string, in DeleteClusterInput)
 	if err != nil {
 		return nil, fmt.Errorf("deleting cluster: %w", err)
 	}
-	in.Logger.Debug("deleteCluster", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "deleteCluster", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusNoContent:
 	case http.StatusNotFound:
@@ -498,7 +498,7 @@ func listClusterNodes(ctx context.Context, in *ListClusterNodesInput, nodeList *
 	if err != nil {
 		return nil, fmt.Errorf("reading cluster node list: %w", err)
 	}
-	in.Logger.Debug("listNodes", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "listNodes", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -542,7 +542,7 @@ func GetClusterNode(ctx context.Context, in GetClusterNodeInput) (*GetClusterNod
 	if err != nil {
 		return nil, fmt.Errorf("getting node: %w", err)
 	}
-	in.Logger.Debug("getNode", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "getNode", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -582,7 +582,7 @@ func GetClusterKubeConfig(ctx context.Context, in GetClusterKubeConfigInput) (*G
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster kubeconfig: %w", err)
 	}
-	in.Logger.Debug("getClusterKubeconfig", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "getClusterKubeconfig", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -693,7 +693,10 @@ func nilInt64(i *int64) int64 {
 }
 
 func logStatus(r *http.Response) []any {
-	return []any{"status", r.StatusCode, "content-type", r.Header.Get("Content-Type")}
+	return []any{
+		slog.Int("status", r.StatusCode),
+		slog.String("content-type", r.Header.Get("Content-Type")),
+	}
 }
 
 func mapValAs[T any](haystak map[string]any, needle string) (T, bool) {

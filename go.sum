@@ -140,6 +140,8 @@ github.com/muesli/termenv v0.16.0 h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc
 github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3VfY/Cnk=
 github.com/neticdk/go-common v0.12.0 h1:HegbdFSr2P8EDJ9yBZjkXdkg2kYBUGb0t23FwYOFfFs=
 github.com/neticdk/go-common v0.12.0/go.mod h1:O+eVLoZwwS2j9/VEQw8V8AFz3JEeoLyA03bycZpgeNw=
+github.com/neticdk/go-common v0.13.0 h1:vPpe+XipIugQddfJ6ORvMEqQd9MnDipJLM7lCTRDqEE=
+github.com/neticdk/go-common v0.13.0/go.mod h1:Te9xpB0VQrpS84wu2kQ7MjpW9q7eqdKHlBolH3fPTXQ=
 github.com/oapi-codegen/runtime v1.1.1 h1:EXLHh0DXIJnWhdRPN2w4MXAzFyE4CskzhNLUmtpMYro=
 github.com/oapi-codegen/runtime v1.1.1/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=

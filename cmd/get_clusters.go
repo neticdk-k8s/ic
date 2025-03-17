@@ -1,13 +1,16 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"slices"
 	"strings"
 
-	"github.com/neticdk-k8s/ic/internal/errors"
+	"github.com/neticdk-k8s/ic/internal/ic"
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
+	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/neticdk/go-common/pkg/qsparser"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -21,34 +24,34 @@ var getClustersFilterNames = []string{
 	"navisionCustomerName", "resilienceZone", "clientVersion", "kubernetesVersion",
 }
 
-// New creates a new "get clusters" command
-func NewGetClustersCmd(ec *ExecutionContext) *cobra.Command {
-	o := getClustersOptions{}
-	c := &cobra.Command{
-		Use:   "clusters",
-		Short: "Get list of clusters",
-		Long: `Get list of clusters.
+const getClustersLongDesc = `Get list of clusters.
 
 Supported field names for filters:
 
 name, description, clusterID, clusterType, region, environmentName,
 providerName, navisionSubscriptionNumber, navisionCustomerNumber,
 navisionCustomerName, resilienceZone, clientVersion, kubernetesVersion
-`,
+`
 
-		GroupID: groupCluster,
-		Example: `
+const getClustersExample = `
 # get all cluster
 ic get clusters
 
 # get clusters in the resilience zone 'platform'
 ic get clusters --filter resilienceZone=platform
 
-use: 'ic help filters' for more information on using filters`,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return o.run(ec)
-		},
-	}
+use: 'ic help filters' for more information on using filters`
+
+// New creates a new "get clusters" command
+func getClustersCmd(ac *ic.Context) *cobra.Command {
+	o := &getClustersOptions{}
+	c := cmd.NewSubCommand("clusters", o, ac).
+		WithShortDesc("Get list of clusters").
+		WithLongDesc(getClustersLongDesc).
+		WithExample(getClustersExample).
+		WithGroupID(groupCluster).
+		Build()
+
 	o.bindFlags(c.Flags())
 	return c
 }
@@ -69,16 +72,19 @@ type getClustersOptions struct {
 }
 
 func (o *getClustersOptions) bindFlags(f *pflag.FlagSet) {
-	f.StringArrayVarP(&o.Filters, "filter", "f", []string{}, "Filter output based on conditions")
+	f.StringArrayVar(&o.Filters, "filter", []string{}, "Filter output based on conditions")
 }
 
-func (o *getClustersOptions) run(ec *ExecutionContext) error {
-	logger := ec.Logger.WithPrefix("Clusters")
-	ec.Authenticator.SetLogger(logger)
+func (o *getClustersOptions) Complete(_ context.Context, _ *ic.Context) error { return nil }
+func (o *getClustersOptions) Validate(_ context.Context, _ *ic.Context) error { return nil }
 
-	_, err := doLogin(ec)
+func (o *getClustersOptions) Run(ctx context.Context, ac *ic.Context) error {
+	logger := ac.EC.Logger.WithGroup("Clusters")
+	ac.Authenticator.SetLogger(logger)
+
+	_, err := doLogin(ctx, ac)
 	if err != nil {
-		return fmt.Errorf("logging in: %w", err)
+		return err
 	}
 
 	searchFields := make(map[string]*qsparser.SearchField)
@@ -90,30 +96,42 @@ func (o *getClustersOptions) run(ec *ExecutionContext) error {
 		searchFields[out.FieldName] = out.SearchField
 	}
 
-	ec.Spin("Getting clusters")
+	var result *cluster.ListClusterResults
 
-	in := cluster.ListClustersInput{
-		Logger:    logger,
-		APIClient: ec.APIClient,
-		PerPage:   PerPage,
-		Filters:   searchFields,
-	}
-	result, err := cluster.ListClusters(ec.Command.Context(), in)
-	if err != nil {
-		return fmt.Errorf("listing clusters: %w", err)
+	if err := ui.Spin(ac.EC.Spinner, "Getting clusters", func(_ ui.Spinner) error {
+		in := cluster.ListClustersInput{
+			Logger:    logger,
+			APIClient: ac.APIClient,
+			PerPage:   PerPage,
+			Filters:   searchFields,
+		}
+		result, err = cluster.ListClusters(ctx, in)
+		return err
+	}); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Listing clusters",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 	if result.Problem != nil {
-		return &errors.ProblemError{
-			Title:   "listing clusters",
-			Problem: result.Problem,
-		}
+		return ac.EC.ErrorHandler.NewGeneralError(
+			*result.Problem.Title,
+			*result.Problem.Detail,
+			nil,
+			0,
+		)
 	}
 
-	ec.Spinner.Stop()
-
-	r := cluster.NewClustersRenderer(result.ClusterListResponse, result.JSONResponse, ec.Stdout, ec.NoHeaders)
-	if err := r.Render(ec.OutputFormat); err != nil {
-		return fmt.Errorf("rendering output: %w", err)
+	r := cluster.NewClustersRenderer(result.ClusterListResponse, result.JSONResponse, ac.EC.Stdout, ac.EC.PFlags.NoHeaders)
+	if err := r.Render(ac.EC.PFlags.OutputFormat); err != nil {
+		return ac.EC.ErrorHandler.NewGeneralError(
+			"Failed to render output",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
 	return nil

@@ -9,6 +9,7 @@ import (
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication/authcode"
 	"github.com/neticdk/go-common/pkg/cli/cmd"
+	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -38,36 +39,60 @@ func (o *loginOptions) Run(ctx context.Context, ac *ic.Context) error {
 		return fmt.Errorf("logging in: %w", err)
 	}
 
-	ac.EC.Logger.Info("Login succeeded ✅")
+	ui.Success.Println("Logged in")
 
 	return nil
 }
 
 func doLogin(ctx context.Context, ac *ic.Context) (*oidc.TokenSet, error) {
+	var (
+		tokenSet *oidc.TokenSet
+		err      error
+	)
+
 	loginInput := authentication.LoginInput{
 		Provider:    *ac.OIDCProvider,
 		TokenCache:  ac.TokenCache,
 		AuthOptions: authentication.AuthOptions{},
 	}
 	if ac.OIDC.GrantType == "authcode-browser" {
-		ac.EC.Spin("Logging in")
 		loginInput.AuthOptions.AuthCodeBrowser = &authcode.BrowserLoginInput{
 			BindAddress:         ac.OIDC.AuthBindAddr,
 			RedirectURLHostname: ac.OIDC.RedirectURLHostname,
+		}
+		if err := ui.Spin(ac.EC.Spinner, "Logging in", func(_ ui.Spinner) error {
+			tokenSet, err = ac.Authenticator.Login(ctx, loginInput)
+			return err
+		}); err != nil {
+			return nil, ac.EC.ErrorHandler.NewGeneralError(
+				"Logging in",
+				"See details for more information",
+				err,
+				0,
+			)
 		}
 	} else if ac.OIDC.GrantType == "authcode-keyboard" {
 		loginInput.AuthOptions.AuthCodeKeyboard = &authcode.KeyboardLoginInput{
 			RedirectURI: ac.OIDC.RedirectURIAuthCodeKeyboard,
 		}
-	}
-
-	tokenSet, err := ac.Authenticator.Login(ctx, loginInput)
-	if err != nil {
-		return nil, fmt.Errorf("logging in: %w", err)
+		tokenSet, err = ac.Authenticator.Login(ctx, loginInput)
+		if err != nil {
+			return nil, ac.EC.ErrorHandler.NewGeneralError(
+				"Logging in",
+				"See details for more information",
+				err,
+				0,
+			)
+		}
 	}
 
 	if err := ac.SetupDefaultAPIClient(tokenSet.AccessToken); err != nil {
-		return nil, fmt.Errorf("setting up API client: %w", err)
+		return nil, ac.EC.ErrorHandler.NewGeneralError(
+			"Setup API client in",
+			"See details for more information",
+			err,
+			0,
+		)
 	}
 
 	return tokenSet, nil

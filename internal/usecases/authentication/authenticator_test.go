@@ -2,11 +2,11 @@ package authentication
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/neticdk-k8s/ic/internal/logger"
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/reader"
 	testingJWT "github.com/neticdk-k8s/ic/internal/testing/jwt"
@@ -19,7 +19,7 @@ import (
 
 func TestAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		logger := logger.NewTestLogger(t)
+		logger := slog.Default()
 		authn := NewAuthentication(logger, nil, &authcode.Browser{Logger: logger}, &authcode.Keyboard{Reader: reader.NewReader(), Logger: logger})
 		want := &authenticator{
 			authentication: authn,
@@ -31,7 +31,7 @@ func TestAuthenticator_NewAuthenticator(t *testing.T) {
 }
 
 func TestAuthenticator_Login(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 	testProvider := oidc.Provider{
 		IssuerURL: "https://issuer.example.com",
 		ClientID:  "YOUR_CLIENT_ID",
@@ -142,7 +142,7 @@ func TestAuthenticator_Login(t *testing.T) {
 }
 
 func TestAuthenticator_Logout(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 	testProvider := oidc.Provider{
 		IssuerURL: "https://issuer.example.com",
 		ClientID:  "YOUR_CLIENT_ID",
@@ -214,7 +214,7 @@ func TestAuthenticator_Logout(t *testing.T) {
 
 func TestAuthentication_NewAuthentication(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		logger := logger.NewTestLogger(t)
+		logger := slog.Default()
 
 		want := &authentication{
 			oidcClientFactory: &oidc.Factory{
@@ -236,7 +236,7 @@ func TestAuthentication_NewAuthentication(t *testing.T) {
 }
 
 func TestAuthentication_Authenticate(t *testing.T) {
-	logger := logger.NewTestLogger(t)
+	logger := slog.Default()
 
 	timeout := 5 * time.Second
 	expiryTime := time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC)

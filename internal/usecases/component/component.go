@@ -132,7 +132,7 @@ func listComponents(ctx context.Context, in *ListComponentsInput, componentList 
 	if err != nil {
 		return nil, fmt.Errorf("reading components: %w", err)
 	}
-	in.Logger.Debug("listComponents", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "listComponents", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusBadRequest:
@@ -170,7 +170,7 @@ func GetComponent(ctx context.Context, namespace, name string, in GetComponentIn
 	if err != nil {
 		return nil, fmt.Errorf("getComponent: %w", err)
 	}
-	in.Logger.Debug("apiclient", logStatus(response.HTTPResponse))
+	in.Logger.DebugContext(ctx, "apiclient", logStatus(response.HTTPResponse)...)
 	switch response.StatusCode() {
 	case http.StatusOK:
 	case http.StatusNotFound:
@@ -242,5 +242,8 @@ func mapValAs[T any](haystak map[string]any, needle string) (T, bool) {
 }
 
 func logStatus(r *http.Response) []any {
-	return []any{"status", r.StatusCode, "content-type", r.Header.Get("Content-Type")}
+	return []any{
+		slog.Int("status", r.StatusCode),
+		slog.String("content-type", r.Header.Get("Content-Type")),
+	}
 }

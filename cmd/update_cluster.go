@@ -10,7 +10,6 @@ import (
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
 	"github.com/neticdk-k8s/ic/internal/validation"
 	"github.com/neticdk/go-common/pkg/cli/cmd"
-	"github.com/neticdk/go-common/pkg/cli/errors"
 	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/neticdk/go-common/pkg/types"
 	"github.com/spf13/cobra"
@@ -89,7 +88,7 @@ func (o *updateClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 	command := ac.EC.Command
 
 	if o.HasCustomOperations && !validation.IsWebURL(o.CustomOperationsURL) {
-		return &errors.InvalidArgumentError{
+		return &cmd.InvalidArgumentError{
 			Flag:    "co-url",
 			Val:     o.CustomOperationsURL,
 			Context: "must be a URL using a http(s) scheme",
@@ -111,7 +110,7 @@ func (o *updateClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 	for _, v := range rfc1035FieldFlags {
 		if command.Flags().Changed(v.Flag) {
 			if !validation.IsDNSRFC1035Label(v.Val) {
-				return &errors.InvalidArgumentError{
+				return &cmd.InvalidArgumentError{
 					Flag:    v.Flag,
 					Val:     v.Val,
 					Context: "must be an RFC1035 DNS label",
@@ -121,7 +120,7 @@ func (o *updateClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 	}
 	if command.Flags().Changed("infrastructure-provider") {
 		if !slices.Contains(types.AllInfrastructureProvidersString(), o.InfrastructureProvider) {
-			return &errors.InvalidArgumentError{
+			return &cmd.InvalidArgumentError{
 				Flag:  "infrastructure-provider",
 				Val:   o.InfrastructureProvider,
 				OneOf: types.AllInfrastructureProvidersString(),
@@ -135,7 +134,7 @@ func (o *updateClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 	}
 	if command.Flags().Changed("subscription") {
 		if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
-			return &errors.InvalidArgumentError{
+			return &cmd.InvalidArgumentError{
 				Flag:    "subscription",
 				Val:     o.SubscriptionID,
 				Context: "must be an ASCII string of minimum 5 characters length",

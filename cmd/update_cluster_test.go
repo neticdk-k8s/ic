@@ -13,7 +13,6 @@ import (
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
 	"github.com/neticdk/go-common/pkg/cli/cmd"
-	"github.com/neticdk/go-common/pkg/cli/errors"
 	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -108,15 +107,15 @@ func Test_UpdateClusterCommandInvalidParameters(t *testing.T) {
 			ui.SetDefaultOutput(got)
 			ac := ic.NewContext()
 			ac.EC = ec
-			cmd := newRootCmd(ac)
+			command := newRootCmd(ac)
 			args := append([]string{"update", "cluster"}, tc.args...)
-			cmd.SetArgs(args)
-			err := cmd.Execute()
+			command.SetArgs(args)
+			err := command.Execute()
 			assert.Error(t, err)
 			if err != nil {
-				var invalidArgErr *errors.InvalidArgumentError
+				var invalidArgErr *cmd.InvalidArgumentError
 				if goerr.As(err, &invalidArgErr) {
-					assert.Contains(t, err.(errors.ErrorWithHelp).Help(), tc.expErrString)
+					assert.Contains(t, err.(cmd.ErrorWithHelp).Help(), tc.expErrString)
 				} else {
 					assert.Contains(t, err.Error(), tc.expErrString)
 				}

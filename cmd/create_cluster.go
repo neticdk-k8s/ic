@@ -10,7 +10,6 @@ import (
 	"github.com/neticdk-k8s/ic/internal/usecases/cluster"
 	"github.com/neticdk-k8s/ic/internal/validation"
 	"github.com/neticdk/go-common/pkg/cli/cmd"
-	"github.com/neticdk/go-common/pkg/cli/errors"
 	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/neticdk/go-common/pkg/types"
 	"github.com/spf13/cobra"
@@ -94,7 +93,7 @@ func (o *createClusterOptions) Complete(_ context.Context, _ *ic.Context) error 
 func (o *createClusterOptions) Validate(ctx context.Context, ac *ic.Context) error {
 	p, ok := types.ParsePartition(o.Partition)
 	if !ok {
-		return &errors.InvalidArgumentError{
+		return &cmd.InvalidArgumentError{
 			Flag:  "partition",
 			Val:   o.Partition,
 			OneOf: types.AllPartitionsString(),
@@ -102,21 +101,21 @@ func (o *createClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 	}
 	r, ok := types.ParseRegion(o.Region)
 	if !ok {
-		return &errors.InvalidArgumentError{
+		return &cmd.InvalidArgumentError{
 			Flag:     "region",
 			Val:      o.Region,
 			SeeOther: "get regions",
 		}
 	}
 	if !types.HasRegion(p, r) {
-		return &errors.InvalidArgumentError{
+		return &cmd.InvalidArgumentError{
 			Flag:     "region",
 			Val:      o.Region,
 			SeeOther: fmt.Sprintf("get regions --partition %s", o.Partition),
 		}
 	}
 	if o.HasCustomOperations && !validation.IsWebURL(o.CustomOperationsURL) {
-		return &errors.InvalidArgumentError{
+		return &cmd.InvalidArgumentError{
 			Flag:    "co-url",
 			Val:     o.CustomOperationsURL,
 			Context: "must be a URL using a http(s) scheme",
@@ -145,7 +144,7 @@ func (o *createClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 	}
 	for _, v := range rfc1035FieldFlags {
 		if !validation.IsDNSRFC1035Label(v.Val) {
-			return &errors.InvalidArgumentError{
+			return &cmd.InvalidArgumentError{
 				Flag:    v.Flag,
 				Val:     v.Val,
 				Context: "must be an RFC1035 DNS label",
@@ -153,7 +152,7 @@ func (o *createClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 		}
 	}
 	if !slices.Contains(types.AllInfrastructureProvidersString(), o.InfrastructureProvider) {
-		return &errors.InvalidArgumentError{
+		return &cmd.InvalidArgumentError{
 			Flag:  "infrastructure-provider",
 			Val:   o.InfrastructureProvider,
 			OneOf: types.AllInfrastructureProvidersString(),
@@ -163,7 +162,7 @@ func (o *createClusterOptions) Validate(ctx context.Context, ac *ic.Context) err
 		ac.EC.Logger.WarnContext(ctx, fmt.Sprintf("Non-standard resilience zone used: %s", o.ResilienceZone))
 	}
 	if !validation.IsPrintableASCII(o.SubscriptionID) || len(o.SubscriptionID) < 5 {
-		return &errors.InvalidArgumentError{
+		return &cmd.InvalidArgumentError{
 			Flag:    "subscription",
 			Val:     o.SubscriptionID,
 			Context: "must be an ASCII string of minimum 5 characters length",

@@ -13,7 +13,6 @@ import (
 	"github.com/neticdk-k8s/ic/internal/oidc"
 	"github.com/neticdk-k8s/ic/internal/usecases/authentication"
 	"github.com/neticdk/go-common/pkg/cli/cmd"
-	"github.com/neticdk/go-common/pkg/cli/errors"
 	"github.com/neticdk/go-common/pkg/cli/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -169,14 +168,14 @@ func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
 			ui.SetDefaultOutput(got)
 			ac := ic.NewContext()
 			ac.EC = ec
-			cmd := newRootCmd(ac)
+			command := newRootCmd(ac)
 			args := append([]string{"create", "cluster"}, tc.args...)
-			cmd.SetArgs(args)
-			err := cmd.Execute()
+			command.SetArgs(args)
+			err := command.Execute()
 			if err != nil {
-				var invalidArgErr *errors.InvalidArgumentError
+				var invalidArgErr *cmd.InvalidArgumentError
 				if goerr.As(err, &invalidArgErr) {
-					assert.Contains(t, err.(errors.ErrorWithHelp).Help(), tc.expErrString)
+					assert.Contains(t, err.(cmd.ErrorWithHelp).Help(), tc.expErrString)
 				} else {
 					assert.Contains(t, err.Error(), tc.expErrString)
 				}
@@ -249,11 +248,11 @@ func Test_CreateClusterCommandServiceLevels(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			ac, _ := newMockedCreateClusterEC(t)
-			cmd := newRootCmd(ac)
-			cmd.SetArgs(tc.args)
+			command := newRootCmd(ac)
+			command.SetArgs(tc.args)
 			o := &createClusterOptions{}
-			o.bindFlags(cmd.Flags())
-			err := cmd.ParseFlags(tc.args)
+			o.bindFlags(command.Flags())
+			err := command.ParseFlags(tc.args)
 			if err != nil {
 				t.Log(err)
 			}
@@ -263,9 +262,9 @@ func Test_CreateClusterCommandServiceLevels(t *testing.T) {
 				t.Log(err)
 			}
 			assert.NoError(t, err)
-			err = cmd.Execute()
+			err = command.Execute()
 			if err != nil {
-				t.Log(err.(errors.ErrorWithHelp).Unwrap())
+				t.Log(err.(cmd.ErrorWithHelp).Unwrap())
 			}
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expCO, o.HasCustomOperations)

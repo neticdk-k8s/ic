@@ -544,9 +544,9 @@ users:
 			}, nil)
 
 	in := GetClusterKubeConfigInput{
-		Logger:      logger,
-		APIClient:   mockClient,
-		ClusterName: "my-cluster.my-provider",
+		Logger:    logger,
+		APIClient: mockClient,
+		ClusterID: "my-cluster.my-provider",
 	}
 	got, err := GetClusterKubeConfig(context.TODO(), in)
 	assert.NoError(t, err)

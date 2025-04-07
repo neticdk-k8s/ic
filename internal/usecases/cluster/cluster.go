@@ -565,9 +565,9 @@ func GetClusterNode(ctx context.Context, in GetClusterNodeInput) (*GetClusterNod
 
 // GetClusterKubeConfigInput is the input used by GetClusterKubeConfig()
 type GetClusterKubeConfigInput struct {
-	Logger      *slog.Logger
-	APIClient   apiclient.ClientWithResponsesInterface
-	ClusterName string
+	Logger    *slog.Logger
+	APIClient apiclient.ClientWithResponsesInterface
+	ClusterID string
 }
 
 // GetClusterKubeConfigResult is the result of GetClusterKubeConfig()
@@ -578,7 +578,7 @@ type GetClusterKubeConfigResult struct {
 
 // GetClusterKubeConfig returns kubeconfig for a cluster
 func GetClusterKubeConfig(ctx context.Context, in GetClusterKubeConfigInput) (*GetClusterKubeConfigResult, error) {
-	response, err := in.APIClient.GetClusterKubeConfigWithResponse(ctx, in.ClusterName)
+	response, err := in.APIClient.GetClusterKubeConfigWithResponse(ctx, in.ClusterID)
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster kubeconfig: %w", err)
 	}

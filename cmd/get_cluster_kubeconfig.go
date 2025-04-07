@@ -26,16 +26,18 @@ func getClusterKubeconfigCmd(ac *ic.Context) *cobra.Command {
 	c.Aliases = []string{"kubeconfig"}
 
 	o.bindFlags(c.Flags())
-	c.MarkFlagRequired("cluster-name") //nolint:errcheck
+	c.MarkFlagsOneRequired("cluster-name", "cluster-id") //nolint:errcheck
 	return c
 }
 
 type getClusterKubeConfigOptions struct {
+	clusterID   string
 	clusterName string
 }
 
 func (o *getClusterKubeConfigOptions) bindFlags(f *pflag.FlagSet) {
-	f.StringVar(&o.clusterName, "cluster-name", "", "The name of the cluster")
+	f.StringVar(&o.clusterID, "cluster-id", "", "The id of the cluster")
+	f.StringVar(&o.clusterName, "cluster-name", "", "The id of the cluster. Use cluster-id instead")
 }
 
 func (o *getClusterKubeConfigOptions) Complete(_ context.Context, _ *ic.Context) error { return nil }
@@ -45,6 +47,10 @@ func (o *getClusterKubeConfigOptions) Run(ctx context.Context, ac *ic.Context) e
 	logger := ac.EC.Logger.WithGroup("ClusterKubeConfig")
 	ac.Authenticator.SetLogger(logger)
 
+	if o.clusterName != "" {
+		ui.Info.Println("cluster-name is deprecated in favor of cluster-id.")
+	}
+
 	_, err := doLogin(ctx, ac)
 	if err != nil {
 		return err
@@ -52,10 +58,14 @@ func (o *getClusterKubeConfigOptions) Run(ctx context.Context, ac *ic.Context) e
 
 	var result *cluster.GetClusterKubeConfigResult
 	if err := ui.Spin(ac.EC.Spinner, "Getting kubeconfig", func(_ ui.Spinner) error {
+		clusterID := o.clusterName
+		if o.clusterID != "" {
+			clusterID = o.clusterID
+		}
 		in := cluster.GetClusterKubeConfigInput{
-			Logger:      logger,
-			APIClient:   ac.APIClient,
-			ClusterName: o.clusterName,
+			Logger:    logger,
+			APIClient: ac.APIClient,
+			ClusterID: clusterID,
 		}
 		result, err = cluster.GetClusterKubeConfig(ctx, in)
 		return err

@@ -44,7 +44,6 @@ func Test_UpdateClusterCommandWithJSONOutput(t *testing.T) {
 }
 
 func Test_UpdateClusterCommandInvalidParameters(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		testName     string
 		args         []string

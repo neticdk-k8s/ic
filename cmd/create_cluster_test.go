@@ -32,7 +32,6 @@ func Test_CreateClusterCommand(t *testing.T) {
 }
 
 func Test_CreateClusterCommandWithJSONOutput(t *testing.T) {
-	t.Parallel()
 	ec, got := newMockedCreateClusterEC(t)
 	cmd := newRootCmd(ec)
 
@@ -44,7 +43,6 @@ func Test_CreateClusterCommandWithJSONOutput(t *testing.T) {
 }
 
 func Test_CreateClusterCommandRequiredParameters(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		testName string
 		args     []string
@@ -91,7 +89,6 @@ func Test_CreateClusterCommandRequiredParameters(t *testing.T) {
 }
 
 func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
-	t.Parallel()
 	testCases := []struct {
 		testName     string
 		args         []string
@@ -185,8 +182,6 @@ func Test_CreateClusterCommandInvalidParameters(t *testing.T) {
 }
 
 func Test_CreateClusterCommandServiceLevels(t *testing.T) {
-	t.Parallel()
-
 	baseArgs := []string{"create", "cluster", "--name", "my-cluster", "--provider", "my-provider", "--environment", "test", "--subscription", "123456", "--resilience-zone", "platform"}
 
 	testCases := []struct {

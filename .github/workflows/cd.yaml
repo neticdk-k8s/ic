@@ -1,0 +1,43 @@
+---
+name: release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+  workflow_call:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release-matrix:
+    name: Release go binary
+
+    runs-on: ubuntu-latest-8core
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Go Releaser
+        uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TOKEN: ${{ secrets.CONTAIN_BOT_PAT }}

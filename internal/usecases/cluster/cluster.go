@@ -642,7 +642,7 @@ func toClusterResponse(cluster *apiclient.Cluster) *clusterResponse {
 	if cluster.ResilienceZone != nil {
 		if provider, ok := includeMap[*cluster.ResilienceZone]; ok {
 			if p, ok := provider.(map[string]any); ok {
-				cr.ResilienceZone, _ = mapValAs[string](p, "name")
+				cr.ResilienceZone, _ = mapValAs[string](p, "name") //nolint
 			}
 		}
 	}

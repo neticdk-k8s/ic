@@ -55,7 +55,8 @@ func doLogin(ctx context.Context, ac *ic.Context) (*oidc.TokenSet, error) {
 		TokenCache:  ac.TokenCache,
 		AuthOptions: authentication.AuthOptions{},
 	}
-	if ac.OIDC.GrantType == "authcode-browser" {
+	switch ac.OIDC.GrantType {
+	case "authcode-browser":
 		loginInput.AuthOptions.AuthCodeBrowser = &authcode.BrowserLoginInput{
 			BindAddress:         ac.OIDC.AuthBindAddr,
 			RedirectURLHostname: ac.OIDC.RedirectURLHostname,
@@ -71,7 +72,7 @@ func doLogin(ctx context.Context, ac *ic.Context) (*oidc.TokenSet, error) {
 				0,
 			)
 		}
-	} else if ac.OIDC.GrantType == "authcode-keyboard" {
+	case "authcode-keyboard":
 		loginInput.AuthOptions.AuthCodeKeyboard = &authcode.KeyboardLoginInput{
 			RedirectURI: ac.OIDC.RedirectURIAuthCodeKeyboard,
 		}

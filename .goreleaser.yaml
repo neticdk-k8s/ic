@@ -1,0 +1,71 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    - go install github.com/vektra/mockery/v2@latest
+    # you may remove this if you don't need go generate
+    - go generate ./...
+    - ./hack/do.sh completions
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - "-s -w -X main.version={{.Version}}"
+
+archives:
+  - formats: ["tar.gz"]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - completions/*
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^Merge pull request"
+      - "^Merge branch"
+
+brews:
+  - name: ic
+    custom_require: "../lib/private_strategy.rb"
+    directory: Formula
+    download_strategy: "GitHubPrivateRepositoryReleaseDownloadStrategy"
+    repository:
+      owner: containdk
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TOKEN }}"
+    goarm: "7"
+    homepage: https://github.com/containdk/ic
+    description: Inventory Client
+    license:
+    test: |
+      system "#{bin}/ic version"
+    dependencies:
+      - name: go
+        type: optional
+    install: |-
+      bin.install "ic"
+      bash_completion.install "completions/ic.bash" => "ic"
+      zsh_completion.install "completions/ic.zsh" => "_ic"
+      fish_completion.install "completions/ic.fish"
